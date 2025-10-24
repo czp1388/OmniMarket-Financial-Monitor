@@ -1,0 +1,70 @@
+﻿# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 环境变量
+.env
+.secret
+
+# 日志
+*.log
+
+# 严格过滤大文件和二进制文件
+*.exe
+*.msi
+*.dmg
+*.pkg
+*.deb
+*.rpm
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+*.iso
+*.img
+
+# 过滤大型媒体文件
+*.mp4
+*.avi
+*.mkv
+*.mov
+*.wmv
+*.mp3
+*.flac
+*.wav
+
+# 过滤大型文档
+*.pdf
+*.psd
+*.ai
+*.sketch
+
+# 过滤系统文件
+*.sys
+*.dll
+*.lib
+*.obj
+*.o
+
+# 确保不包含任何桌面文件
+Desktop/
