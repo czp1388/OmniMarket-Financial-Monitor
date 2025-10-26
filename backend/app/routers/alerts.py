@@ -1,60 +1,55 @@
-﻿from fastapi import APIRouter, HTTPException, BackgroundTasks
-from datetime import datetime
-import asyncio
+﻿from fastapi import APIRouter, HTTPException
+from typing import List, Dict
+import sys
+import os
 
-router = APIRouter()
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from services.alert_service import alert_service, AlertRule
 
-# 模拟预警规则存储（实际项目中应该用数据库）
-alert_rules = []
+router = APIRouter(prefix="/alerts", tags=["预警管理"])
 
-@router.post("/alerts/")
-async def create_alert(
-    symbol: str,
-    condition: str,  # "above", "below"
-    price: float,
-    email: str = None
-):
-    """创建价格预警"""
-    alert_rule = {
-        "id": len(alert_rules) + 1,
-        "symbol": symbol,
-        "condition": condition,
-        "price": price,
-        "email": email,
-        "created_at": datetime.now().isoformat(),
-        "active": True
-    }
-    
-    alert_rules.append(alert_rule)
-    
-    return {
-        "message": "预警创建成功",
-        "alert": alert_rule
-    }
-
-@router.get("/alerts/")
+@router.get("/")
 async def get_alerts():
     """获取所有预警规则"""
-    return {
-        "alerts": alert_rules,
-        "count": len(alert_rules)
-    }
+    return list(alert_service.rules.values())
 
-@router.delete("/alerts/{alert_id}")
-async def delete_alert(alert_id: int):
+@router.post("/")
+async def create_alert(rule_data: Dict):
+    """创建预警规则"""
+    try:
+        rule = AlertRule(
+            id=rule_data.get("id", str(len(alert_service.rules) + 1)),
+            name=rule_data["name"],
+            condition=rule_data["condition"],
+            target=rule_data["target"],
+            enabled=rule_data.get("enabled", True)
+        )
+        alert_service.add_rule(rule)
+        return {"message": "预警规则创建成功", "rule": rule.__dict__}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"创建预警规则失败: {e}")
+
+@router.delete("/{rule_id}")
+async def delete_alert(rule_id: str):
     """删除预警规则"""
-    global alert_rules
-    alert_rules = [alert for alert in alert_rules if alert["id"] != alert_id]
-    
-    return {"message": f"预警 {alert_id} 已删除"}
+    alert_service.remove_rule(rule_id)
+    return {"message": "预警规则删除成功"}
 
-@router.get("/alerts/status")
-async def get_alerts_status():
-    """获取预警系统状态"""
-    active_alerts = [alert for alert in alert_rules if alert["active"]]
-    
+@router.put("/{rule_id}/toggle")
+async def toggle_alert(rule_id: str):
+    """切换预警规则状态"""
+    if rule_id in alert_service.rules:
+        rule = alert_service.rules[rule_id]
+        rule.enabled = not rule.enabled
+        return {"message": "预警规则状态已更新", "enabled": rule.enabled}
+    else:
+        raise HTTPException(status_code=404, detail="预警规则不存在")
+
+@router.get("/status")
+async def get_alert_status():
+    """获取预警服务状态"""
     return {
-        "total_alerts": len(alert_rules),
-        "active_alerts": len(active_alerts),
-        "system_status": "运行中"
+        "is_monitoring": alert_service.is_monitoring,
+        "total_rules": len(alert_service.rules),
+        "active_rules": len([r for r in alert_service.rules.values() if r.enabled])
     }

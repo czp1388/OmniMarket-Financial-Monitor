@@ -1,76 +1,85 @@
-from fastapi import APIRouter, HTTPException
-import ccxt
-from datetime import datetime
-import asyncio
+﻿from fastapi import APIRouter, HTTPException, Query
+from typing import List, Optional
+import sys
+import os
+
+# 添加服务路径
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from services.data_service import data_service, astock_service
 
 router = APIRouter()
 
-# 支持更多交易所
-exchanges = {
-    "binance": ccxt.binance(),
-    # 可以添加更多交易所，比如：
-    # "huobi": ccxt.huobi(),
-    # "okx": ccxt.okx(),
-}
-
-@router.get("/prices/")
-async def get_price(symbol: str = "BTC/USDT", exchange: str = "binance"):
-    try:
-        if exchange not in exchanges:
-            raise HTTPException(status_code=400, detail="不支持的交易所")
-
-        ticker = exchanges[exchange].fetch_ticker(symbol)
-
-        return {
-            "symbol": symbol,
-            "price": ticker['last'],
-            "high": ticker['high'],
-            "low": ticker['low'],
-            "volume": ticker['baseVolume'],
-            "change": ticker['change'],
-            "percentage": ticker['percentage'],
-            "timestamp": datetime.now().isoformat(),
-            "exchange": exchange
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取价格失败: {str(e)}")
-
 @router.get("/exchanges")
 async def get_exchanges():
+    """获取支持的交易所列表"""
     return {
-        "exchanges": list(exchanges.keys()),
-        "count": len(exchanges)
+        "crypto_exchanges": data_service.get_supported_exchanges(),
+        "stock_exchanges": ["A股", "港股", "美股"]
     }
 
-@router.get("/multiple-prices/")
-async def get_multiple_prices(symbols: str = "BTC/USDT,ETH/USDT", exchange: str = "binance"):
-    """获取多个交易对的价格"""
-    try:
-        if exchange not in exchanges:
-            raise HTTPException(status_code=400, detail="不支持的交易所")
-        
-        symbol_list = [s.strip() for s in symbols.split(",")]
-        results = []
-        
-        for symbol in symbol_list:
-            try:
-                ticker = exchanges[exchange].fetch_ticker(symbol)
-                results.append({
-                    "symbol": symbol,
-                    "price": ticker['last'],
-                    "change": ticker['change'],
-                    "percentage": ticker['percentage'],
-                    "timestamp": datetime.now().isoformat()
-                })
-            except Exception as e:
-                results.append({
-                    "symbol": symbol,
-                    "error": str(e)
-                })
-        
-        return {
-            "exchange": exchange,
-            "prices": results
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"获取价格失败: {str(e)}")
+@router.get("/symbols/{exchange}")
+async def get_symbols(exchange: str):
+    """获取交易所的交易对列表"""
+    if exchange in data_service.get_supported_exchanges():
+        symbols = data_service.get_symbols(exchange)
+        return {"exchange": exchange, "symbols": symbols[:50]}  # 限制返回数量
+    else:
+        return {"exchange": exchange, "symbols": []}
+
+@router.get("/prices/")
+async def get_price(
+    exchange: str = Query(..., description="交易所"),
+    symbol: str = Query(..., description="交易对")
+):
+    """获取指定交易对价格"""
+    price_data = data_service.get_price(exchange, symbol)
+    if price_data:
+        return price_data
+    else:
+        raise HTTPException(status_code=404, detail="价格数据获取失败")
+
+@router.get("/ohlcv/")
+async def get_ohlcv(
+    exchange: str = Query(..., description="交易所"),
+    symbol: str = Query(..., description="交易对"),
+    timeframe: str = Query("1m", description="时间周期"),
+    limit: int = Query(100, description="数据条数")
+):
+    """获取K线数据"""
+    ohlcv_data = data_service.get_ohlcv(exchange, symbol, timeframe, limit)
+    if ohlcv_data:
+        return ohlcv_data
+    else:
+        raise HTTPException(status_code=404, detail="K线数据获取失败")
+
+@router.get("/astock/list")
+async def get_astock_list():
+    """获取A股股票列表"""
+    return astock_service.get_stock_list()
+
+@router.get("/astock/price/{symbol}")
+async def get_astock_price(symbol: str):
+    """获取A股股票价格"""
+    return astock_service.get_stock_price(symbol)
+
+@router.get("/market/status")
+async def get_market_status():
+    """获取市场状态概览"""
+    # 获取几个主要交易对的状态
+    major_pairs = [
+        {"exchange": "binance", "symbol": "BTC/USDT"},
+        {"exchange": "binance", "symbol": "ETH/USDT"},
+        {"exchange": "okx", "symbol": "BTC/USDT"}
+    ]
+    
+    status = []
+    for pair in major_pairs:
+        price_data = data_service.get_price(pair["exchange"], pair["symbol"])
+        if price_data:
+            status.append(price_data)
+    
+    return {
+        "total_markets": len(data_service.get_supported_exchanges()),
+        "market_status": "正常运行",
+        "major_pairs": status
+    }
