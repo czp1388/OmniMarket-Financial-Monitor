@@ -1,0 +1,25 @@
+﻿from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
+
+app = FastAPI(title="寰宇多市场金融监控系统", version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+async def root():
+    return {"message": "寰宇多市场金融监控系统 API", "status": "运行中"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
+if __name__ == "__main__":
+    print("🚀 启动基础版金融服务...")
+    uvicorn.run(app, host="0.0.0.0", port=8000)
