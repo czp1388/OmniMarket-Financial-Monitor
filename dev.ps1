@@ -24,7 +24,7 @@ function Backup-Code {
     cd $ProjectRoot
     git add .
     git commit -m "开发进度备份 $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
-    git push origin main
+    git push origin master
     Write-Host "✅ 代码备份完成" -ForegroundColor Green
 }
 
@@ -52,7 +52,7 @@ switch ($Command.ToLower()) {
     "backup" { Backup-Code }
     "open" { Open-Project }
     "help" { Show-DevHelp }
-    default { 
+    default {
         Write-Host "使用: dev.ps1 [命令]" -ForegroundColor Yellow
         Show-DevHelp
     }
