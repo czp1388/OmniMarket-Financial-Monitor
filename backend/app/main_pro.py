@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 # 创建FastAPI应用
 app = FastAPI(
     title="寰宇多市场金融监控系统",
-    description="专业版本 - 多市场金融数据实时监控平台 + 真实交易所数据 + Web界面",
-    version="2.4.1"
+    description="专业版本 - 多市场金融数据实时监控平台 + 真实交易所数据 + 高级预警 + Web界面",
+    version="2.5.0"
 )
 
 app.add_middleware(
@@ -28,10 +28,10 @@ app.add_middleware(
 @app.get("/")
 async def root():
     return {
-        "message": "寰宇多市场金融监控系统 API - 专业版 v2.4.1",
+        "message": "寰宇多市场金融监控系统 API - 专业版 v2.5",
         "status": "运行中",
-        "version": "2.4.1",
-        "features": ["真实市场数据", "价格预警", "多交易所支持", "实时推送", "Web界面", "专业级"],
+        "version": "2.5.0",
+        "features": ["真实市场数据", "高级价格预警", "多交易所支持", "实时推送", "Web界面", "专业级"],
         "websocket": "ws://localhost:8000/ws/realtime",
         "web_interface": "http://localhost:8000/",
         "data_source": "真实交易所 + 模拟数据"
@@ -42,7 +42,7 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "professional",
-        "version": "2.4.1",
+        "version": "2.5.0",
         "timestamp": __import__("datetime").datetime.now().isoformat(),
         "data_source": "hybrid"
     }
@@ -53,7 +53,7 @@ async def test_api():
     return {
         "test": "success",
         "message": "API服务正常运行",
-        "version": "2.4.1",
+        "version": "2.5.0",
         "timestamp": __import__("datetime").datetime.now().isoformat(),
         "data_source": "hybrid"
     }
@@ -74,16 +74,26 @@ except ImportError as e:
         logger.error("❌ 所有数据服务都不可用")
         data_service = None
 
+# 导入高级预警服务
+try:
+    from services.advanced_alert_service import advanced_alert_service
+    logger.info("✅ 高级预警服务导入成功")
+except ImportError as e:
+    logger.warning(f"⚠️ 高级预警服务导入失败: {e}")
+    advanced_alert_service = None
+
 # 导入路由
 try:
     from routers.market import router as market_router
     from routers.alerts import router as alerts_router
     from routers.websocket import router as websocket_router
+    from routers.advanced_alerts import router as advanced_alerts_router
     
-    # 注册路由 - 修复前缀问题
+    # 注册路由
     app.include_router(market_router, prefix="/api/v1", tags=["市场数据"])
-    app.include_router(alerts_router, prefix="/api/v1", tags=["预警管理"])
-    app.include_router(websocket_router, prefix="/api/v1", tags=["实时数据"])  # 添加前缀
+    app.include_router(alerts_router, prefix="/api/v1", tags=["基础预警"])
+    app.include_router(advanced_alerts_router, prefix="/api/v1", tags=["高级预警"])
+    app.include_router(websocket_router, prefix="/api/v1", tags=["实时数据"])
     
     logger.info("✅ 所有路由注册成功")
 except ImportError as e:
@@ -103,7 +113,7 @@ else:
 @app.on_event("startup")
 async def startup_event():
     """安全启动服务"""
-    logger.info("🚀 启动寰宇多市场金融监控系统 专业版 v2.4.1...")
+    logger.info("🚀 启动寰宇多市场金融监控系统 专业版 v2.5...")
     
     # 异步初始化数据服务
     if data_service:
@@ -111,15 +121,30 @@ async def startup_event():
         logger.info("✅ 数据服务异步初始化已启动")
     else:
         logger.warning("⚠️ 无数据服务可用")
+    
+    # 初始化高级预警服务
+    if advanced_alert_service:
+        await advanced_alert_service.initialize()
+        logger.info("✅ 高级预警服务初始化完成")
+        
+        # 延迟启动预警监控（等待数据服务就绪）
+        if data_service:
+            async def delayed_alert_monitoring():
+                await asyncio.sleep(20)  # 等待数据服务完全就绪
+                await advanced_alert_service.start_monitoring(data_service)
+                logger.info("✅ 高级预警监控已启动")
+            
+            asyncio.create_task(delayed_alert_monitoring())
 
 if __name__ == "__main__":
-    print("🚀 启动专业版寰宇多市场金融监控系统 v2.4.1")
+    print("🚀 启动专业版寰宇多市场金融监控系统 v2.5")
     print("📊 服务将运行在: http://localhost:8000")
     print("📚 API文档: http://localhost:8000/docs")
     print("🔗 实时数据: ws://localhost:8000/ws/realtime")
     print("🌐 Web界面: http://localhost:8000/")
+    print("🚨 高级预警: 价格监控 + 自动通知")
     print("💎 数据源: 真实交易所 + 模拟数据")
-    print("🔧 版本: 2.4.1 (专业版 + 混合数据)")
+    print("🔧 版本: 2.5.0 (专业版 + 高级预警)")
     
     uvicorn.run(
         app,
