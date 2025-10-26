@@ -1,6 +1,12 @@
 ﻿# 寰宇多市场金融监控系统 - 快速启动指南
 
-## 🚀 一键启动（推荐）
+## 🚀 一键启动（推荐 - 在任何目录都能用）
+E:\OmniMarket-Financial-Monitor\super_tool.ps1 start     # 启动服务
+E:\OmniMarket-Financial-Monitor\super_tool.ps1 test      # 测试API
+E:\OmniMarket-Financial-Monitor\super_tool.ps1 docs      # 打开文档
+
+## 🎯 根目录启动（传统方式）
+cd E:\OmniMarket-Financial-Monitor
 .\global_tool.ps1 start     # 启动服务
 .\global_tool.ps1 test      # 测试API
 .\global_tool.ps1 docs      # 打开文档
@@ -25,7 +31,12 @@ http://localhost:8000/api/v1/prices/?symbol=BTC/USDT # BTC价格
 http://localhost:8000/docs          # API文档
 
 ## 💡 故障排除
-1. 服务未运行? -> .\global_tool.ps1 start
+1. 服务未运行? -> 使用 super_tool.ps1 start
 2. API测试失败? -> 检查网络连接，稍后重试
-3. 脚本找不到? -> 确保在项目根目录运行
+3. 脚本找不到? -> 使用 super_tool.ps1（任何目录都能运行）
 4. 依赖问题? -> cd backend; pip install -r requirements_simple.txt
+
+## 🆕 新功能：超级工具
+- super_tool.ps1 可以在任何目录运行
+- 自动定位项目根目录
+- 所有功能一键调用
