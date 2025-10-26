@@ -1,4 +1,4 @@
-﻿# 寰宇多市场金融监控系统 - WebSocket实时数据服务
+﻿# 寰宇多市场金融监控系统 - WebSocket实时数据服务（真实数据版）
 from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.routing import APIRouter
 import asyncio
@@ -9,11 +9,10 @@ import time
 
 logger = logging.getLogger(__name__)
 
-class ConnectionManager:
+class RealTimeConnectionManager:
     def __init__(self):
         self.active_connections: List[WebSocket] = []
-        self.price_data = {}
-
+        
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
@@ -39,29 +38,17 @@ class ConnectionManager:
         for connection in disconnected:
             self.disconnect(connection)
 
-    def update_price_data(self, symbol: str, price: float, change: float, volume: float):
-        """更新价格数据"""
-        self.price_data[symbol] = {
-            'symbol': symbol,
-            'price': price,
-            'change': change,
-            'change_percent': (change / price * 100) if price else 0,
-            'volume': volume,
+    async def broadcast_market_data(self, market_data: Dict):
+        """广播市场数据给所有客户端"""
+        message = {
+            'type': 'market_data',
+            'data': market_data,
             'timestamp': time.time()
         }
-
-    async def broadcast_market_data(self):
-        """广播市场数据给所有客户端"""
-        if self.price_data:
-            message = {
-                'type': 'market_data',
-                'data': self.price_data,
-                'timestamp': time.time()
-            }
-            await self.broadcast(json.dumps(message))
+        await self.broadcast(json.dumps(message))
 
 # 创建连接管理器实例
-manager = ConnectionManager()
+manager = RealTimeConnectionManager()
 
 # 创建WebSocket路由
 router = APIRouter()
@@ -73,15 +60,28 @@ async def websocket_endpoint(websocket: WebSocket):
         # 发送欢迎消息
         welcome_msg = {
             'type': 'connection',
-            'message': '连接到寰宇多市场金融监控系统实时数据',
-            'timestamp': time.time()
+            'message': '连接到寰宇多市场金融监控系统真实数据',
+            'timestamp': time.time(),
+            'version': '2.3.0'
         }
         await manager.send_personal_message(json.dumps(welcome_msg), websocket)
+        
+        # 立即发送当前市场数据
+        try:
+            from services.real_exchange_service import real_data_service
+            current_prices = real_data_service.get_realtime_prices()
+            if current_prices:
+                await manager.send_personal_message(json.dumps({
+                    'type': 'market_data',
+                    'data': current_prices,
+                    'timestamp': time.time()
+                }), websocket)
+        except Exception as e:
+            logger.warning(f"发送初始数据失败: {e}")
         
         # 保持连接，等待客户端消息
         while True:
             data = await websocket.receive_text()
-            # 可以处理客户端发送的指令
             try:
                 command = json.loads(data)
                 if command.get('type') == 'subscribe':
@@ -96,58 +96,66 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
-# 模拟实时数据生成任务
-async def generate_realtime_data():
-    """生成模拟实时数据"""
-    import random
-    symbols = ['BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'ADA/USDT', 'DOT/USDT']
-    base_prices = {
-        'BTC/USDT': 50000,
-        'ETH/USDT': 3000, 
-        'BNB/USDT': 400,
-        'ADA/USDT': 1.2,
-        'DOT/USDT': 25
-    }
+# 真实数据广播任务
+async def broadcast_real_market_data():
+    """广播真实市场数据"""
+    try:
+        from services.real_exchange_service import real_data_service
+    except ImportError:
+        logger.error("真实数据服务未找到，使用模拟数据")
+        return
     
     while True:
-        for symbol in symbols:
-            base_price = base_prices[symbol]
-            # 模拟价格波动 (-2% 到 +2%)
-            change_percent = random.uniform(-0.02, 0.02)
-            new_price = base_price * (1 + change_percent)
-            change = new_price - base_price
-            volume = random.randint(1000, 100000)
+        try:
+            # 获取真实市场数据
+            market_data = real_data_service.get_realtime_prices()
+            if market_data:
+                await manager.broadcast_market_data(market_data)
+            else:
+                logger.debug("暂无市场数据可广播")
+                
+            # 每2秒广播一次
+            await asyncio.sleep(2)
             
-            # 更新价格数据
-            manager.update_price_data(symbol, new_price, change, volume)
-        
-        # 广播数据给所有客户端
-        await manager.broadcast_market_data()
-        
-        # 每秒更新一次
-        await asyncio.sleep(1)
+        except Exception as e:
+            logger.error(f"广播市场数据错误: {e}")
+            await asyncio.sleep(5)
 
 @router.on_event("startup")
 async def startup_event():
-    """启动时开始生成实时数据"""
-    asyncio.create_task(generate_realtime_data())
-    logger.info("✅ WebSocket实时数据服务已启动")
+    """启动时开始广播真实数据"""
+    asyncio.create_task(broadcast_real_market_data())
+    logger.info("✅ 真实数据WebSocket服务已启动")
 
-# REST API 端点用于获取当前实时数据
+# REST API 端点
 @router.get("/realtime/prices")
 async def get_realtime_prices():
     """获取当前实时价格数据"""
-    return {
-        'data': manager.price_data,
-        'timestamp': time.time(),
-        'total_symbols': len(manager.price_data)
-    }
+    try:
+        from services.real_exchange_service import real_data_service
+        prices = real_data_service.get_realtime_prices()
+        return {
+            'data': prices,
+            'timestamp': time.time(),
+            'total_symbols': len(prices),
+            'data_source': 'real_exchange'
+        }
+    except:
+        # 回退到模拟数据
+        return {
+            'data': {},
+            'timestamp': time.time(),
+            'total_symbols': 0,
+            'data_source': 'simulated',
+            'message': '真实数据服务未就绪'
+        }
 
 @router.get("/realtime/connections")
 async def get_connection_status():
     """获取WebSocket连接状态"""
     return {
         'active_connections': len(manager.active_connections),
-        'tracked_symbols': list(manager.price_data.keys()),
+        'service_version': '2.3.0',
+        'data_source': 'real_exchange',
         'last_update': time.time()
     }
