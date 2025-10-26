@@ -1,5 +1,5 @@
-﻿# 寰宇多市场金融监控系统 - 终极启动工具（修复版）
-Write-Host "🚀 启动终极稳定版服务..." -ForegroundColor Cyan
+﻿# 寰宇多市场金融监控系统 - 终极启动工具（专业版）
+Write-Host "🚀 启动专业版服务..." -ForegroundColor Cyan
 
 $ProjectRoot = "E:\OmniMarket-Financial-Monitor"
 $BackendDir = "$ProjectRoot\backend\app"
@@ -36,21 +36,22 @@ if ($portProcess) {
     }
 }
 
-# 启动稳定服务
-Write-Host "3. 启动稳定服务..." -ForegroundColor Yellow
+# 启动专业服务
+Write-Host "3. 启动专业服务..." -ForegroundColor Yellow
 try {
-    $process = Start-Process -FilePath "python" -ArgumentList "main_stable.py" -WorkingDirectory $BackendDir -PassThru -WindowStyle Normal
+    $process = Start-Process -FilePath "python" -ArgumentList "main_pro.py" -WorkingDirectory $BackendDir -PassThru -WindowStyle Normal
     Write-Host "   ✅ 服务启动成功 (PID: $($process.Id))" -ForegroundColor Green
     Write-Host "   📍 服务地址: http://localhost:8000" -ForegroundColor White
     Write-Host "   📚 API文档: http://localhost:8000/docs" -ForegroundColor White
-    Write-Host "   🔧 版本: 2.3.0 专业版" -ForegroundColor White
+    Write-Host "   🔗 实时数据: ws://localhost:8000/ws/realtime" -ForegroundColor White
+    Write-Host "   🔧 版本: 2.4.0 专业版" -ForegroundColor White
 
-    # 等待并验证服务 - 增加等待时间
+    # 等待并验证服务
     Write-Host "4. 等待服务就绪..." -ForegroundColor Yellow
     $serviceReady = $false
     
-    for ($i = 1; $i -le 20; $i++) {
-        Write-Host "   等待服务启动... ($i/20)" -ForegroundColor Gray
+    for ($i = 1; $i -le 15; $i++) {
+        Write-Host "   等待服务启动... ($i/15)" -ForegroundColor Gray
         
         try {
             $response = Invoke-RestMethod -Uri "http://localhost:8000/health" -TimeoutSec 3
@@ -63,7 +64,7 @@ try {
             # 继续等待
         }
         
-        Start-Sleep -Seconds 3  # 增加等待时间到3秒
+        Start-Sleep -Seconds 2
     }
     
     if ($serviceReady) {
@@ -82,15 +83,6 @@ try {
     
 } catch {
     Write-Host "   ❌ 服务启动失败: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host "   💡 尝试使用基础版本..." -ForegroundColor Cyan
-    
-    # 回退到基础版本
-    try {
-        $process = Start-Process -FilePath "python" -ArgumentList "main_simple.py" -WorkingDirectory $BackendDir -PassThru -WindowStyle Normal
-        Write-Host "   ✅ 基础版本启动成功" -ForegroundColor Green
-    } catch {
-        Write-Host "   ❌ 所有启动方式都失败" -ForegroundColor Red
-    }
 }
 
 Write-Host "`n🎉 启动流程完成!" -ForegroundColor Green
@@ -100,5 +92,6 @@ Write-Host "   - API文档: http://localhost:8000/docs" -ForegroundColor White
 Write-Host "   - 健康检查: http://localhost:8000/health" -ForegroundColor White
 Write-Host "   - 测试接口: http://localhost:8000/test" -ForegroundColor White
 Write-Host "   - Web界面: http://localhost:8000/" -ForegroundColor White
+Write-Host "   - 实时数据: ws://localhost:8000/ws/realtime" -ForegroundColor White
 
 Write-Host "`n🚀 现在可以开始使用专业版监控系统了!" -ForegroundColor Green
