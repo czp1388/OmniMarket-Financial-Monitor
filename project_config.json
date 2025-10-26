@@ -1,0 +1,23 @@
+﻿{
+    "project_name": "寰宇多市场金融监控系统",
+    "version": "1.0.0",
+    "description": "多市场金融数据实时监控平台",
+    "author": "开发团队",
+    "backend": {
+        "host": "0.0.0.0",
+        "port": 8000,
+        "debug": true
+    },
+    "features": {
+        "market_data": true,
+        "price_monitoring": true,
+        "exchange_support": ["binance", "okx", "huobi"],
+        "real_time_updates": true
+    },
+    "api_endpoints": {
+        "health": "/health",
+        "root": "/",
+        "exchanges": "/api/v1/exchanges",
+        "prices": "/api/v1/prices"
+    }
+}
