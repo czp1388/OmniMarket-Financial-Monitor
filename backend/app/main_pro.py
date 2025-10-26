@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="寰宇多市场金融监控系统",
     description="专业版本 - 多市场金融数据实时监控平台 + 真实交易所数据 + Web界面",
-    version="2.4.0"
+    version="2.4.1"
 )
 
 app.add_middleware(
@@ -28,9 +28,9 @@ app.add_middleware(
 @app.get("/")
 async def root():
     return {
-        "message": "寰宇多市场金融监控系统 API - 专业版 v2.4",
+        "message": "寰宇多市场金融监控系统 API - 专业版 v2.4.1",
         "status": "运行中",
-        "version": "2.4.0",
+        "version": "2.4.1",
         "features": ["真实市场数据", "价格预警", "多交易所支持", "实时推送", "Web界面", "专业级"],
         "websocket": "ws://localhost:8000/ws/realtime",
         "web_interface": "http://localhost:8000/",
@@ -40,9 +40,9 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {
-        "status": "healthy", 
+        "status": "healthy",
         "service": "professional",
-        "version": "2.4.0",
+        "version": "2.4.1",
         "timestamp": __import__("datetime").datetime.now().isoformat(),
         "data_source": "hybrid"
     }
@@ -53,7 +53,7 @@ async def test_api():
     return {
         "test": "success",
         "message": "API服务正常运行",
-        "version": "2.4.0",
+        "version": "2.4.1",
         "timestamp": __import__("datetime").datetime.now().isoformat(),
         "data_source": "hybrid"
     }
@@ -80,10 +80,10 @@ try:
     from routers.alerts import router as alerts_router
     from routers.websocket import router as websocket_router
     
-    # 注册路由
+    # 注册路由 - 修复前缀问题
     app.include_router(market_router, prefix="/api/v1", tags=["市场数据"])
     app.include_router(alerts_router, prefix="/api/v1", tags=["预警管理"])
-    app.include_router(websocket_router, tags=["实时数据"])
+    app.include_router(websocket_router, prefix="/api/v1", tags=["实时数据"])  # 添加前缀
     
     logger.info("✅ 所有路由注册成功")
 except ImportError as e:
@@ -103,7 +103,7 @@ else:
 @app.on_event("startup")
 async def startup_event():
     """安全启动服务"""
-    logger.info("🚀 启动寰宇多市场金融监控系统 专业版 v2.4...")
+    logger.info("🚀 启动寰宇多市场金融监控系统 专业版 v2.4.1...")
     
     # 异步初始化数据服务
     if data_service:
@@ -113,17 +113,17 @@ async def startup_event():
         logger.warning("⚠️ 无数据服务可用")
 
 if __name__ == "__main__":
-    print("🚀 启动专业版寰宇多市场金融监控系统 v2.4")
-    print("📊 服务将运行在: http://localhost:8000") 
+    print("🚀 启动专业版寰宇多市场金融监控系统 v2.4.1")
+    print("📊 服务将运行在: http://localhost:8000")
     print("📚 API文档: http://localhost:8000/docs")
     print("🔗 实时数据: ws://localhost:8000/ws/realtime")
     print("🌐 Web界面: http://localhost:8000/")
     print("💎 数据源: 真实交易所 + 模拟数据")
-    print("🔧 版本: 2.4.0 (专业版 + 混合数据)")
+    print("🔧 版本: 2.4.1 (专业版 + 混合数据)")
     
     uvicorn.run(
-        app, 
-        host="0.0.0.0", 
+        app,
+        host="0.0.0.0",
         port=8000,
         log_level="info",
         access_log=True
