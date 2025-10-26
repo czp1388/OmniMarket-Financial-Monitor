@@ -5,9 +5,7 @@ $ProjectRoot = "E:\OmniMarket-Financial-Monitor"
 
 function Start-Development {
     Write-Host "🚀 启动开发模式..." -ForegroundColor Cyan
-    & "$ProjectRoot\omnimarket.ps1" start
-    Write-Host "📊 开发服务器已启动: http://localhost:8000" -ForegroundColor Green
-    Write-Host "📚 API文档: http://localhost:8000/docs" -ForegroundColor Green
+    & "$ProjectRoot\stable_launcher.ps1"
 }
 
 function Test-All {

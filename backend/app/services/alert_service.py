@@ -1,4 +1,4 @@
-﻿# 寰宇多市场金融监控系统 - 预警服务模块
+# 寰宇多市场金融监控系统 - 预警服务模块
 from typing import Dict, List, Callable
 import asyncio
 from datetime import datetime
