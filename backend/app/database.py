@@ -128,3 +128,4 @@ class DatabaseManager:
 
 # 创建全局数据库管理器实例
 db_manager = DatabaseManager()
+

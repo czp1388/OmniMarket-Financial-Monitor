@@ -1,4 +1,4 @@
-﻿# 寰宇多市场金融监控系统 - 专业版主服务
+# 寰宇多市场金融监控系统 - 专业版主服务
 import logging
 import sys
 import os
@@ -56,6 +56,7 @@ except ImportError as e:
 # 导入路由
 from routers import market_data, alert_rules, system_info, telegram_alerts
 from routers.database_api import router as database_api_router
+from routers.user_management import router as user_management_router
 
 # 数据库初始化函数
 async def initialize_database():
