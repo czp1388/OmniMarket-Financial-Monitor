@@ -6,14 +6,23 @@ from datetime import datetime
 import json
 import os
 
+# 导入邮件服务
+try:
+    from .email_service import email_service
+    logger.info("✅ 邮件通知服务导入成功")
+except ImportError as e:
+    logger.error(f"❌ 邮件通知服务导入失败: {e}")
+    email_service = None
+
 logger = logging.getLogger(__name__)
 
 class AlertRule:
-    def __init__(self, symbol: str, condition: str, threshold: float, notification_type: str = "log"):
+    def __init__(self, symbol: str, condition: str, threshold: float, notification_type: str = "log", email_recipients: List[str] = None):
         self.symbol = symbol
         self.condition = condition  # "above", "below", "change_up", "change_down"
         self.threshold = threshold
         self.notification_type = notification_type
+        self.email_recipients = email_recipients or []
         self.triggered = False
         self.created_at = datetime.now()
         self.last_triggered = None
@@ -32,10 +41,44 @@ class AlertRule:
             return change_percent < -self.threshold
         return False
 
+class AlertHistory:
+    """预警历史记录"""
+    def __init__(self):
+        self.history: List[Dict] = []
+        self.max_history = 1000  # 最大历史记录数
+    
+    def add_record(self, alert_data: Dict):
+        """添加预警记录"""
+        record = {
+            'id': len(self.history) + 1,
+            'timestamp': datetime.now().isoformat(),
+            **alert_data
+        }
+        self.history.append(record)
+        
+        # 限制历史记录数量
+        if len(self.history) > self.max_history:
+            self.history = self.history[-self.max_history:]
+    
+    def get_history(self, limit: int = 50, symbol: str = None) -> List[Dict]:
+        """获取预警历史"""
+        history = self.history.copy()
+        history.reverse()  # 最新的在前
+        
+        if symbol:
+            history = [h for h in history if h.get('symbol') == symbol]
+        
+        return history[:limit]
+    
+    def clear_history(self):
+        """清空历史记录"""
+        self.history.clear()
+
 class AdvancedAlertService:
     def __init__(self):
         self.alert_rules: List[AlertRule] = []
         self.price_history: Dict[str, List[float]] = {}
+        self.alert_history = AlertHistory()
         self.is_monitoring = False
         self.monitoring_task = None
         
@@ -43,9 +86,9 @@ class AdvancedAlertService:
         """初始化预警服务"""
         logger.info("✅ 高级预警服务初始化")
         
-    def add_alert_rule(self, symbol: str, condition: str, threshold: float, notification_type: str = "log") -> str:
+    def add_alert_rule(self, symbol: str, condition: str, threshold: float, notification_type: str = "log", email_recipients: List[str] = None) -> str:
         """添加预警规则"""
-        rule = AlertRule(symbol, condition, threshold, notification_type)
+        rule = AlertRule(symbol, condition, threshold, notification_type, email_recipients)
         self.alert_rules.append(rule)
         logger.info(f"✅ 添加预警规则: {symbol} {condition} {threshold}")
         return f"预警规则已添加: {symbol} {condition} {threshold}"
@@ -68,10 +111,15 @@ class AdvancedAlertService:
             "condition": rule.condition,
             "threshold": rule.threshold,
             "notification_type": rule.notification_type,
+            "email_recipients": rule.email_recipients,
             "triggered": rule.triggered,
             "created_at": rule.created_at.isoformat(),
             "last_triggered": rule.last_triggered.isoformat() if rule.last_triggered else None
         } for rule in self.alert_rules]
+    
+    def get_alert_history(self, limit: int = 50, symbol: str = None) -> List[Dict]:
+        """获取预警历史记录"""
+        return self.alert_history.get_history(limit, symbol)
     
     async def start_monitoring(self, data_service):
         """开始监控市场价格"""
@@ -146,13 +194,32 @@ class AdvancedAlertService:
         message = self._format_alert_message(rule, current_price, previous_price)
         logger.warning(f"🚨 预警触发: {message}")
         
+        # 创建预警记录
+        alert_data = {
+            'symbol': rule.symbol,
+            'condition': rule.condition,
+            'threshold': rule.threshold,
+            'current_price': current_price,
+            'previous_price': previous_price,
+            'message': message,
+            'triggered_time': datetime.now().isoformat()
+        }
+        
+        # 添加到历史记录
+        self.alert_history.add_record(alert_data)
+        
         # 根据通知类型发送通知
         if rule.notification_type == "log":
             # 记录到日志（默认）
             pass
         elif rule.notification_type == "console":
             print(f"🚨 预警: {message}")
-        # 可以扩展其他通知方式：邮件、Telegram、Webhook等
+        elif rule.notification_type == "email" and rule.email_recipients:
+            # 发送邮件通知
+            if email_service:
+                await email_service.send_alert_notification(alert_data, rule.email_recipients)
+            else:
+                logger.warning("邮件服务不可用，无法发送邮件通知")
         
     def _format_alert_message(self, rule: AlertRule, current_price: float, previous_price: float) -> str:
         """格式化预警消息"""

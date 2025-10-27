@@ -5,6 +5,10 @@ import uvicorn
 import asyncio
 import logging
 import os
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -12,8 +16,8 @@ logger = logging.getLogger(__name__)
 # 创建FastAPI应用
 app = FastAPI(
     title="寰宇多市场金融监控系统",
-    description="专业版本 - 多市场金融数据实时监控平台 + 真实交易所数据 + 高级预警 + Web界面",
-    version="2.5.0"
+    description="专业版本 - 多市场金融数据实时监控平台 + 真实交易所数据 + 高级预警 + 邮件通知 + Web界面",
+    version="2.6.0"
 )
 
 app.add_middleware(
@@ -28,10 +32,10 @@ app.add_middleware(
 @app.get("/")
 async def root():
     return {
-        "message": "寰宇多市场金融监控系统 API - 专业版 v2.5",
+        "message": "寰宇多市场金融监控系统 API - 专业版 v2.6",
         "status": "运行中",
-        "version": "2.5.0",
-        "features": ["真实市场数据", "高级价格预警", "多交易所支持", "实时推送", "Web界面", "专业级"],
+        "version": "2.6.0",
+        "features": ["真实市场数据", "高级价格预警", "邮件通知", "多交易所支持", "实时推送", "Web界面", "专业级"],
         "websocket": "ws://localhost:8000/ws/realtime",
         "web_interface": "http://localhost:8000/",
         "data_source": "真实交易所 + 模拟数据"
@@ -42,7 +46,7 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "professional",
-        "version": "2.5.0",
+        "version": "2.6.0",
         "timestamp": __import__("datetime").datetime.now().isoformat(),
         "data_source": "hybrid"
     }
@@ -53,7 +57,7 @@ async def test_api():
     return {
         "test": "success",
         "message": "API服务正常运行",
-        "version": "2.5.0",
+        "version": "2.6.0",
         "timestamp": __import__("datetime").datetime.now().isoformat(),
         "data_source": "hybrid"
     }
@@ -81,6 +85,14 @@ try:
 except ImportError as e:
     logger.warning(f"⚠️ 高级预警服务导入失败: {e}")
     advanced_alert_service = None
+
+# 导入邮件服务
+try:
+    from services.email_service import email_service
+    logger.info("✅ 邮件通知服务导入成功")
+except ImportError as e:
+    logger.warning(f"⚠️ 邮件通知服务导入失败: {e}")
+    email_service = None
 
 # 导入路由
 try:
@@ -113,7 +125,7 @@ else:
 @app.on_event("startup")
 async def startup_event():
     """安全启动服务"""
-    logger.info("🚀 启动寰宇多市场金融监控系统 专业版 v2.5...")
+    logger.info("🚀 启动寰宇多市场金融监控系统 专业版 v2.6...")
     
     # 异步初始化数据服务
     if data_service:
@@ -135,16 +147,25 @@ async def startup_event():
                 logger.info("✅ 高级预警监控已启动")
             
             asyncio.create_task(delayed_alert_monitoring())
+    
+    # 检查邮件服务状态
+    if email_service:
+        status = email_service.get_config_status()
+        if status['enabled']:
+            logger.info("✅ 邮件通知服务已就绪")
+        else:
+            logger.warning("⚠️ 邮件通知服务未配置，请设置环境变量")
 
 if __name__ == "__main__":
-    print("🚀 启动专业版寰宇多市场金融监控系统 v2.5")
+    print("🚀 启动专业版寰宇多市场金融监控系统 v2.6")
     print("📊 服务将运行在: http://localhost:8000")
     print("📚 API文档: http://localhost:8000/docs")
     print("🔗 实时数据: ws://localhost:8000/ws/realtime")
     print("🌐 Web界面: http://localhost:8000/")
-    print("🚨 高级预警: 价格监控 + 自动通知")
+    print("🚨 高级预警: 价格监控 + 邮件通知")
+    print("📧 邮件通知: 实时预警邮件推送")
     print("💎 数据源: 真实交易所 + 模拟数据")
-    print("🔧 版本: 2.5.0 (专业版 + 高级预警)")
+    print("🔧 版本: 2.6.0 (专业版 + 邮件通知)")
     
     uvicorn.run(
         app,
