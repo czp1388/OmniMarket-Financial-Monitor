@@ -16,13 +16,22 @@ except ImportError as e:
     logger.error(f"❌ 邮件通知服务导入失败: {e}")
     email_service = None
 
+# 导入Telegram服务
+try:
+    from services.telegram_service import telegram_service
+    logger.info("✅ Telegram机器人服务导入成功")
+except ImportError as e:
+    logger.error(f"❌ Telegram机器人服务导入失败: {e}")
+    telegram_service = None
+
 class AlertRule:
-    def __init__(self, symbol: str, condition: str, threshold: float, notification_type: str = "log", email_recipients: List[str] = None):
+    def __init__(self, symbol: str, condition: str, threshold: float, notification_type: str = "log", email_recipients: List[str] = None, telegram_chat_ids: List[str] = None):
         self.symbol = symbol
         self.condition = condition  # "above", "below", "change_up", "change_down"
         self.threshold = threshold
         self.notification_type = notification_type
         self.email_recipients = email_recipients or []
+        self.telegram_chat_ids = telegram_chat_ids or []
         self.triggered = False
         self.created_at = datetime.now()
         self.last_triggered = None
@@ -86,11 +95,11 @@ class AdvancedAlertService:
         """初始化预警服务"""
         logger.info("✅ 高级预警服务初始化")
 
-    def add_alert_rule(self, symbol: str, condition: str, threshold: float, notification_type: str = "log", email_recipients: List[str] = None) -> str:
+    def add_alert_rule(self, symbol: str, condition: str, threshold: float, notification_type: str = "log", email_recipients: List[str] = None, telegram_chat_ids: List[str] = None) -> str:
         """添加预警规则"""
-        rule = AlertRule(symbol, condition, threshold, notification_type, email_recipients)
+        rule = AlertRule(symbol, condition, threshold, notification_type, email_recipients, telegram_chat_ids)
         self.alert_rules.append(rule)
-        logger.info(f"✅ 添加预警规则: {symbol} {condition} {threshold}")
+        logger.info(f"✅ 添加预警规则: {symbol} {condition} {threshold} (通知方式: {notification_type})")
         return f"预警规则已添加: {symbol} {condition} {threshold}"
 
     def remove_alert_rule(self, symbol: str, condition: str, threshold: float) -> bool:
@@ -112,6 +121,7 @@ class AdvancedAlertService:
             "threshold": rule.threshold,
             "notification_type": rule.notification_type,
             "email_recipients": rule.email_recipients,
+            "telegram_chat_ids": rule.telegram_chat_ids,
             "triggered": rule.triggered,
             "created_at": rule.created_at.isoformat(),
             "last_triggered": rule.last_triggered.isoformat() if rule.last_triggered else None
@@ -220,6 +230,18 @@ class AdvancedAlertService:
                 await email_service.send_alert_notification(alert_data, rule.email_recipients)
             else:
                 logger.warning("邮件服务不可用，无法发送邮件通知")
+        elif rule.notification_type == "telegram" and rule.telegram_chat_ids:
+            # 发送Telegram通知
+            if telegram_service:
+                await telegram_service.send_alert_notification(alert_data, rule.telegram_chat_ids)
+            else:
+                logger.warning("Telegram服务不可用，无法发送Telegram通知")
+        elif rule.notification_type == "all":
+            # 发送所有可用通知
+            if email_service and rule.email_recipients:
+                await email_service.send_alert_notification(alert_data, rule.email_recipients)
+            if telegram_service and rule.telegram_chat_ids:
+                await telegram_service.send_alert_notification(alert_data, rule.telegram_chat_ids)
 
     def _format_alert_message(self, rule: AlertRule, current_price: float, previous_price: float) -> str:
         """格式化预警消息"""
