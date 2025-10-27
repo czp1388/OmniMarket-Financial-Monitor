@@ -19,7 +19,7 @@ Get-Process python3 -ErrorAction SilentlyContinue | Stop-Process -Force
 $portProcess = Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue
 if ($portProcess) {
     Write-Host "清理端口8000占用..." -ForegroundColor Cyan
-    $portProcess | ForEach-Object { 
+    $portProcess | ForEach-Object {
         try {
             Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue
         } catch {
@@ -34,7 +34,7 @@ Start-Sleep -Seconds 3
 Write-Host "2. 检查Python环境..." -ForegroundColor Yellow
 try {
     $pythonVersion = python --version
-    Write-Host "   ✅ $pythonVersion" -ForegroundColor Green
+    Write-Host " ✅ $pythonVersion" -ForegroundColor Green
 } catch {
     Write-Host "❌ Python未安装或不在PATH中" -ForegroundColor Red
     Write-Host "请安装Python并确保在PATH中" -ForegroundColor Yellow
@@ -50,9 +50,9 @@ $requiredFiles = @(
 
 foreach ($file in $requiredFiles) {
     if (Test-Path $file) {
-        Write-Host "   ✅ $file" -ForegroundColor Green
+        Write-Host " ✅ $file" -ForegroundColor Green
     } else {
-        Write-Host "   ❌ $file 不存在" -ForegroundColor Red
+        Write-Host " ❌ $file 不存在" -ForegroundColor Red
     }
 }
 
@@ -60,11 +60,11 @@ foreach ($file in $requiredFiles) {
 Write-Host "4. 检查依赖..." -ForegroundColor Yellow
 try {
     python -c "import fastapi, uvicorn" 2>$null
-    Write-Host "   ✅ 核心依赖已安装" -ForegroundColor Green
+    Write-Host " ✅ 核心依赖已安装" -ForegroundColor Green
 } catch {
     Write-Host "❌ 缺少依赖，正在安装..." -ForegroundColor Yellow
     pip install fastapi uvicorn
-    Write-Host "   ✅ 依赖安装完成" -ForegroundColor Green
+    Write-Host " ✅ 依赖安装完成" -ForegroundColor Green
 }
 
 # 5. 启动服务
@@ -82,31 +82,25 @@ Write-Host "7. 测试服务连接..." -ForegroundColor Yellow
 try {
     $health = Invoke-RestMethod -Uri "http://localhost:8000/health" -TimeoutSec 10
     Write-Host "✅ 服务启动成功!" -ForegroundColor Green
-    Write-Host "   版本: $($health.version)" -ForegroundColor White
-    Write-Host "   状态: $($health.status)" -ForegroundColor White
-    
+    Write-Host " 版本: $($health.version)" -ForegroundColor White
+    Write-Host " 状态: $($health.status)" -ForegroundColor White
     Write-Host "`n🎉 服务运行正常!" -ForegroundColor Magenta
     Write-Host "🌐 访问地址:" -ForegroundColor Cyan
-    Write-Host "   API文档: http://localhost:8000/docs" -ForegroundColor Blue
-    Write-Host "   健康检查: http://localhost:8000/health" -ForegroundColor Blue
-    
+    Write-Host " API文档: http://localhost:8000/docs" -ForegroundColor Blue
+    Write-Host " 健康检查: http://localhost:8000/health" -ForegroundColor Blue
 } catch {
     Write-Host "❌ 服务启动失败: $($_.Exception.Message)" -ForegroundColor Red
     Write-Host "尝试使用简化版本..." -ForegroundColor Yellow
-    
     # 停止当前进程
     try { $process | Stop-Process -Force } catch { }
-    
     # 使用简化版本
     Write-Host "启动简化版本..." -ForegroundColor Cyan
     $simpleProcess = Start-Process -FilePath "python" -ArgumentList "main_simple.py" -PassThru
-    
     Start-Sleep -Seconds 8
-    
     try {
         $simpleHealth = Invoke-RestMethod -Uri "http://localhost:8000/health" -TimeoutSec 5
         Write-Host "✅ 简化版服务启动成功!" -ForegroundColor Green
-        Write-Host "   状态: $($simpleHealth.status)" -ForegroundColor White
+        Write-Host " 状态: $($simpleHealth.status)" -ForegroundColor White
     } catch {
         Write-Host "❌ 所有启动尝试都失败" -ForegroundColor Red
         Write-Host "请手动检查: cd backend\app && python main_simple.py" -ForegroundColor Yellow

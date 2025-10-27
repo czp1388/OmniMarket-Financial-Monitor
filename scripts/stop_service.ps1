@@ -12,7 +12,7 @@ if ($pythonProcesses) {
 # 清理端口占用
 $portProcess = Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue
 if ($portProcess) {
-    $portProcess | ForEach-Object { 
+    $portProcess | ForEach-Object {
         try {
             Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue
         } catch {

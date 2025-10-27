@@ -39,7 +39,7 @@ if ($successCount -eq $totalCount) {
     Write-Host "🎉 所有API测试通过！服务运行正常！" -ForegroundColor Magenta
     Write-Host "🌐 您可以访问: http://localhost:8000/docs" -ForegroundColor Blue
 } elseif ($successCount -gt 0) {
-    Write-Host "⚠️  部分API测试失败 ($successCount/$totalCount)" -ForegroundColor Yellow
+    Write-Host "⚠️ 部分API测试失败 ($successCount/$totalCount)" -ForegroundColor Yellow
     Write-Host "💡 基础服务运行中，但部分功能需要完善" -ForegroundColor Gray
 } else {
     Write-Host "❌ 所有API测试失败，服务未运行" -ForegroundColor Red

@@ -24,9 +24,9 @@ $coreFiles = @(
 
 foreach ($file in $coreFiles) {
     if (Test-Path $file) {
-        Write-Host "   ✅ $file" -ForegroundColor Green
+        Write-Host " ✅ $file" -ForegroundColor Green
     } else {
-        Write-Host "   ❌ $file" -ForegroundColor Red
+        Write-Host " ❌ $file" -ForegroundColor Red
     }
 }
 
@@ -34,25 +34,25 @@ foreach ($file in $coreFiles) {
 Write-Host "`n🐍 Python环境:" -ForegroundColor Yellow
 try {
     $pythonVersion = python --version
-    Write-Host "   ✅ $pythonVersion" -ForegroundColor Green
+    Write-Host " ✅ $pythonVersion" -ForegroundColor Green
 } catch {
-    Write-Host "   ❌ Python未安装" -ForegroundColor Red
+    Write-Host " ❌ Python未安装" -ForegroundColor Red
 }
 
 # 检查服务状态
 Write-Host "`n🌐 服务状态:" -ForegroundColor Yellow
 $pythonProcesses = Get-Process python -ErrorAction SilentlyContinue
 if ($pythonProcesses) {
-    Write-Host "   ✅ 服务运行中 (PID: $($pythonProcesses.Id))" -ForegroundColor Green
+    Write-Host " ✅ 服务运行中 (PID: $($pythonProcesses.Id))" -ForegroundColor Green
 } else {
-    Write-Host "   🔴 服务未运行" -ForegroundColor Red
+    Write-Host " 🔴 服务未运行" -ForegroundColor Red
 }
 
 Write-Host "`n🎯 标准化开发命令:" -ForegroundColor Magenta
-Write-Host "   .\scripts\start_service.ps1    # 启动服务" -ForegroundColor White
-Write-Host "   .\scripts\stop_service.ps1     # 停止服务" -ForegroundColor White  
-Write-Host "   .\scripts\test_api.ps1         # 测试API" -ForegroundColor White
-Write-Host "   git status                     # Git状态" -ForegroundColor White
+Write-Host " .\scripts\start_service.ps1 # 启动服务" -ForegroundColor White
+Write-Host " .\scripts\stop_service.ps1 # 停止服务" -ForegroundColor White
+Write-Host " .\scripts\test_api.ps1 # 测试API" -ForegroundColor White
+Write-Host " git status # Git状态" -ForegroundColor White
 
 Write-Host "`n💡 提示: 每次新开窗口先运行此脚本" -ForegroundColor Gray
 Write-Host "🚀 环境设置完成！开始开发吧！" -ForegroundColor Green
