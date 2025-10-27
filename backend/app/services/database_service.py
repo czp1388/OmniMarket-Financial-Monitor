@@ -413,5 +413,18 @@ class DatabaseService:
             logger.error(f"❌ 获取数据库统计失败: {e}")
             return {}
 
+    def test_connection(self):
+        """测试数据库连接"""
+        try:
+            db = next(db_manager.get_db())
+            db.execute("SELECT 1")
+            db.close()
+            logger.info("✅ 数据库连接测试成功")
+            return True
+        except Exception as e:
+            logger.error(f"❌ 数据库连接测试失败: {e}")
+            return False
+
 # 创建全局数据库服务实例
 database_service = DatabaseService()
+
