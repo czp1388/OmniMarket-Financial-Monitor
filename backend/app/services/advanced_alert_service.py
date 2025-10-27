@@ -6,15 +6,15 @@ from datetime import datetime
 import json
 import os
 
+logger = logging.getLogger(__name__)
+
 # 导入邮件服务
 try:
-    from .email_service import email_service
+    from services.email_service import email_service
     logger.info("✅ 邮件通知服务导入成功")
 except ImportError as e:
     logger.error(f"❌ 邮件通知服务导入失败: {e}")
     email_service = None
-
-logger = logging.getLogger(__name__)
 
 class AlertRule:
     def __init__(self, symbol: str, condition: str, threshold: float, notification_type: str = "log", email_recipients: List[str] = None):
@@ -46,7 +46,7 @@ class AlertHistory:
     def __init__(self):
         self.history: List[Dict] = []
         self.max_history = 1000  # 最大历史记录数
-    
+
     def add_record(self, alert_data: Dict):
         """添加预警记录"""
         record = {
@@ -55,21 +55,21 @@ class AlertHistory:
             **alert_data
         }
         self.history.append(record)
-        
+
         # 限制历史记录数量
         if len(self.history) > self.max_history:
             self.history = self.history[-self.max_history:]
-    
+
     def get_history(self, limit: int = 50, symbol: str = None) -> List[Dict]:
         """获取预警历史"""
         history = self.history.copy()
         history.reverse()  # 最新的在前
-        
+
         if symbol:
             history = [h for h in history if h.get('symbol') == symbol]
-        
+
         return history[:limit]
-    
+
     def clear_history(self):
         """清空历史记录"""
         self.history.clear()
@@ -81,29 +81,29 @@ class AdvancedAlertService:
         self.alert_history = AlertHistory()
         self.is_monitoring = False
         self.monitoring_task = None
-        
+
     async def initialize(self):
         """初始化预警服务"""
         logger.info("✅ 高级预警服务初始化")
-        
+
     def add_alert_rule(self, symbol: str, condition: str, threshold: float, notification_type: str = "log", email_recipients: List[str] = None) -> str:
         """添加预警规则"""
         rule = AlertRule(symbol, condition, threshold, notification_type, email_recipients)
         self.alert_rules.append(rule)
         logger.info(f"✅ 添加预警规则: {symbol} {condition} {threshold}")
         return f"预警规则已添加: {symbol} {condition} {threshold}"
-    
+
     def remove_alert_rule(self, symbol: str, condition: str, threshold: float) -> bool:
         """移除预警规则"""
         for rule in self.alert_rules:
-            if (rule.symbol == symbol and 
-                rule.condition == condition and 
+            if (rule.symbol == symbol and
+                rule.condition == condition and
                 rule.threshold == threshold):
                 self.alert_rules.remove(rule)
                 logger.info(f"✅ 移除预警规则: {symbol} {condition} {threshold}")
                 return True
         return False
-    
+
     def get_alert_rules(self) -> List[Dict]:
         """获取所有预警规则"""
         return [{
@@ -116,23 +116,23 @@ class AdvancedAlertService:
             "created_at": rule.created_at.isoformat(),
             "last_triggered": rule.last_triggered.isoformat() if rule.last_triggered else None
         } for rule in self.alert_rules]
-    
+
     def get_alert_history(self, limit: int = 50, symbol: str = None) -> List[Dict]:
         """获取预警历史记录"""
         return self.alert_history.get_history(limit, symbol)
-    
+
     async def start_monitoring(self, data_service):
         """开始监控市场价格"""
         if self.is_monitoring:
             logger.warning("⚠️ 预警监控已在运行中")
             return
-            
+
         self.is_monitoring = True
         logger.info("🚀 启动高级预警监控")
-        
+
         # 启动监控任务
         self.monitoring_task = asyncio.create_task(self._monitoring_loop(data_service))
-    
+
     async def stop_monitoring(self):
         """停止监控"""
         self.is_monitoring = False
@@ -143,7 +143,7 @@ class AdvancedAlertService:
             except asyncio.CancelledError:
                 pass
         logger.info("🛑 停止高级预警监控")
-    
+
     async def _monitoring_loop(self, data_service):
         """监控循环"""
         while self.is_monitoring:
@@ -155,24 +155,24 @@ class AdvancedAlertService:
             except Exception as e:
                 logger.error(f"预警监控错误: {e}")
                 await asyncio.sleep(10)
-    
+
     async def _check_alerts(self, data_service):
         """检查预警条件"""
         try:
             # 获取当前市场价格
             market_data = data_service.get_realtime_prices() if hasattr(data_service, 'get_realtime_prices') else {}
-            
+
             for rule in self.alert_rules:
                 if rule.symbol in market_data:
                     price_data = market_data[rule.symbol]
                     current_price = price_data.get('price', 0)
-                    
+
                     # 获取历史价格用于变化率计算
                     if rule.symbol not in self.price_history:
                         self.price_history[rule.symbol] = []
-                    
+
                     previous_price = self.price_history[rule.symbol][-1] if self.price_history[rule.symbol] else current_price
-                    
+
                     # 检查条件
                     if rule.check_condition(current_price, previous_price) and not rule.triggered:
                         await self._trigger_alert(rule, current_price, previous_price)
@@ -180,20 +180,20 @@ class AdvancedAlertService:
                         rule.last_triggered = datetime.now()
                     elif not rule.check_condition(current_price, previous_price):
                         rule.triggered = False
-                    
+
                     # 更新价格历史
                     self.price_history[rule.symbol].append(current_price)
                     if len(self.price_history[rule.symbol]) > 100:  # 保持最近100个价格
                         self.price_history[rule.symbol] = self.price_history[rule.symbol][-100:]
-                        
+
         except Exception as e:
             logger.error(f"检查预警时出错: {e}")
-    
+
     async def _trigger_alert(self, rule: AlertRule, current_price: float, previous_price: float):
         """触发预警"""
         message = self._format_alert_message(rule, current_price, previous_price)
         logger.warning(f"🚨 预警触发: {message}")
-        
+
         # 创建预警记录
         alert_data = {
             'symbol': rule.symbol,
@@ -204,10 +204,10 @@ class AdvancedAlertService:
             'message': message,
             'triggered_time': datetime.now().isoformat()
         }
-        
+
         # 添加到历史记录
         self.alert_history.add_record(alert_data)
-        
+
         # 根据通知类型发送通知
         if rule.notification_type == "log":
             # 记录到日志（默认）
@@ -220,7 +220,7 @@ class AdvancedAlertService:
                 await email_service.send_alert_notification(alert_data, rule.email_recipients)
             else:
                 logger.warning("邮件服务不可用，无法发送邮件通知")
-        
+
     def _format_alert_message(self, rule: AlertRule, current_price: float, previous_price: float) -> str:
         """格式化预警消息"""
         if rule.condition == "above":
