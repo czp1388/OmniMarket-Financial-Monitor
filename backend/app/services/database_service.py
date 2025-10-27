@@ -3,8 +3,7 @@ import logging
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-from sqlalchemy import text
-from sqlalchemy import and_, or_, desc
+from sqlalchemy import and_, or_, desc, text
 
 from database import db_manager, AlertRule, AlertHistory, SystemConfig, MarketData
 
@@ -64,6 +63,18 @@ class DatabaseService:
             db.close()
         except Exception as e:
             logger.error(f"❌ 默认配置初始化失败: {e}")
+
+    def test_connection(self):
+        """测试数据库连接"""
+        try:
+            db = next(db_manager.get_db())
+            db.execute(text("SELECT 1"))
+            db.close()
+            logger.info("✅ 数据库连接测试成功")
+            return True
+        except Exception as e:
+            logger.error(f"❌ 数据库连接测试失败: {e}")
+            return False
 
     # 预警规则管理
     def create_alert_rule(self, rule_data: Dict) -> Optional[AlertRule]:
@@ -414,9 +425,5 @@ class DatabaseService:
             logger.error(f"❌ 获取数据库统计失败: {e}")
             return {}
 
-    def test_connection(self):`n        `"`"`"测试数据库连接`"`"`"`n        try:`n            db = next(db_manager.get_db())`n            db.execute(text(`"SELECT 1`"))`n            db.close()`n            logger.info(`"✅ 数据库连接测试成功`")`n            return True`n        except Exception as e:`n            logger.error(f`"❌ 数据库连接测试失败: {e}`")`n            return False
-
 # 创建全局数据库服务实例
 database_service = DatabaseService()
-
-

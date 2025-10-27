@@ -8,8 +8,17 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# 数据库配置
+# 数据库配置 - 使用绝对路径
 DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///./financial_monitor.db')
+
+# 如果是SQLite，确保使用绝对路径
+if DATABASE_URL.startswith('sqlite'):
+    # 获取项目根目录的绝对路径
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    db_path = os.path.join(base_dir, 'financial_monitor.db')
+    DATABASE_URL = f'sqlite:///{db_path}'
+
+logger.info(f"📁 数据库路径: {DATABASE_URL}")
 
 # 创建数据库引擎
 engine = create_engine(
@@ -128,4 +137,3 @@ class DatabaseManager:
 
 # 创建全局数据库管理器实例
 db_manager = DatabaseManager()
-
