@@ -405,6 +405,8 @@ class DatabaseService:
             logger.error(f"❌ 清理历史记录失败: {e}")
             return 0
 
+    
+
     def get_database_stats(self) -> Dict:
         """获取数据库统计信息"""
         try:
@@ -427,3 +429,5 @@ class DatabaseService:
 
 # 创建全局数据库服务实例
 database_service = DatabaseService()
+
+
