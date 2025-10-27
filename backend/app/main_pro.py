@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="寰宇多市场金融监控系统",
     description="专业版本 - 多市场金融数据实时监控平台",
-    version="2.7.0"
+    version="2.8.0"
 )
 
 app.add_middleware(
@@ -28,7 +28,7 @@ app.add_middleware(
 @app.get("/")
 async def root():
     return {
-        "message": "寰宇多市场金融监控系统 API - 专业版 v2.7",
+        "message": "寰宇多市场金融监控系统 API - 专业版 v2.8",
         "status": "运行中",
         "version": "2.6.0"
     }
@@ -68,6 +68,7 @@ except ImportError as e:
 try:
     from routers.advanced_alerts import router as advanced_alerts_router
 from routers.telegram_alerts import router as telegram_alerts_router
+from routers.database_api import router as database_api_router
     app.include_router(advanced_alerts_router, prefix="/api/v1", tags=["高级预警"])
     logger.info("✅ 高级预警路由导入成功")
 except ImportError as e:
@@ -87,7 +88,7 @@ else:
 @app.on_event("startup")
 async def startup_event():
     """安全启动服务"""
-    logger.info("🚀 启动寰宇多市场金融监控系统 专业版 v2.7...")
+    logger.info("🚀 启动寰宇多市场金融监控系统 专业版 v2.8...")
     
     # 尝试初始化数据服务
     try:

@@ -24,16 +24,26 @@ except ImportError as e:
     logger.error(f"❌ Telegram机器人服务导入失败: {e}")
     telegram_service = None
 
+# 导入数据库服务
+try:
+    from services.database_service import database_service
+    logger.info("✅ 数据库服务导入成功")
+except ImportError as e:
+    logger.error(f"❌ 数据库服务导入失败: {e}")
+    database_service = None
+
 class AlertRule:
-    def __init__(self, symbol: str, condition: str, threshold: float, notification_type: str = "log", email_recipients: List[str] = None, telegram_chat_ids: List[str] = None):
-        self.symbol = symbol
-        self.condition = condition  # "above", "below", "change_up", "change_down"
-        self.threshold = threshold
-        self.notification_type = notification_type
-        self.email_recipients = email_recipients or []
-        self.telegram_chat_ids = telegram_chat_ids or []
+    def __init__(self, rule_data: Dict):
+        self.id = rule_data.get('id')
+        self.symbol = rule_data['symbol']
+        self.condition = rule_data['condition']  # "above", "below", "change_up", "change_down"
+        self.threshold = rule_data['threshold']
+        self.notification_type = rule_data.get('notification_type', 'log')
+        self.email_recipients = rule_data.get('email_recipients', [])
+        self.telegram_chat_ids = rule_data.get('telegram_chat_ids', [])
+        self.is_active = rule_data.get('is_active', True)
         self.triggered = False
-        self.created_at = datetime.now()
+        self.created_at = rule_data.get('created_at', datetime.now())
         self.last_triggered = None
 
     def check_condition(self, current_price: float, previous_price: float = None) -> bool:
@@ -50,72 +60,104 @@ class AlertRule:
             return change_percent < -self.threshold
         return False
 
-class AlertHistory:
-    """预警历史记录"""
-    def __init__(self):
-        self.history: List[Dict] = []
-        self.max_history = 1000  # 最大历史记录数
-
-    def add_record(self, alert_data: Dict):
-        """添加预警记录"""
-        record = {
-            'id': len(self.history) + 1,
-            'timestamp': datetime.now().isoformat(),
-            **alert_data
-        }
-        self.history.append(record)
-
-        # 限制历史记录数量
-        if len(self.history) > self.max_history:
-            self.history = self.history[-self.max_history:]
-
-    def get_history(self, limit: int = 50, symbol: str = None) -> List[Dict]:
-        """获取预警历史"""
-        history = self.history.copy()
-        history.reverse()  # 最新的在前
-
-        if symbol:
-            history = [h for h in history if h.get('symbol') == symbol]
-
-        return history[:limit]
-
-    def clear_history(self):
-        """清空历史记录"""
-        self.history.clear()
-
 class AdvancedAlertService:
     def __init__(self):
         self.alert_rules: List[AlertRule] = []
         self.price_history: Dict[str, List[float]] = {}
-        self.alert_history = AlertHistory()
         self.is_monitoring = False
         self.monitoring_task = None
+        self.use_database = database_service and database_service.is_initialized
 
     async def initialize(self):
         """初始化预警服务"""
         logger.info("✅ 高级预警服务初始化")
+        
+        # 从数据库加载预警规则
+        if self.use_database:
+            await self._load_rules_from_database()
+        else:
+            logger.warning("⚠️ 数据库不可用，使用内存存储")
 
-    def add_alert_rule(self, symbol: str, condition: str, threshold: float, notification_type: str = "log", email_recipients: List[str] = None, telegram_chat_ids: List[str] = None) -> str:
+    async def _load_rules_from_database(self):
+        """从数据库加载预警规则"""
+        try:
+            if not self.use_database:
+                return
+                
+            db_rules = database_service.get_alert_rules(active_only=True)
+            self.alert_rules = [AlertRule({
+                'id': rule.id,
+                'symbol': rule.symbol,
+                'condition': rule.condition,
+                'threshold': rule.threshold,
+                'notification_type': rule.notification_type,
+                'email_recipients': rule.email_recipients or [],
+                'telegram_chat_ids': rule.telegram_chat_ids or [],
+                'is_active': rule.is_active,
+                'created_at': rule.created_at
+            }) for rule in db_rules]
+            
+            logger.info(f"✅ 从数据库加载了 {len(self.alert_rules)} 个预警规则")
+            
+        except Exception as e:
+            logger.error(f"❌ 从数据库加载预警规则失败: {e}")
+
+    def add_alert_rule(self, symbol: str, condition: str, threshold: float, 
+                      notification_type: str = "log", 
+                      email_recipients: List[str] = None, 
+                      telegram_chat_ids: List[str] = None) -> str:
         """添加预警规则"""
-        rule = AlertRule(symbol, condition, threshold, notification_type, email_recipients, telegram_chat_ids)
-        self.alert_rules.append(rule)
-        logger.info(f"✅ 添加预警规则: {symbol} {condition} {threshold} (通知方式: {notification_type})")
-        return f"预警规则已添加: {symbol} {condition} {threshold}"
+        try:
+            rule_data = {
+                'symbol': symbol,
+                'condition': condition,
+                'threshold': threshold,
+                'notification_type': notification_type,
+                'email_recipients': email_recipients or [],
+                'telegram_chat_ids': telegram_chat_ids or []
+            }
+            
+            # 保存到数据库
+            if self.use_database:
+                db_rule = database_service.create_alert_rule(rule_data)
+                if db_rule:
+                    rule_data['id'] = db_rule.id
+                    rule_data['created_at'] = db_rule.created_at
+            
+            # 添加到内存
+            rule = AlertRule(rule_data)
+            self.alert_rules.append(rule)
+            
+            logger.info(f"✅ 添加预警规则: {symbol} {condition} {threshold} (通知方式: {notification_type})")
+            return f"预警规则已添加: {symbol} {condition} {threshold}"
+            
+        except Exception as e:
+            logger.error(f"❌ 添加预警规则失败: {e}")
+            return f"添加预警规则失败: {str(e)}"
 
-    def remove_alert_rule(self, symbol: str, condition: str, threshold: float) -> bool:
+    def remove_alert_rule(self, rule_id: int) -> bool:
         """移除预警规则"""
-        for rule in self.alert_rules:
-            if (rule.symbol == symbol and
-                rule.condition == condition and
-                rule.threshold == threshold):
-                self.alert_rules.remove(rule)
-                logger.info(f"✅ 移除预警规则: {symbol} {condition} {threshold}")
-                return True
-        return False
+        try:
+            # 从数据库删除
+            if self.use_database:
+                success = database_service.delete_alert_rule(rule_id)
+                if not success:
+                    return False
+            
+            # 从内存删除
+            self.alert_rules = [rule for rule in self.alert_rules if rule.id != rule_id]
+            
+            logger.info(f"✅ 移除预警规则: ID {rule_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"❌ 移除预警规则失败: {e}")
+            return False
 
     def get_alert_rules(self) -> List[Dict]:
         """获取所有预警规则"""
         return [{
+            "id": rule.id,
             "symbol": rule.symbol,
             "condition": rule.condition,
             "threshold": rule.threshold,
@@ -123,13 +165,51 @@ class AdvancedAlertService:
             "email_recipients": rule.email_recipients,
             "telegram_chat_ids": rule.telegram_chat_ids,
             "triggered": rule.triggered,
-            "created_at": rule.created_at.isoformat(),
+            "is_active": rule.is_active,
+            "created_at": rule.created_at.isoformat() if hasattr(rule.created_at, 'isoformat') else rule.created_at,
             "last_triggered": rule.last_triggered.isoformat() if rule.last_triggered else None
         } for rule in self.alert_rules]
 
     def get_alert_history(self, limit: int = 50, symbol: str = None) -> List[Dict]:
         """获取预警历史记录"""
-        return self.alert_history.get_history(limit, symbol)
+        try:
+            if self.use_database:
+                history = database_service.get_alert_history(limit, symbol)
+                return [{
+                    'id': record.id,
+                    'rule_id': record.rule_id,
+                    'symbol': record.symbol,
+                    'condition': record.condition,
+                    'threshold': record.threshold,
+                    'current_price': record.current_price,
+                    'previous_price': record.previous_price,
+                    'message': record.message,
+                    'notification_type': record.notification_type,
+                    'triggered_time': record.triggered_at.isoformat()
+                } for record in history]
+            else:
+                return []
+                
+        except Exception as e:
+            logger.error(f"❌ 获取预警历史失败: {e}")
+            return []
+
+    def get_alert_stats(self) -> Dict:
+        """获取预警统计信息"""
+        try:
+            if self.use_database:
+                return database_service.get_alert_stats()
+            else:
+                return {
+                    'total_count': 0,
+                    'symbol_stats': {},
+                    'notification_stats': {},
+                    'period_days': 7
+                }
+                
+        except Exception as e:
+            logger.error(f"❌ 获取预警统计失败: {e}")
+            return {}
 
     async def start_monitoring(self, data_service):
         """开始监控市场价格"""
@@ -173,6 +253,9 @@ class AdvancedAlertService:
             market_data = data_service.get_realtime_prices() if hasattr(data_service, 'get_realtime_prices') else {}
 
             for rule in self.alert_rules:
+                if not rule.is_active:
+                    continue
+                    
                 if rule.symbol in market_data:
                     price_data = market_data[rule.symbol]
                     current_price = price_data.get('price', 0)
@@ -206,17 +289,20 @@ class AdvancedAlertService:
 
         # 创建预警记录
         alert_data = {
+            'rule_id': rule.id,
             'symbol': rule.symbol,
             'condition': rule.condition,
             'threshold': rule.threshold,
             'current_price': current_price,
             'previous_price': previous_price,
             'message': message,
-            'triggered_time': datetime.now().isoformat()
+            'notification_type': rule.notification_type,
+            'triggered_at': datetime.utcnow()
         }
 
-        # 添加到历史记录
-        self.alert_history.add_record(alert_data)
+        # 保存到数据库
+        if self.use_database:
+            database_service.create_alert_history(alert_data)
 
         # 根据通知类型发送通知
         if rule.notification_type == "log":
