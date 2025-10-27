@@ -1,6 +1,6 @@
 ﻿"""
-OmniMarket Financial Monitor - 集成通知系统主服务
-包含增强版A股数据和通知系统功能
+OmniMarket Financial Monitor - 集成增强版主服务
+包含增强版A股数据功能
 """
 import logging
 from fastapi import FastAPI
@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 # 创建FastAPI应用
 app = FastAPI(
     title="OmniMarket Financial Monitor API",
-    description="全市场金融监控系统 - 集成增强版A股数据和通知系统",
-    version="3.2.0",
+    description="全市场金融监控系统 - 集成增强版A股数据",
+    version="3.1.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )
@@ -43,37 +43,30 @@ app.add_middleware(
 from routers.enhanced_stock_cn_api import router as enhanced_stock_cn_router
 app.include_router(enhanced_stock_cn_router)
 
-# 包含通知系统路由
-from routers.notification_api import router as notification_router
-app.include_router(notification_router)
-
 @app.get("/")
 async def root():
     """根端点"""
     return {
-        "message": "欢迎使用 OmniMarket Financial Monitor API - 集成增强版A股数据和通知系统",
-        "version": "3.2.0",
+        "message": "欢迎使用 OmniMarket Financial Monitor API - 集成增强版A股数据",
+        "version": "3.1.0",
         "status": "running",
         "timestamp": datetime.now().isoformat(),
-        "new_features": ["增强版A股数据", "实时行情", "历史数据", "股票搜索", "邮件通知", "Telegram通知"]
+        "new_features": ["增强版A股数据", "实时行情", "历史数据", "股票搜索"]
     }
 
 @app.get("/health")
 async def health_check():
     """健康检查端点"""
     from services.enhanced_stock_cn_service import enhanced_stock_cn_service
-    from services.notification_service import notification_service
     
     enhanced_status = "healthy" if enhanced_stock_cn_service.is_initialized else "initializing"
-    notification_status = "healthy" if notification_service.is_initialized else "initializing"
     
     return {
         "status": "healthy",
         "service": "OmniMarket Financial Monitor",
-        "version": "3.2.0",
+        "version": "3.1.0",
         "services": {
-            "enhanced_a_share_data": enhanced_status,
-            "notification_service": notification_status
+            "enhanced_a_share_data": enhanced_status
         },
         "timestamp": datetime.now().isoformat()
     }
@@ -87,23 +80,20 @@ async def system_info():
     
     return {
         "name": "OmniMarket Financial Monitor",
-        "version": "3.2.0",
-        "description": "多市场金融监控系统 - 集成增强版A股数据和通知系统",
+        "version": "3.1.0",
+        "description": "多市场金融监控系统 - 集成增强版A股数据",
         "status": "running",
         "timestamp": datetime.now().isoformat(),
         "features": [
             "增强版A股数据服务",
             "实时行情监控", 
             "历史数据分析",
-            "多市场数据接入",
-            "邮件通知系统",
-            "Telegram通知系统"
+            "多市场数据接入"
         ],
         "statistics": {
             "supported_a_share_stocks": len(stocks),
             "supported_markets": ["A股", "港股"],
-            "data_sources": ["enhanced_mock", "akshare_ready"],
-            "notification_systems": ["email", "telegram"]
+            "data_sources": ["enhanced_mock", "akshare_ready"]
         }
     }
 
@@ -158,16 +148,14 @@ async def get_stock_hk_symbols():
     }
 
 if __name__ == "__main__":
-    logger.info("🚀 启动 OmniMarket Financial Monitor (集成通知系统)...")
+    logger.info("🚀 启动 OmniMarket Financial Monitor (集成增强版)...")
     logger.info(f"Python版本: {sys.version}")
     logger.info(f"工作目录: {os.getcwd()}")
     
-    # 初始化增强版服务和通知服务
+    # 初始化增强版服务
     async def initialize_services():
         from services.enhanced_stock_cn_service import enhanced_stock_cn_service
-        from services.notification_service import notification_service
         await enhanced_stock_cn_service.initialize()
-        await notification_service.initialize()
     
     import asyncio
     asyncio.run(initialize_services())
