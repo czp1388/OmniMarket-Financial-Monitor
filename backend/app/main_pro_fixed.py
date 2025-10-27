@@ -43,6 +43,7 @@ app.add_middleware(
 try:
     from routers.database_api import router as database_api_router
     from routers.user_management import router as user_management_router
+from routers.permission_management import router as permission_management_router
     logger.info("✅ 路由导入成功")
 except ImportError as e:
     logger.error(f"❌ 路由导入失败: {e}")
@@ -135,3 +136,4 @@ if __name__ == "__main__":
         log_level="info",
         access_log=True
     )
+

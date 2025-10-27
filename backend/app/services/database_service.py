@@ -24,7 +24,9 @@ class DatabaseService:
                 
                 # 初始化默认系统配置
                 self._init_default_config()
-            else:
+                        # 初始化默认角色和权限
+            self.initialize_default_roles()
+else:
                 logger.error("❌ 数据库服务初始化失败")
         except Exception as e:
             logger.error(f"❌ 数据库服务初始化异常: {e}")
@@ -429,5 +431,7 @@ class DatabaseService:
 
 # 创建全局数据库服务实例
 database_service = DatabaseService()
+
+
 
 

@@ -45,6 +45,8 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+
+
 class AlertRule(Base):
     """预警规则表"""
     __tablename__ = "alert_rules"
@@ -137,3 +139,4 @@ class DatabaseManager:
 
 # 创建全局数据库管理器实例
 db_manager = DatabaseManager()
+
