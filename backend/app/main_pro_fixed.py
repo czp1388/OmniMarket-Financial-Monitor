@@ -82,7 +82,7 @@ async def initialize_services():
 
 # 包含路由
 app.include_router(database_api_router, prefix="/api/v1", tags=["数据库管理"])
-app.include_router(user_management_router, prefix="/api/v1", tags=["用户管理"])
+app.include_router(user_management_router, prefix="/api/v1", tags=["用户管理"])`napp.include_router(permission_management_router, prefix="/api/v1", tags=["权限管理"])
 
 # 健康检查端点
 @app.get("/health")
@@ -136,4 +136,5 @@ if __name__ == "__main__":
         log_level="info",
         access_log=True
     )
+
 
