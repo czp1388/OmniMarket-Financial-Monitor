@@ -73,8 +73,3 @@ async def get_stock_hk_symbols():
 if __name__ == "__main__":
     print("🚀 启动简化版服务...")
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-
-
-
-
