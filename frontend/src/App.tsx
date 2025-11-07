@@ -6,6 +6,7 @@ import ChartPage from './pages/ChartPage';
 import AlertsPage from './pages/AlertsPage';
 import PortfolioPage from './pages/PortfolioPage';
 import SettingsPage from './pages/SettingsPage';
+import VirtualTradingPage from './pages/VirtualTradingPage';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/alerts" element={<AlertsPage />} />
           <Route path="/portfolio" element={<PortfolioPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/virtual-trading" element={<VirtualTradingPage />} />
         </Routes>
       </Layout>
     </Router>

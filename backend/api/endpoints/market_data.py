@@ -139,3 +139,14 @@ async def get_historical_data(
         return historical_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"获取历史数据失败: {str(e)}")
+
+@router.get("/health")
+async def health_check():
+    """
+    市场数据服务健康检查
+    """
+    return {
+        "status": "healthy", 
+        "service": "market-data",
+        "timestamp": datetime.now().isoformat()
+    }
