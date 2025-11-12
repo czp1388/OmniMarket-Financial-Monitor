@@ -1,0 +1,385 @@
+/* K线风格仪表板样式 - 完全匹配kline_demo.html的视觉效果 */
+.kline-terminal {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.header h1 {
+  font-size: 2.5em;
+  margin: 0;
+  background: linear-gradient(45deg, #00ff88, #00ccff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header p {
+  margin: 10px 0 0 0;
+  opacity: 0.8;
+  font-size: 1.1em;
+}
+
+/* 功能导航栏样式 - 专业金融终端终极优化版 */
+.nav-bar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+  margin-bottom: 12px;
+  background: rgba(0, 0, 0, 0.98);
+  border-radius: 0px;
+  padding: 0;
+  border: 0.5px solid rgba(255, 255, 255, 0.02);
+  box-shadow: 
+    0 0.2px 0.4px rgba(0, 0, 0, 0.98), 
+    inset 0 0.2px 0 rgba(255, 255, 255, 0.005),
+    0 0 0 0.3px rgba(0, 0, 0, 0.9),
+    inset 0 0 4px rgba(0, 0, 0, 0.95);
+  overflow: hidden;
+  min-height: 14px;
+  backdrop-filter: blur(50px);
+  position: relative;
+}
+
+.nav-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0.5px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.08) 20%, 
+    rgba(255, 255, 255, 0.15) 50%, 
+    rgba(255, 255, 255, 0.08) 80%, 
+    transparent 100%);
+  z-index: 1;
+}
+
+.nav-btn {
+  padding: 6px 8px;
+  border: none;
+  border-radius: 0;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.006) 0%, 
+    rgba(255, 255, 255, 0.001) 100%);
+  color: rgba(255, 255, 255, 0.98);
+  font-size: 9px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.03s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(50px);
+  border-right: 0.3px solid rgba(255, 255, 255, 0.01);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  min-height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0.7;
+  position: relative;
+  text-shadow: 0 0.2px 0.4px rgba(0, 0, 0, 0.98);
+  box-shadow: 
+    inset 0 0 0 0.3px rgba(0, 0, 0, 0.7),
+    inset 0 0.2px 0 rgba(255, 255, 255, 0.005);
+}
+
+.nav-btn:last-child {
+  border-right: none;
+}
+
+.nav-btn:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.04) 0%, 
+    rgba(255, 255, 255, 0.02) 100%);
+  transform: translateY(-0.02px);
+  box-shadow: 
+    0 0.2px 0.4px rgba(0, 0, 0, 0.95), 
+    inset 0 0.2px 0 rgba(255, 255, 255, 0.02),
+    0 0 0 0.3px rgba(255, 255, 255, 0.04),
+    inset 0 0 1.5px rgba(255, 255, 255, 0.01);
+  border-color: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.2);
+  letter-spacing: 0.5px;
+  z-index: 2;
+}
+
+.nav-btn.active {
+  background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+  color: #000000;
+  font-weight: 900;
+  box-shadow: 
+    0 0.2px 1.5px rgba(0, 255, 136, 0.9), 
+    inset 0 0.2px 0 rgba(255, 255, 255, 0.4),
+    0 0 0 0.3px rgba(0, 255, 136, 0.95),
+    inset 0 0 3px rgba(0, 255, 136, 0.3);
+  border-color: rgba(0, 255, 136, 0.95);
+  transform: translateY(-0.05px);
+  text-shadow: 0 0.2px 0.4px rgba(0, 0, 0, 0.6);
+  z-index: 3;
+  letter-spacing: 0.6px;
+}
+
+.nav-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(0, 255, 136, 0.08) 0%, 
+    rgba(0, 204, 255, 0.08) 100%);
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  border-radius: 0;
+}
+
+.nav-btn:hover::before {
+  opacity: 1;
+}
+
+.nav-btn.active::before {
+  opacity: 0;
+}
+
+.nav-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0.5px;
+  background: linear-gradient(90deg, #00ff88, #00ccff);
+  transition: width 0.12s ease;
+  box-shadow: 0 0 3px rgba(0, 255, 136, 0.4);
+}
+
+.nav-btn:hover::after {
+  width: 45%;
+}
+
+.nav-btn.active::after {
+  width: 65%;
+  background: #000000;
+  height: 0.5px;
+  box-shadow: none;
+}
+
+/* 导航按钮状态指示器 */
+.nav-btn .status-indicator {
+  position: absolute;
+  top: 0.8px;
+  right: 0.8px;
+  width: 2.5px;
+  height: 2.5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  transition: all 0.12s ease;
+}
+
+.nav-btn:hover .status-indicator {
+  background: rgba(0, 255, 136, 0.7);
+  box-shadow: 0 0 2.5px rgba(0, 255, 136, 0.5);
+}
+
+.nav-btn.active .status-indicator {
+  background: #000000;
+  box-shadow: 0 0 1.5px rgba(0, 0, 0, 0.4);
+}
+
+.market-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.info-card {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.info-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.info-value {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin: 5px 0;
+  font-family: 'Courier New', monospace;
+}
+
+.positive {
+  color: #00ff88;
+}
+
+.negative {
+  color: #ff4444;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.control-group {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.control-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.control-select {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  border: none;
+  border-radius: 5px;
+  background: linear-gradient(135deg, #1a1f2e 0%, #151a26 100%);
+  color: white;
+  font-size: 14px;
+}
+
+.control-btn {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  border: none;
+  border-radius: 5px;
+  background: linear-gradient(45deg, #00ff88, #00ccff);
+  color: #1a1a1a;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s;
+  font-size: 14px;
+}
+
+.control-btn:hover {
+  transform: translateY(-2px);
+}
+
+.chart-container {
+  background: #1a1a1a;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+  height: 500px;
+}
+
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #00ff88;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .kline-terminal {
+    padding: 10px;
+  }
+  
+  .container {
+    padding: 15px;
+  }
+  
+  .header h1 {
+    font-size: 2em;
+  }
+  
+  .market-info {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .controls {
+    grid-template-columns: 1fr;
+  }
+  
+  .chart-container {
+    height: 400px;
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .market-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .header h1 {
+    font-size: 1.5em;
+  }
+  
+  .chart-container {
+    height: 300px;
+  }
+}

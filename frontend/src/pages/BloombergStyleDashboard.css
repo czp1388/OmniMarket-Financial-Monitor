@@ -1,0 +1,497 @@
+/* 彭博终端风格CSS */
+.bloomberg-terminal {
+  background: #0a0e14;
+  color: #ffffff;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* 彭博终端导航键样式 - 统一标准 */
+.terminal-navbar {
+  background: #1a1d23;
+  border-bottom: 1px solid #2d313a;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 48px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.terminal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #00ff88;
+  margin: 0;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* 标准导航键样式 */
+.bloomberg-nav-bar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: rgba(0, 0, 0, 0.98);
+  min-height: 14px;
+  backdrop-filter: blur(50px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  margin-bottom: 15px;
+}
+
+.bloomberg-nav-btn {
+  font-size: 9px;
+  min-height: 18px;
+  line-height: 1.2;
+  padding: 6px 8px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  font-family: 'Courier New', Monaco, Menlo, monospace;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  transition: all 0.15s ease;
+  border-right: 0.5px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.bloomberg-nav-btn:last-child {
+  border-right: none;
+}
+
+.bloomberg-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+  transform: translateY(-0.5px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.bloomberg-nav-btn.active {
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 204, 255, 0.1));
+  color: #00ff88;
+  box-shadow: inset 0 0 8px rgba(0, 255, 136, 0.2);
+}
+
+.bloomberg-nav-btn.active::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #00ff88, transparent);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.bloomberg-nav-btn.positive {
+  color: #00ff88;
+}
+
+.bloomberg-nav-btn.negative {
+  color: #ff4444;
+}
+
+.bloomberg-nav-btn .badge {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #ff4444;
+  animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.status-info {
+  display: flex;
+  gap: 20px;
+  font-size: 11px;
+}
+
+.status-item {
+  color: #8b949e;
+}
+
+.status-value {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.status-value.positive {
+  color: #00ff88;
+}
+
+/* 移动端响应式设计 */
+@media (max-width: 768px) {
+  .bloomberg-nav-bar {
+    grid-template-columns: repeat(4, 1fr);
+    min-height: 12px;
+  }
+  
+  .bloomberg-nav-btn {
+    font-size: 3.5px;
+    min-height: 8px;
+  }
+}
+
+/* 主布局 */
+.terminal-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  height: calc(100vh - 48px);
+}
+
+/* 左侧品种栏 */
+.symbols-sidebar {
+  background: #161b22;
+  border-right: 1px solid #2d313a;
+  overflow-y: auto;
+}
+
+.sidebar-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #2d313a;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-header h3 {
+  font-size: 12px;
+  font-weight: 700;
+  color: #8b949e;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.symbols-count {
+  font-size: 10px;
+  color: #8b949e;
+  background: #2d313a;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.symbols-grid {
+  padding: 8px;
+}
+
+.symbol-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+  align-items: center;
+}
+
+.symbol-row:hover {
+  background: #1f2937;
+}
+
+.symbol-row.positive {
+  border-left: 2px solid #00ff88;
+}
+
+.symbol-row.negative {
+  border-left: 2px solid #ff4444;
+}
+
+.symbol-name {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.symbol-price {
+  color: #ffffff;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+}
+
+.symbol-change {
+  color: #8b949e;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+}
+
+.symbol-percent {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.symbol-percent.positive {
+  background: rgba(0, 255, 136, 0.1);
+  color: #00ff88;
+}
+
+.symbol-percent.negative {
+  background: rgba(255, 68, 68, 0.1);
+  color: #ff4444;
+}
+
+/* 右侧主内容区 */
+.main-content-area {
+  display: flex;
+  flex-direction: column;
+  background: #0a0e14;
+  overflow: hidden;
+}
+
+/* 控制面板 */
+.control-panel {
+  background: #161b22;
+  border-bottom: 1px solid #2d313a;
+  padding: 12px 16px;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.control-label {
+  font-size: 10px;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.control-select {
+  background: linear-gradient(135deg, #1a1f2e 0%, #151a26 100%);
+  border: 1px solid #2d313a;
+  color: #ffffff;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 120px;
+  cursor: pointer;
+}
+
+.control-select:focus {
+  outline: none;
+  border-color: #00ff88;
+}
+
+.control-btn {
+  background: #2d313a;
+  border: 1px solid #2d313a;
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.control-btn:hover {
+  background: #3b4048;
+}
+
+.control-btn.primary {
+  background: #00ff88;
+  color: #0a0e14;
+  border-color: #00ff88;
+}
+
+.control-btn.primary:hover {
+  background: #00e077;
+  border-color: #00e077;
+}
+
+/* 图表区域 */
+.chart-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #0a0e14;
+  overflow: hidden;
+}
+
+.chart-header {
+  background: #161b22;
+  border-bottom: 1px solid #2d313a;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chart-title {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.symbol-display {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.timeframe-display {
+  font-size: 11px;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.chart-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+}
+
+.stat-item {
+  color: #8b949e;
+  font-family: 'Courier New', monospace;
+}
+
+.stat-item.positive {
+  color: #00ff88;
+  font-weight: 600;
+}
+
+.chart-container {
+  flex: 1;
+  padding: 16px;
+  background: #0a0e14;
+}
+
+/* 底部状态栏 */
+.status-bar {
+  background: #161b22;
+  border-top: 1px solid #2d313a;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+}
+
+.market-status,
+.system-status {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.status-tag,
+.system-tag {
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-tag {
+  background: #2d313a;
+  color: #8b949e;
+}
+
+.status-tag.positive {
+  background: rgba(0, 255, 136, 0.1);
+  color: #00ff88;
+}
+
+.system-tag {
+  background: rgba(0, 255, 136, 0.1);
+  color: #00ff88;
+}
+
+.system-tag.positive {
+  background: rgba(0, 255, 136, 0.1);
+  color: #00ff88;
+}
+
+/* 滚动条样式 */
+.symbols-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.symbols-sidebar::-webkit-scrollbar-track {
+  background: #161b22;
+}
+
+.symbols-sidebar::-webkit-scrollbar-thumb {
+  background: #2d313a;
+  border-radius: 3px;
+}
+
+.symbols-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #3b4048;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .terminal-layout {
+    grid-template-columns: 240px 1fr;
+  }
+  
+  .control-panel {
+    gap: 16px;
+  }
+  
+  .control-select {
+    min-width: 100px;
+  }
+}
+
+@media (max-width: 768px) {
+  .terminal-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .symbols-sidebar {
+    display: none;
+  }
+  
+  .control-panel {
+    flex-wrap: wrap;
+  }
+}

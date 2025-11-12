@@ -1,0 +1,521 @@
+/* ChartPage Styles - 完全匹配K线风格仪表板样式 */
+.chart-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+
+/* 功能导航栏样式 - 专业金融终端终极优化版 */
+.chart-nav-bar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+  margin-bottom: 12px;
+  background: rgba(0, 0, 0, 0.98);
+  border-radius: 0px;
+  padding: 0;
+  border: 0.5px solid rgba(255, 255, 255, 0.02);
+  box-shadow: 
+    0 0.2px 0.4px rgba(0, 0, 0, 0.98), 
+    inset 0 0.2px 0 rgba(255, 255, 255, 0.005),
+    0 0 0 0.3px rgba(0, 0, 0, 0.9),
+    inset 0 0 4px rgba(0, 0, 0, 0.95);
+  overflow: hidden;
+  min-height: 14px;
+  backdrop-filter: blur(50px);
+  position: relative;
+}
+
+.chart-nav-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0.5px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.08) 20%, 
+    rgba(255, 255, 255, 0.15) 50%, 
+    rgba(255, 255, 255, 0.08) 80%, 
+    transparent 100%);
+  z-index: 1;
+}
+
+.chart-nav-btn {
+  padding: 0px 0px;
+  border: none;
+  border-radius: 0;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.006) 0%, 
+    rgba(255, 255, 255, 0.001) 100%);
+  color: rgba(255, 255, 255, 0.98);
+  font-size: 4.5px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.03s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(50px);
+  border-right: 0.3px solid rgba(255, 255, 255, 0.01);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  min-height: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0.7;
+  position: relative;
+  text-shadow: 0 0.2px 0.4px rgba(0, 0, 0, 0.98);
+  box-shadow: 
+    inset 0 0 0 0.3px rgba(0, 0, 0, 0.7),
+    inset 0 0.2px 0 rgba(255, 255, 255, 0.005);
+}
+
+.chart-nav-btn:last-child {
+  border-right: none;
+}
+
+.chart-nav-btn:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.04) 0%, 
+    rgba(255, 255, 255, 0.02) 100%);
+  transform: translateY(-0.02px);
+  box-shadow: 
+    0 0.2px 0.4px rgba(0, 0, 0, 0.95), 
+    inset 0 0.2px 0 rgba(255, 255, 255, 0.02),
+    0 0 0 0.3px rgba(255, 255, 255, 0.04),
+    inset 0 0 1.5px rgba(255, 255, 255, 0.01);
+  border-color: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.2);
+  letter-spacing: 0.5px;
+  z-index: 2;
+}
+
+.chart-nav-btn.active {
+  background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+  color: #000000;
+  font-weight: 900;
+  box-shadow: 
+    0 0.2px 1.5px rgba(0, 255, 136, 0.9), 
+    inset 0 0.2px 0 rgba(255, 255, 255, 0.4),
+    0 0 0 0.3px rgba(0, 255, 136, 0.95),
+    inset 0 0 3px rgba(0, 255, 136, 0.3);
+  border-color: rgba(0, 255, 136, 0.95);
+  transform: translateY(-0.05px);
+  text-shadow: 0 0.2px 0.4px rgba(0, 0, 0, 0.6);
+  z-index: 3;
+  letter-spacing: 0.6px;
+}
+
+.chart-nav-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(0, 255, 136, 0.08) 0%, 
+    rgba(0, 204, 255, 0.08) 100%);
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  border-radius: 0;
+}
+
+.chart-nav-btn:hover::before {
+  opacity: 1;
+}
+
+.chart-nav-btn.active::before {
+  opacity: 0;
+}
+
+.chart-nav-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0.5px;
+  background: linear-gradient(90deg, #00ff88, #00ccff);
+  transition: width 0.12s ease;
+  box-shadow: 0 0 3px rgba(0, 255, 136, 0.4);
+}
+
+.chart-nav-btn:hover::after {
+  width: 45%;
+}
+
+.chart-nav-btn.active::after {
+  width: 65%;
+  background: #000000;
+  height: 0.5px;
+  box-shadow: none;
+}
+
+/* 导航按钮状态指示器 */
+.chart-nav-btn .status-indicator {
+  position: absolute;
+  top: 0.8px;
+  right: 0.8px;
+  width: 2.5px;
+  height: 2.5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  transition: all 0.12s ease;
+}
+
+.chart-nav-btn:hover .status-indicator {
+  background: rgba(0, 255, 136, 0.7);
+  box-shadow: 0 0 2.5px rgba(0, 255, 136, 0.5);
+}
+
+.chart-nav-btn.active .status-indicator {
+  background: #000000;
+  box-shadow: 0 0 1.5px rgba(0, 0, 0, 0.4);
+}
+
+.chart-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.chart-header {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  border-bottom: 1px solid #2a2f3d;
+  padding: 12px 20px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(10px);
+}
+
+.chart-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #00ff88;
+  margin: 0;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+}
+
+.chart-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.control-group {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.control-label {
+  font-size: 11px;
+  color: #8a94a6;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.control-select {
+  background: rgba(42, 47, 61, 0.9);
+  border: 1px solid #2a2f3d;
+  border-radius: 4px;
+  color: #e0e0e0;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  min-width: 100px;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+}
+
+.control-select:focus {
+  outline: none;
+  border-color: #00ff88;
+  box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
+}
+
+.chart-main {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 0;
+  height: calc(100vh - 60px);
+}
+
+.chart-sidebar {
+  background: rgba(42, 47, 61, 0.9);
+  border-right: 1px solid #2a2f3d;
+  padding: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.symbol-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.symbol-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #2a2f3d;
+  border-radius: 4px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.symbol-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #3a3f4d;
+  transform: translateX(1px);
+}
+
+.symbol-card.active {
+  background: rgba(0, 255, 136, 0.15);
+  border-color: rgba(0, 255, 136, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 255, 136, 0.2);
+}
+
+.symbol-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.symbol-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #e0e0e0;
+  letter-spacing: 0.3px;
+}
+
+.symbol-change {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.symbol-change.positive {
+  background: rgba(0, 255, 136, 0.15);
+  color: #00ff88;
+  border: 1px solid rgba(0, 255, 136, 0.25);
+}
+
+.symbol-change.negative {
+  background: rgba(255, 68, 68, 0.15);
+  color: #ff4444;
+  border: 1px solid rgba(255, 68, 68, 0.25);
+}
+
+.symbol-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.symbol-price {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.5px;
+  text-align: right;
+  min-width: 80px;
+}
+
+.symbol-absolute {
+  font-size: 10px;
+  font-weight: 600;
+  text-align: right;
+  min-width: 50px;
+}
+
+.symbol-absolute.positive {
+  color: #00ff88;
+}
+
+.symbol-absolute.negative {
+  color: #ff4444;
+}
+
+.chart-content {
+  display: flex;
+  flex-direction: column;
+  background: #0a0e14;
+}
+
+.chart-toolbar {
+  background: rgba(42, 47, 61, 0.9);
+  border-bottom: 1px solid #2a2f3d;
+  padding: 10px 16px;
+  backdrop-filter: blur(10px);
+}
+
+.toolbar-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.indicator-selector {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.indicator-badge {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid #2a2f3d;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 10px;
+  color: #8a94a6;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-weight: 600;
+}
+
+.indicator-badge:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #e0e0e0;
+}
+
+.indicator-badge.active {
+  background: rgba(0, 255, 136, 0.2);
+  border-color: rgba(0, 255, 136, 0.3);
+  color: #00ff88;
+}
+
+.chart-area {
+  flex: 1;
+  padding: 12px;
+  position: relative;
+}
+
+.chart-wrapper {
+  background: rgba(42, 47, 61, 0.9);
+  border: 1px solid #2a2f3d;
+  border-radius: 6px;
+  padding: 12px;
+  height: 100%;
+  backdrop-filter: blur(10px);
+}
+
+.chart-canvas {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+}
+
+.chart-status {
+  background: rgba(42, 47, 61, 0.9);
+  border-top: 1px solid #2a2f3d;
+  padding: 10px 16px;
+  backdrop-filter: blur(10px);
+}
+
+.status-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #8a94a6;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-value {
+  color: #e0e0e0;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+.status-value.positive {
+  color: #00ff88;
+}
+
+.status-value.negative {
+  color: #ff4444;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 14, 20, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid #00ff88;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .chart-main {
+    grid-template-columns: 240px 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .chart-main {
+    grid-template-columns: 1fr;
+  }
+  
+  .chart-sidebar {
+    display: none;
+  }
+  
+  .chart-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .control-group {
+    flex: 1;
+    min-width: 120px;
+  }
+}

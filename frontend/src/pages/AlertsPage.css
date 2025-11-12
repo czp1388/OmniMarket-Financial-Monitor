@@ -1,0 +1,804 @@
+/* AlertsPage Styles - Professional Trading Terminal Standard */
+.alerts-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+
+/* 功能导航栏样式 - 与主页保持一致 */
+.alerts-nav-bar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0;
+  margin-bottom: 12px;
+  background: rgba(0, 0, 0, 0.98);
+  border-radius: 0px;
+  padding: 0;
+  border: 0.5px solid rgba(255, 255, 255, 0.02);
+  box-shadow: 
+    0 0.2px 0.4px rgba(0, 0, 0, 0.98), 
+    inset 0 0.2px 0 rgba(255, 255, 255, 0.005),
+    0 0 0 0.3px rgba(0, 0, 0, 0.9),
+    inset 0 0 4px rgba(0, 0, 0, 0.95);
+  overflow: hidden;
+  min-height: 14px;
+  backdrop-filter: blur(50px);
+  position: relative;
+}
+
+.alerts-nav-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0.5px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.08) 20%, 
+    rgba(255, 255, 255, 0.15) 50%, 
+    rgba(255, 255, 255, 0.08) 80%, 
+    transparent 100%);
+  z-index: 1;
+}
+
+.alerts-nav-btn {
+  padding: 6px 8px;
+  border: none;
+  border-radius: 0;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.006) 0%, 
+    rgba(255, 255, 255, 0.001) 100%);
+  color: rgba(255, 255, 255, 0.98);
+  font-size: 9px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: all 0.03s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(50px);
+  border-right: 0.3px solid rgba(255, 255, 255, 0.01);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  min-height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0.7;
+  position: relative;
+  text-shadow: 0 0.2px 0.4px rgba(0, 0, 0, 0.98);
+  box-shadow: 
+    inset 0 0 0 0.3px rgba(0, 0, 0, 0.7),
+    inset 0 0.2px 0 rgba(255, 255, 255, 0.005);
+}
+
+.alerts-nav-btn:last-child {
+  border-right: none;
+}
+
+.alerts-nav-btn:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.04) 0%, 
+    rgba(255, 255, 255, 0.02) 100%);
+  transform: translateY(-0.02px);
+  box-shadow: 
+    0 0.2px 0.4px rgba(0, 0, 0, 0.95), 
+    inset 0 0.2px 0 rgba(255, 255, 255, 0.02),
+    0 0 0 0.3px rgba(255, 255, 255, 0.04),
+    inset 0 0 1.5px rgba(255, 255, 255, 0.01);
+  border-color: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.2);
+  letter-spacing: 0.5px;
+  z-index: 2;
+}
+
+.alerts-nav-btn.active {
+  background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+  color: #000000;
+  font-weight: 900;
+  box-shadow: 
+    0 0.2px 1.5px rgba(0, 255, 136, 0.9), 
+    inset 0 0.2px 0 rgba(255, 255, 255, 0.4),
+    0 0 0 0.3px rgba(0, 255, 136, 0.95),
+    inset 0 0 3px rgba(0, 255, 136, 0.3);
+  border-color: rgba(0, 255, 136, 0.95);
+  transform: translateY(-0.05px);
+  text-shadow: 0 0.2px 0.4px rgba(0, 0, 0, 0.6);
+  z-index: 3;
+  letter-spacing: 0.6px;
+}
+
+.alerts-nav-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(0, 255, 136, 0.08) 0%, 
+    rgba(0, 204, 255, 0.08) 100%);
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  border-radius: 0;
+}
+
+.alerts-nav-btn:hover::before {
+  opacity: 1;
+}
+
+.alerts-nav-btn.active::before {
+  opacity: 0;
+}
+
+.alerts-nav-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0.5px;
+  background: linear-gradient(90deg, #00ff88, #00ccff);
+  transition: width 0.12s ease;
+  box-shadow: 0 0 3px rgba(0, 255, 136, 0.4);
+}
+
+.alerts-nav-btn:hover::after {
+  width: 45%;
+}
+
+.alerts-nav-btn.active::after {
+  width: 65%;
+  background: #000000;
+  height: 0.5px;
+  box-shadow: none;
+}
+
+/* 导航按钮状态指示器 */
+.alerts-nav-btn .status-indicator {
+  position: absolute;
+  top: 0.8px;
+  right: 0.8px;
+  width: 2.5px;
+  height: 2.5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  transition: all 0.12s ease;
+}
+
+.alerts-nav-btn:hover .status-indicator {
+  background: rgba(0, 255, 136, 0.7);
+  box-shadow: 0 0 2.5px rgba(0, 255, 136, 0.5);
+}
+
+.alerts-nav-btn.active .status-indicator {
+  background: #000000;
+  box-shadow: 0 0 1.5px rgba(0, 0, 0, 0.4);
+}
+
+/* Reset and Base Styles */
+.alerts-container * {
+  box-sizing: border-box;
+}
+
+/* Professional Header */
+.alerts-header {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.alerts-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.alerts-subtitle {
+  font-size: 12px;
+  color: #b0c4de;
+  margin: 2px 0 0 0;
+  font-weight: 400;
+}
+
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.current-time {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  color: #ffffff;
+  font-size: 14px;
+  min-width: 180px;
+  text-align: center;
+}
+
+/* Main Layout */
+.alerts-main {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Left Panel - Symbols Monitoring */
+.left-panel {
+  background: #0f141f;
+  border-right: 1px solid #2a2f3d;
+  padding: 0;
+  overflow-y: auto;
+}
+
+.panel-header {
+  background: linear-gradient(135deg, #1a1f2e 0%, #151a26 100%);
+  padding: 12px 16px;
+  border-bottom: 1px solid #2a2f3d;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: bold;
+  color: #e0e0e0;
+}
+
+/* Symbols List - Professional Style */
+.symbols-list {
+  padding: 12px;
+}
+
+.symbol-card {
+  background: #151a26;
+  border: 1px solid #2a2f3d;
+  border-radius: 4px;
+  padding: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.symbol-card:hover {
+  transform: translateY(-1px);
+  border-color: #00ff88;
+  background: #1a1f2e;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.symbol-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.symbol-name {
+  font-size: 12px;
+  font-weight: bold;
+  color: #00ff88;
+}
+
+.symbol-price {
+  font-size: 12px;
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+}
+
+.price-up {
+  color: #00ff88;
+}
+
+.price-down {
+  color: #ff4444;
+}
+
+.symbol-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+}
+
+.symbol-change {
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+.change-up {
+  color: #00ff88;
+}
+
+.change-down {
+  color: #ff4444;
+}
+
+.symbol-volume {
+  color: #8a94a6;
+  font-size: 9px;
+}
+
+/* Right Content Area - Professional Trading Terminal */
+.alerts-content {
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+  overflow-y: auto;
+  background: #0a0e14;
+}
+
+/* Create Alert Card - Professional Style */
+.create-alert-card {
+  background: linear-gradient(135deg, #151a26 0%, #0f141f 100%);
+  border: 1px solid #2a2f3d;
+  border-radius: 4px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.create-alert-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #00ff88;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #2a2f3d;
+  padding-bottom: 8px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.create-alert-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  font-size: 11px;
+  color: #8a94a6;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.form-select,
+.form-input {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border: 1px solid #2a2f3d;
+  border-radius: 3px;
+  color: #e0e0e0;
+  padding: 8px 10px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  height: 32px;
+}
+
+.form-select:focus,
+.form-input:focus {
+  outline: none;
+  border-color: #00ff88;
+  background: rgba(0, 255, 136, 0.05);
+  box-shadow: 0 0 0 1px rgba(0, 255, 136, 0.2);
+}
+
+.form-select option {
+  background: #0a0e14;
+  color: #e0e0e0;
+}
+
+/* Alerts List - Professional Trading Style */
+.alerts-list-card {
+  background: linear-gradient(135deg, #151a26 0%, #0f141f 100%);
+  border: 1px solid #2a2f3d;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.alerts-list-header {
+  background: linear-gradient(135deg, #1a1f2e 0%, #151a26 100%);
+  padding: 12px 16px;
+  border-bottom: 1px solid #2a2f3d;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.alerts-list-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #00ff88;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.alerts-tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid #2a2f3d;
+  border-radius: 3px;
+  padding: 2px;
+}
+
+.tab-button {
+  background: transparent;
+  border: none;
+  border-radius: 2px;
+  color: #8a94a6;
+  padding: 6px 12px;
+  font-size: 10px;
+  font-family: 'Courier New', monospace;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.tab-button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #e0e0e0;
+}
+
+.tab-active {
+  background: rgba(0, 255, 136, 0.2);
+  color: #00ff88;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.tab-active:hover {
+  background: rgba(0, 255, 136, 0.3);
+}
+
+.alerts-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Courier New', monospace;
+}
+
+.alerts-table th {
+  background: linear-gradient(135deg, #1a1f2e 0%, #151a26 100%);
+  color: #8a94a6;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #2a2f3d;
+  white-space: nowrap;
+}
+
+.alerts-table td {
+  padding: 10px 12px;
+  font-size: 12px;
+  border-bottom: 1px solid #1a1f2d;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.alerts-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: #2a2f3d;
+}
+
+.alerts-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Badge Styles - Professional Trading Terminal */
+.type-badge,
+.priority-badge,
+.status-badge {
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'Courier New', monospace;
+  border: 1px solid transparent;
+}
+
+/* Type Badges */
+.type-price {
+  background: rgba(0, 255, 136, 0.15);
+  color: #00ff88;
+  border-color: rgba(0, 255, 136, 0.3);
+}
+
+.type-technical {
+  background: rgba(0, 150, 255, 0.15);
+  color: #0096ff;
+  border-color: rgba(0, 150, 255, 0.3);
+}
+
+.type-volume {
+  background: rgba(255, 165, 0, 0.15);
+  color: #ffa500;
+  border-color: rgba(255, 165, 0, 0.3);
+}
+
+/* Priority Badges */
+.priority-low {
+  background: rgba(100, 100, 100, 0.15);
+  color: #cccccc;
+  border-color: rgba(100, 100, 100, 0.3);
+}
+
+.priority-medium {
+  background: rgba(255, 204, 0, 0.15);
+  color: #ffcc00;
+  border-color: rgba(255, 204, 0, 0.3);
+}
+
+.priority-high {
+  background: rgba(255, 68, 68, 0.15);
+  color: #ff4444;
+  border-color: rgba(255, 68, 68, 0.3);
+}
+
+/* Status Badges */
+.status-active {
+  background: rgba(0, 255, 136, 0.15);
+  color: #00ff88;
+  border-color: rgba(0, 255, 136, 0.3);
+}
+
+.status-triggered {
+  background: rgba(255, 68, 68, 0.15);
+  color: #ff4444;
+  border-color: rgba(255, 68, 68, 0.3);
+}
+
+/* Action Buttons - Professional Trading Style */
+.action-button {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #2a2f3d;
+  border-radius: 3px;
+  color: #e0e0e0;
+  padding: 5px 10px;
+  font-size: 10px;
+  font-family: 'Courier New', monospace;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.action-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #3a3f4d;
+  transform: translateY(-1px);
+}
+
+.button-enable {
+  background: rgba(0, 255, 136, 0.1);
+  border-color: rgba(0, 255, 136, 0.4);
+  color: #00ff88;
+}
+
+.button-enable:hover {
+  background: rgba(0, 255, 136, 0.2);
+  border-color: #00ff88;
+}
+
+.button-disable {
+  background: rgba(255, 68, 68, 0.1);
+  border-color: rgba(255, 68, 68, 0.4);
+  color: #ff4444;
+}
+
+.button-disable:hover {
+  background: rgba(255, 68, 68, 0.2);
+  border-color: #ff4444;
+}
+
+.button-delete {
+  background: rgba(255, 68, 68, 0.1);
+  border-color: rgba(255, 68, 68, 0.4);
+  color: #ff4444;
+}
+
+.button-delete:hover {
+  background: rgba(255, 68, 68, 0.2);
+  border-color: #ff4444;
+}
+
+/* Create Button - Professional Style */
+.create-button {
+  background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+  border: none;
+  border-radius: 3px;
+  color: #000000;
+  padding: 7px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.create-button:hover {
+  background: linear-gradient(135deg, #00cc6a 0%, #00aa55 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .alerts-content {
+    padding: 10px;
+    grid-template-columns: 1fr;
+  }
+  
+  .create-alert-form {
+    grid-template-columns: 1fr;
+  }
+  
+  .alerts-table {
+    font-size: 12px;
+  }
+  
+  .alerts-table th,
+  .alerts-table td {
+    padding: 8px 10px;
+  }
+}
+
+/* Status Bars - Professional Trading Terminal */
+.status-bar {
+  background: rgba(0, 0, 0, 0.9);
+  border-bottom: 1px solid #2a2f3d;
+  padding: 6px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  color: #e0e0e0;
+  backdrop-filter: blur(10px);
+}
+
+.top-status-bar {
+  border-bottom: 1px solid #2a2f3d;
+}
+
+.bottom-status-bar {
+  border-top: 1px solid #2a2f3d;
+  border-bottom: none;
+}
+
+.status-left,
+.status-center,
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.status-indicator {
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-normal {
+  background: rgba(0, 255, 136, 0.15);
+  color: #00ff88;
+  border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.status-warning {
+  background: rgba(255, 204, 0, 0.15);
+  color: #ffcc00;
+  border: 1px solid rgba(255, 204, 0, 0.3);
+}
+
+.status-closed {
+  background: rgba(255, 68, 68, 0.15);
+  color: #ff4444;
+  border: 1px solid rgba(255, 68, 68, 0.3);
+}
+
+.system-name {
+  font-weight: 700;
+  color: #00ff88;
+  font-size: 12px;
+}
+
+.delay-info,
+.market-status,
+.active-alerts-count,
+.current-time,
+.data-source,
+.version-info,
+.connection-status,
+.last-update,
+.total-alerts,
+.data-update-status {
+  color: #8a94a6;
+  font-size: 10px;
+}
+
+/* Loading Spinner */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.loading-spinner {
+  border: 2px solid #333;
+  border-top: 2px solid #00ff88;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-left: 10px;
+  color: #888;
+  font-size: 14px;
+}

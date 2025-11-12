@@ -41,7 +41,7 @@ async def get_klines(
 @router.get("/tickers")
 async def get_tickers(
     symbols: Optional[List[str]] = Query(None, description="交易对符号列表"),
-    market_type: Optional[MarketType] = Query(None, description="市场类型"),
+    market_type: Optional[str] = Query(None, description="市场类型，支持: stock, crypto, forex, futures, index, all"),
     exchange: Optional[str] = Query(None, description="交易所名称"),
     db: Session = Depends(get_db)
 ):
@@ -49,13 +49,26 @@ async def get_tickers(
     获取行情数据
     """
     try:
+        # 处理 market_type 参数
+        market_type_enum = None
+        if market_type and market_type.lower() != "all":
+            try:
+                market_type_enum = MarketType(market_type.lower())
+            except ValueError:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"无效的市场类型: {market_type}. 支持的类型: stock, crypto, forex, futures, index, all"
+                )
+        
         data_service = DataService()
         tickers = await data_service.get_tickers(
             symbols=symbols,
-            market_type=market_type,
+            market_type=market_type_enum,
             exchange=exchange
         )
         return tickers
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"获取行情数据失败: {str(e)}")
 

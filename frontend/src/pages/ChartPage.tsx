@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { createChart, ColorType } from 'lightweight-charts';
+import React, { useState, useEffect } from 'react';
+import ReactECharts from 'echarts-for-react';
+import './ChartPage.css';
+import { ApiService } from '../services/api';
 
 interface KLineData {
   time: string;
@@ -10,28 +12,128 @@ interface KLineData {
   volume: number;
 }
 
+interface SymbolData {
+  symbol: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  volume: number;
+  category?: string;
+}
+
+interface ApiTicker {
+  symbol: string;
+  last: number;
+  change: number;
+  change_percent: number;
+  volume: number;
+  category?: string;
+}
+
 const ChartPage: React.FC = () => {
-  const chartContainerRef = useRef<HTMLDivElement>(null);
   const [selectedSymbol, setSelectedSymbol] = useState('BTC/USDT');
   const [timeframe, setTimeframe] = useState('1h');
-  const [loading, setLoading] = useState(true);
+  const [activeIndicator, setActiveIndicator] = useState('none');
+  const [loading, setLoading] = useState(false);
+  const [symbolsData, setSymbolsData] = useState<SymbolData[]>([]);
+  const [klineData, setKlineData] = useState<KLineData[]>([]);
 
-  const symbols = ['BTC/USDT', 'ETH/USDT', 'AAPL', 'TSLA', 'EUR/USD'];
+  const symbols = ['BTC/USDT', 'ETH/USDT', 'AAPL', 'TSLA', 'EUR/USD', 'USD/CNY', 'XAU/USD', 'SPY'];
   const timeframes = ['1m', '5m', '15m', '1h', '4h', '1d', '1w'];
+  const indicators = ['none', 'ma', 'macd', 'rsi', 'bollinger'];
+  const [dataSource, setDataSource] = useState<'API' | '模拟数据'>('模拟数据');
+
+  // 根据符号名称推断类别
+  const getCategoryFromSymbol = (symbol: string): string => {
+    if (symbol.includes('/USDT') || symbol.includes('BTC') || symbol.includes('ETH')) {
+      return '加密货币';
+    } else if (symbol.includes('/USD') || symbol.includes('EUR/') || symbol.includes('USD/')) {
+      return '外汇';
+    } else if (symbol.includes('XAU')) {
+      return '贵金属';
+    } else {
+      return '股票';
+    }
+  };
+
+  // 模拟实时价格数据生成
+  const generateMockSymbolData = (): SymbolData[] => {
+    const basePrices: { [key: string]: number } = {
+      'BTC/USDT': 42567.39,
+      'ETH/USDT': 2345.67,
+      'AAPL': 182.45,
+      'TSLA': 245.32,
+      'EUR/USD': 1.0856,
+      'USD/CNY': 7.1987,
+      'XAU/USD': 1987.65,
+      'SPY': 456.78
+    };
+
+    const baseVolumes: { [key: string]: number } = {
+      'BTC/USDT': 28456789,
+      'ETH/USDT': 15678923,
+      'AAPL': 4567890,
+      'TSLA': 2345678,
+      'EUR/USD': 98765432,
+      'USD/CNY': 123456789,
+      'XAU/USD': 345678,
+      'SPY': 1234567
+    };
+
+    return symbols.map(symbol => {
+      const basePrice = basePrices[symbol];
+      const changePercent = (Math.random() - 0.5) * 4; // -2% 到 +2%
+      const change = basePrice * (changePercent / 100);
+      const price = basePrice + change;
+      const volume = baseVolumes[symbol] + Math.random() * 1000000;
+
+      return {
+        symbol,
+        price,
+        change,
+        changePercent,
+        volume,
+        category: getCategoryFromSymbol(symbol)
+      };
+    });
+  };
+
+  // 从API获取实时数据
+  const fetchRealTimeData = async () => {
+    try {
+      const response = await ApiService.market.getTickers();
+      const tickers = Array.isArray(response) ? response : [];
+      const symbolData: SymbolData[] = tickers.map((ticker: ApiTicker) => ({
+        symbol: ticker.symbol,
+        price: ticker.last,
+        change: ticker.change,
+        changePercent: ticker.change_percent,
+        volume: ticker.volume,
+        category: getCategoryFromSymbol(ticker.symbol)
+      }));
+      setSymbolsData(symbolData);
+      setDataSource('API');
+    } catch (error) {
+      console.error('获取实时数据失败:', error);
+      const mockData: SymbolData[] = generateMockSymbolData();
+      setSymbolsData(mockData);
+      setDataSource('模拟数据');
+    }
+  };
 
   // 模拟K线数据生成
   const generateMockKLineData = (): KLineData[] => {
     const data: KLineData[] = [];
-    let basePrice = 35000;
+    const basePrice = symbolsData.find(s => s.symbol === selectedSymbol)?.price || 35000;
     const startTime = new Date('2024-01-01').getTime();
     
     for (let i = 0; i < 100; i++) {
       const time = new Date(startTime + i * 3600000).toISOString().split('T')[0];
       const open = basePrice;
-      const change = (Math.random() - 0.5) * 1000;
+      const change = (Math.random() - 0.5) * (basePrice * 0.02); // 2% 波动
       const close = open + change;
-      const high = Math.max(open, close) + Math.random() * 500;
-      const low = Math.min(open, close) - Math.random() * 500;
+      const high = Math.max(open, close) + Math.random() * (basePrice * 0.01);
+      const low = Math.min(open, close) - Math.random() * (basePrice * 0.01);
       const volume = Math.random() * 1000 + 100;
       
       data.push({
@@ -42,123 +144,298 @@ const ChartPage: React.FC = () => {
         close,
         volume
       });
-      
-      basePrice = close;
     }
     
     return data;
   };
 
+  // 初始化符号数据
   useEffect(() => {
-    if (!chartContainerRef.current) return;
+    setSymbolsData(generateMockSymbolData());
+    
+    // 每2秒更新价格数据
+    const interval = setInterval(() => {
+      setSymbolsData(generateMockSymbolData());
+    }, 2000);
 
-    setLoading(true);
+    return () => clearInterval(interval);
+  }, []);
 
-    // 清理之前的图表
-    while (chartContainerRef.current.firstChild) {
-      chartContainerRef.current.removeChild(chartContainerRef.current.firstChild);
-    }
+  // 更新K线数据
+  useEffect(() => {
+    setKlineData(generateMockKLineData());
+  }, [selectedSymbol, symbolsData]);
 
-    const chart = createChart(chartContainerRef.current, {
-      layout: {
-        background: { type: ColorType.Solid, color: 'white' },
-        textColor: 'black',
-      },
-      grid: {
-        vertLines: { color: '#f0f3fa' },
-        horzLines: { color: '#f0f3fa' },
-      },
-      width: chartContainerRef.current.clientWidth,
-      height: 500,
+  // ECharts配置
+  const getChartOption = () => {
+    const upColor = '#00ff88';
+    const downColor = '#ff4444';
+    const volumeUpColor = 'rgba(0, 255, 136, 0.5)';
+    const volumeDownColor = 'rgba(255, 68, 68, 0.5)';
+
+    // 准备K线数据
+    const klineDataFormatted = klineData.map(item => [
+      item.time,
+      item.open,
+      item.close,
+      item.low,
+      item.high
+    ]);
+
+    // 准备成交量数据
+    const volumeData = klineData.map((item, index) => {
+      return {
+        value: item.volume,
+        itemStyle: {
+          color: item.close >= item.open ? volumeUpColor : volumeDownColor
+        }
+      };
     });
 
-    const candleSeries = chart.addCandlestickSeries({
-      upColor: '#26a69a',
-      downColor: '#ef5350',
-      borderVisible: false,
-      wickUpColor: '#26a69a',
-      wickDownColor: '#ef5350',
-    });
-
-    const volumeSeries = chart.addHistogramSeries({
-      color: '#26a69a',
-      priceFormat: {
-        type: 'volume',
-      },
-      priceScaleId: '',
-    });
-
-    volumeSeries.priceScale().applyOptions({
-      scaleMargins: {
-        top: 0.7,
-        bottom: 0,
-      },
-    });
-
-    // 生成模拟数据
-    const klineData = generateMockKLineData();
-    const volumeData = klineData.map((item, index) => ({
-      time: item.time,
-      value: item.volume,
-      color: item.close >= item.open ? '#26a69a' : '#ef5350',
-    }));
-
-    candleSeries.setData(klineData);
-    volumeSeries.setData(volumeData);
-
-    // 添加技术指标
-    const smaSeries = chart.addLineSeries({
-      color: 'rgba(4, 111, 232, 1)',
-      lineWidth: 2,
-    });
-
-    const smaData = klineData.map((item, index) => {
+    // 计算移动平均线
+    const maData = klineData.map((item, index) => {
       const window = 20;
       if (index < window - 1) {
-        return { time: item.time, value: item.close };
+        return item.close;
       }
       const sum = klineData
         .slice(index - window + 1, index + 1)
         .reduce((acc, curr) => acc + curr.close, 0);
-      return { time: item.time, value: sum / window };
+      return sum / window;
     });
 
-    smaSeries.setData(smaData);
-
-    chart.timeScale().fitContent();
-
-    const handleResize = () => {
-      if (chartContainerRef.current) {
-        chart.applyOptions({
-          width: chartContainerRef.current.clientWidth,
-        });
-      }
+    return {
+      animation: false,
+      legend: {
+        bottom: 10,
+        left: 'center',
+        data: [selectedSymbol, '成交量', 'MA20'],
+        textStyle: {
+          color: '#e0e0e0'
+        }
+      },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'cross'
+        },
+        borderWidth: 1,
+        borderColor: '#2a2f3d',
+        backgroundColor: 'rgba(10, 14, 20, 0.9)',
+        textStyle: {
+          color: '#e0e0e0'
+        },
+        formatter: function (params: any) {
+          const [klineParam, volumeParam] = params;
+          const data = klineParam.data;
+          return `
+            <div style="font-size: 14px; margin-bottom: 5px;">
+              ${data[0]}
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="margin-right: 10px;">开盘:</span>
+              <span style="color: ${data[1] <= data[2] ? upColor : downColor}">${data[1]}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="margin-right: 10px;">收盘:</span>
+              <span style="color: ${data[1] <= data[2] ? upColor : downColor}">${data[2]}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="margin-right: 10px;">最低:</span>
+              <span>${data[3]}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="margin-right: 10px;">最高:</span>
+              <span>${data[4]}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="margin-right: 10px;">成交量:</span>
+              <span>${volumeParam.data.value}</span>
+            </div>
+          `;
+        }
+      },
+      grid: [
+        {
+          left: '10%',
+          right: '10%',
+          top: '50px',
+          height: '60%',
+          backgroundColor: '#0a0e14'
+        },
+        {
+          left: '10%',
+          right: '10%',
+          top: '70%',
+          height: '15%',
+          backgroundColor: '#0a0e14'
+        }
+      ],
+      xAxis: [
+        {
+          type: 'category',
+          data: klineData.map(item => item.time),
+          scale: true,
+          boundaryGap: false,
+          axisLine: { 
+            onZero: false,
+            lineStyle: {
+              color: '#2a2f3d'
+            }
+          },
+          splitLine: { show: false },
+          splitNumber: 20,
+          axisLabel: {
+            color: '#e0e0e0'
+          }
+        },
+        {
+          type: 'category',
+          gridIndex: 1,
+          data: klineData.map(item => item.time),
+          axisLabel: { show: false },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: { show: false }
+        }
+      ],
+      yAxis: [
+        {
+          scale: true,
+          splitArea: {
+            show: true,
+            areaStyle: {
+              color: ['rgba(42, 47, 61, 0.3)', 'rgba(42, 47, 61, 0.1)']
+            }
+          },
+          axisLabel: {
+            color: '#e0e0e0',
+            formatter: '{value}'
+          },
+          splitLine: {
+            lineStyle: {
+              color: '#2a2f3d'
+            }
+          },
+          axisLine: {
+            lineStyle: {
+              color: '#2a2f3d'
+            }
+          }
+        },
+        {
+          scale: true,
+          gridIndex: 1,
+          splitNumber: 2,
+          axisLabel: { show: false },
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: { show: false }
+        }
+      ],
+      dataZoom: [
+        {
+          type: 'inside',
+          xAxisIndex: [0, 1],
+          start: 80,
+          end: 100,
+          filterMode: 'filter'
+        },
+        {
+          show: true,
+          xAxisIndex: [0, 1],
+          type: 'slider',
+          top: '85%',
+          start: 80,
+          end: 100,
+          backgroundColor: '#1a1f2d',
+          borderColor: '#2a2f3d',
+          textStyle: {
+            color: '#e0e0e0'
+          },
+          handleStyle: {
+            color: '#00ff88'
+          }
+        }
+      ],
+      series: [
+        {
+          name: selectedSymbol,
+          type: 'candlestick',
+          data: klineDataFormatted,
+          itemStyle: {
+            color: upColor,
+            color0: downColor,
+            borderColor: upColor,
+            borderColor0: downColor
+          },
+          markPoint: {
+            label: {
+              color: '#e0e0e0'
+            },
+            data: [
+              {
+                name: '最高值',
+                type: 'max',
+                valueDim: 'highest'
+              },
+              {
+                name: '最低值',
+                type: 'min',
+                valueDim: 'lowest'
+              }
+            ]
+          }
+        },
+        {
+          name: '成交量',
+          type: 'bar',
+          xAxisIndex: 1,
+          yAxisIndex: 1,
+          data: volumeData
+        },
+        ...(activeIndicator === 'ma' || activeIndicator === 'none' ? [{
+          name: 'MA20',
+          type: 'line',
+          data: maData,
+          smooth: true,
+          lineStyle: {
+            color: 'rgba(0, 150, 255, 1)',
+            width: 2
+          },
+          symbol: 'none'
+        }] : [])
+      ]
     };
+  };
 
-    window.addEventListener('resize', handleResize);
-    setLoading(false);
+  const formatPrice = (price: number) => {
+    if (price >= 1000) {
+      return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    } else if (price >= 1) {
+      return `$${price.toFixed(2)}`;
+    } else {
+      return price.toFixed(4);
+    }
+  };
 
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      chart.remove();
-    };
-  }, [selectedSymbol, timeframe]);
+  const formatChange = (change: number, percent: number) => {
+    const sign = change >= 0 ? '+' : '';
+    return `${sign}${change.toFixed(2)} (${sign}${percent.toFixed(2)}%)`;
+  };
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">图表分析</h1>
-        
-        {/* 控制面板 */}
-        <div className="flex flex-wrap gap-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              交易对
-            </label>
+    <div className="chart-container">
+      {/* 顶部标题栏 */}
+      <div className="chart-header">
+        <h1 className="chart-title">专业图表分析</h1>
+        <div className="chart-controls">
+          <div className="control-group">
+            <span className="control-label">交易对</span>
             <select
               value={selectedSymbol}
               onChange={(e) => setSelectedSymbol(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="control-select"
             >
               {symbols.map(symbol => (
                 <option key={symbol} value={symbol}>{symbol}</option>
@@ -166,14 +443,12 @@ const ChartPage: React.FC = () => {
             </select>
           </div>
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              时间周期
-            </label>
+          <div className="control-group">
+            <span className="control-label">时间周期</span>
             <select
               value={timeframe}
               onChange={(e) => setTimeframe(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="control-select"
             >
               {timeframes.map(tf => (
                 <option key={tf} value={tf}>{tf}</option>
@@ -181,30 +456,94 @@ const ChartPage: React.FC = () => {
             </select>
           </div>
         </div>
+      </div>
 
-        {/* 图表容器 */}
-        <div className="bg-white shadow-lg rounded-lg p-4">
-          {loading && (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-              <span className="ml-2">加载图表数据...</span>
-            </div>
-          )}
-          <div 
-            ref={chartContainerRef}
-            className="w-full"
-            style={{ minHeight: '500px' }}
-          />
+      {/* 主内容区域 */}
+      <div className="chart-main">
+        {/* 左侧品种列表 */}
+        <div className="chart-sidebar">
+          <div className="symbol-list">
+            {symbolsData.map((symbol) => (
+              <div
+                key={symbol.symbol}
+                className={`symbol-card ${selectedSymbol === symbol.symbol ? 'active' : ''}`}
+                onClick={() => setSelectedSymbol(symbol.symbol)}
+              >
+                <div className="symbol-name">{symbol.symbol}</div>
+                <div className="symbol-price">{formatPrice(symbol.price)}</div>
+                <div className={`symbol-change ${symbol.change >= 0 ? 'positive' : 'negative'}`}>
+                  {formatChange(symbol.change, symbol.changePercent)}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* 图表说明 */}
-        <div className="mt-4 text-sm text-gray-600">
-          <p>当前显示: {selectedSymbol} - {timeframe} K线图</p>
-          <p className="mt-1">
-            <span className="text-green-600">绿色</span>: 上涨 | 
-            <span className="text-red-600 ml-2">红色</span>: 下跌 |
-            <span className="text-blue-600 ml-2">蓝色线</span>: 20周期SMA
-          </p>
+        {/* 右侧图表区域 */}
+        <div className="chart-content">
+          {/* 图表工具栏 */}
+          <div className="chart-toolbar">
+            <div className="toolbar-controls">
+              <div className="indicator-selector">
+                <span className="control-label">技术指标:</span>
+                {indicators.map(indicator => (
+                  <div
+                    key={indicator}
+                    className={`indicator-badge ${activeIndicator === indicator ? 'active' : ''}`}
+                    onClick={() => setActiveIndicator(indicator)}
+                  >
+                    {indicator === 'none' ? '无指标' : 
+                     indicator === 'ma' ? '移动平均线' :
+                     indicator === 'macd' ? 'MACD' :
+                     indicator === 'rsi' ? 'RSI' : '布林带'}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 图表区域 */}
+          <div className="chart-area">
+            <div className="chart-wrapper">
+              {loading && (
+                <div className="loading-overlay">
+                  <div className="loading-spinner"></div>
+                </div>
+              )}
+              <ReactECharts
+                option={getChartOption()}
+                style={{ height: '100%', width: '100%' }}
+                opts={{ renderer: 'canvas' }}
+              />
+            </div>
+          </div>
+
+          {/* 底部状态栏 */}
+          <div className="chart-status">
+            <div className="status-info">
+              <div className="status-item">
+                <span>当前品种:</span>
+                <span className="status-value">{selectedSymbol}</span>
+              </div>
+              <div className="status-item">
+                <span>时间周期:</span>
+                <span className="status-value">{timeframe}</span>
+              </div>
+              <div className="status-item">
+                <span>技术指标:</span>
+                <span className="status-value">
+                  {activeIndicator === 'none' ? '无' : 
+                   activeIndicator === 'ma' ? '移动平均线' :
+                   activeIndicator === 'macd' ? 'MACD' :
+                   activeIndicator === 'rsi' ? 'RSI' : '布林带'}
+                </span>
+              </div>
+              <div className="status-item">
+                <span>数据状态:</span>
+                <span className="status-value positive">实时</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

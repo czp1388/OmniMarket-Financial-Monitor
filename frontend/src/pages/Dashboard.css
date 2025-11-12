@@ -1,0 +1,564 @@
+/* 专业金融监控系统样式 - 优化版 */
+.financial-dashboard {
+  background-color: #0a0e14;
+  color: #e0e0e0;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 专业头部设计 */
+.dashboard-header {
+  background: #0a0e14;
+  border-bottom: 1px solid #2a2f3d;
+  padding: 0;
+}
+
+.header-top {
+  background: linear-gradient(135deg, #1a1f2e 0%, #0f141f 100%);
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #2a2f3d;
+}
+
+.brand-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #00ff88;
+  letter-spacing: 1px;
+}
+
+.header-time {
+  background: #151a26;
+  border: 1px solid #2a2f3d;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  color: #ffffff;
+  font-size: 14px;
+  min-width: 180px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* 扁平化导航标签 */
+.nav-tabs {
+  background: #0f141f;
+  padding: 0 20px;
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #2a2f3d;
+}
+
+.nav-tab {
+  background: transparent;
+  border: none;
+  color: #8a94a6;
+  padding: 12px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+}
+
+.nav-tab:hover {
+  color: #e0e0e0;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-tab.active {
+  color: #00ff88;
+  border-bottom-color: #00ff88;
+  background: rgba(0, 255, 136, 0.1);
+}
+
+/* 系统标题横幅 */
+.system-banner {
+  background: linear-gradient(135deg, #1a1f2e 0%, #151a26 100%);
+  border-bottom: 1px solid #2a2f3d;
+  padding: 20px;
+  text-align: center;
+}
+
+.banner-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.system-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.system-subtitle {
+  font-size: 14px;
+  color: #8a94a6;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* 主内容区域 - 30/70分栏布局 */
+.dashboard-content {
+  display: grid;
+  grid-template-columns: 30% 70%;
+  gap: 0;
+  flex: 1;
+  height: calc(100vh - 180px);
+}
+
+/* 左侧30% - 品种监控 */
+.left-panel {
+  background: #0f141f;
+  border-right: 1px solid #2a2f3d;
+  padding: 0;
+  overflow-y: auto;
+}
+
+.panel-header {
+  background: linear-gradient(135deg, #1a1f2e 0%, #151a26 100%);
+  padding: 12px 16px;
+  border-bottom: 1px solid #2a2f3d;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: bold;
+  color: #e0e0e0;
+}
+
+.price-card-container {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.price-card {
+  background: #151a26;
+  border: 1px solid #2a2f3d;
+  border-radius: 6px;
+  padding: 16px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.price-card:hover {
+  background: #1a1f2e;
+  border-color: #3a3f4d;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.symbol-icon {
+  color: #00ff88;
+  font-weight: bold;
+}
+
+.symbol {
+  font-size: 13px;
+  font-weight: bold;
+  color: #8a94a6;
+}
+
+.price-card .price {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 6px;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.5px;
+}
+
+.price-card .change {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.price-card .change.positive {
+  color: #00ff88;
+}
+
+.price-card .change.negative {
+  color: #ff4444;
+}
+
+.status-indicator {
+  font-size: 12px;
+}
+
+/* 右侧70% - 核心功能区域 */
+.right-panel {
+  background: #0a0e14;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  gap: 16px;
+}
+
+/* 专业K线图表区域 */
+.chart-container {
+  background: #0f141f;
+  border: 1px solid #2a2f3d;
+  border-radius: 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.chart-header {
+  background: linear-gradient(135deg, #1a1f2e 0%, #151a26 100%);
+  padding: 12px 20px;
+  border-bottom: 1px solid #2a2f3d;
+}
+
+.chart-header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: bold;
+  color: #e0e0e0;
+}
+
+/* 控制面板 - 优化布局 */
+.control-panel {
+  background: #0f141f;
+  border: 1px solid #2a2f3d;
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control-group label {
+  font-size: 12px;
+  color: #8a94a6;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.control-select {
+  background: linear-gradient(135deg, #1a1f2e 0%, #151a26 100%);
+  border: 1px solid #2a2f3d;
+  color: #e0e0e0;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  width: 100%;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.control-select:focus {
+  border-color: #00ff88;
+  box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.2);
+}
+
+.simulate-btn {
+  background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+  border: none;
+  color: #0a0e14;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  grid-column: span 2;
+  justify-self: stretch;
+  box-shadow: 0 2px 8px rgba(0, 255, 136, 0.3);
+}
+
+.simulate-btn:hover {
+  background: linear-gradient(135deg, #00ffaa 0%, #00dd77 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 255, 136, 0.4);
+}
+
+/* 状态信息面板 - 优化布局 */
+.status-panel {
+  background: #0f141f;
+  border: 1px solid #2a2f3d;
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.status-icon {
+  font-size: 16px;
+}
+
+.status-label {
+  font-size: 11px;
+  color: #8a94a6;
+  font-weight: 500;
+}
+
+.status-value {
+  font-size: 12px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+  width: 100%;
+  text-align: center;
+}
+
+.status-value.warning {
+  background: #ff4444;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(255, 68, 68, 0.3);
+}
+
+.status-value.normal {
+  background: #00ff88;
+  color: #0a0e14;
+  box-shadow: 0 2px 6px rgba(0, 255, 136, 0.3);
+}
+
+.status-value.realtime {
+  background: #0088ff;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 136, 255, 0.3);
+}
+
+.status-value.latency {
+  background: #ffaa00;
+  color: #0a0e14;
+  box-shadow: 0 2px 6px rgba(255, 170, 0, 0.3);
+}
+
+/* 滚动条样式 */
+.left-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.left-panel::-webkit-scrollbar-track {
+  background: #0f141f;
+}
+
+.left-panel::-webkit-scrollbar-thumb {
+  background: #2a2f3d;
+  border-radius: 3px;
+}
+
+.left-panel::-webkit-scrollbar-thumb:hover {
+  background: #3a3f4d;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .dashboard-content {
+    grid-template-columns: 240px 1fr;
+  }
+  
+  .control-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .control-group {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .left-panel {
+    display: none;
+  }
+  
+  .footer-info {
+    flex-direction: column;
+    gap: 4px;
+    text-align: center;
+  }
+}
+
+/* 统一导航键样式 - 符合项目界面标准 */
+.dashboard-nav-keys {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 1px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1px;
+  border-radius: 3px;
+  margin: 0 20px;
+  backdrop-filter: blur(50px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dashboard-nav-key {
+  background: linear-gradient(135deg, rgba(30, 60, 114, 0.8) 0%, rgba(42, 82, 152, 0.8) 100%);
+  border: none;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 6px 8px;
+  font-size: 9px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+  border-radius: 2px;
+  min-height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+}
+
+.dashboard-nav-key:hover {
+  background: linear-gradient(135deg, rgba(40, 80, 154, 0.9) 0%, rgba(52, 102, 172, 0.9) 100%);
+  color: #ffffff;
+  transform: translateY(-0.5px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dashboard-nav-key.active {
+  background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+  color: #0a0e14;
+  box-shadow: 0 2px 8px rgba(0, 255, 136, 0.4);
+  border-color: rgba(0, 255, 136, 0.3);
+  font-weight: bold;
+}
+
+.dashboard-nav-key:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* 顶部导航栏样式 - 更新版 */
+.top-navigation {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  border-bottom: 1px solid #2a2f3d;
+  padding: 8px 0;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.nav-brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.brand-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.brand-subtitle {
+  font-size: 10px;
+  color: #b0c4de;
+  margin: 1px 0 0 0;
+  font-weight: 400;
+}
+
+.nav-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.current-time {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  padding: 4px 10px;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  color: #ffffff;
+  font-size: 11px;
+  min-width: 150px;
+  text-align: center;
+}
+
+.avatar-circle {
+  width: 28px;
+  height: 28px;
+  background: #00ff88;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0a0e14;
+  font-weight: bold;
+  font-size: 12px;
+  box-shadow: 0 2px 6px rgba(0, 255, 136, 0.3);
+}
+
+/* 调整主内容区域高度 */
+.dashboard-content {
+  height: calc(100vh - 60px);
+}
+
+/* 动画效果 */
+@keyframes priceUpdate {
+  0% { background-color: #151a26; }
+  50% { background-color: #1a2f3d; }
+  100% { background-color: #151a26; }
+}
+
+.price-card.updating {
+  animation: priceUpdate 0.5s ease;
+}

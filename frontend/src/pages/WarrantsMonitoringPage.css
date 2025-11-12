@@ -1,0 +1,508 @@
+.warrants-monitoring-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+
+/* 统一导航键样式 - 与主页完全一致 */
+.warrants-nav-bar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: rgba(0, 0, 0, 0.98);
+  min-height: 14px;
+  backdrop-filter: blur(50px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 1000;
+}
+
+.warrants-nav-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 4.5px;
+  font-weight: 600;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 10px;
+  line-height: 0.7;
+  padding: 1px 2px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.warrants-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  transform: translateY(-0.5px);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.warrants-nav-btn.active {
+  background: rgba(0, 255, 136, 0.2);
+  color: #00ff88;
+  border-bottom: 1px solid rgba(0, 255, 136, 0.5);
+  box-shadow: 0 1px 6px rgba(0, 255, 136, 0.3);
+}
+
+.warrants-nav-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 1px;
+  background: #00ff88;
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.warrants-nav-btn.active::after {
+  width: 60%;
+}
+
+.warrants-nav-btn:last-child {
+  border-right: none;
+}
+
+/* 状态指示器 */
+.status-indicator {
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  margin-right: 2px;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.warrants-nav-btn.active .status-indicator {
+  background: #00ff88;
+  box-shadow: 0 0 4px rgba(0, 255, 136, 0.8);
+}
+
+.warrants-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* 顶部状态栏 - 专业金融终端标准 */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-label {
+  color: #8a94a6;
+}
+
+.status-value {
+  color: #00ff88;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+}
+
+.status-value.connected {
+  color: #00ff88;
+}
+
+.status-value.positive {
+  color: #00ff88;
+}
+
+.status-value.negative {
+  color: #ff4444;
+}
+
+/* 主要内容布局 - 专业金融终端标准 */
+.warrants-content {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 20px;
+  height: calc(100vh - 140px);
+}
+
+/* 左侧控制面板 - 专业金融终端标准 */
+.control-panel {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  backdrop-filter: blur(10px);
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.panel-section h3 {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: #00ff88;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.control-select {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #2a2f3d;
+  color: #e0e0e0;
+  padding: 6px 10px;
+  border-radius: 3px;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  font-size: 11px;
+  transition: all 0.2s ease;
+}
+
+.control-select:focus {
+  outline: none;
+  border-color: #00ff88;
+  box-shadow: 0 0 0 1px rgba(0, 255, 136, 0.2);
+}
+
+.warning-levels {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.warning-level {
+  padding: 4px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  text-align: center;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.warning-level.danger {
+  background: rgba(255, 68, 68, 0.2);
+  color: #ff4444;
+  border: 1px solid #ff4444;
+}
+
+.warning-level.warning {
+  background: rgba(255, 170, 0, 0.2);
+  color: #ffaa00;
+  border: 1px solid #ffaa00;
+}
+
+.warning-level.normal {
+  background: rgba(0, 255, 136, 0.2);
+  color: #00ff88;
+  border: 1px solid #00ff88;
+}
+
+/* 交易信号过滤器 */
+.signal-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #e0e0e0;
+  cursor: pointer;
+}
+
+.filter-item input[type="checkbox"] {
+  accent-color: #00ff88;
+}
+
+.refresh-btn {
+  background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+  color: #0a0e14;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 3px;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.refresh-btn:hover {
+  background: linear-gradient(135deg, #00cc6a 0%, #00aa55 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 255, 136, 0.3);
+}
+
+/* 右侧主内容区域 - 专业金融终端标准 */
+.main-content {
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #2a2f3d;
+}
+
+.content-header h2 {
+  margin: 0;
+  font-size: 16px;
+  color: #00ff88;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+}
+
+.market-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  color: #8a94a6;
+}
+
+.market-stats span {
+  padding: 3px 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: 'Courier New', monospace;
+}
+
+/* 牛熊证表格 - 专业金融终端标准 */
+.warrants-table-container {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  margin-bottom: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.warrants-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.warrants-table th {
+  background: rgba(0, 0, 0, 0.8);
+  color: #8a94a6;
+  padding: 10px 8px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid #2a2f3d;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 10px;
+}
+
+.warrants-table td {
+  padding: 8px 8px;
+  border-bottom: 1px solid rgba(42, 47, 61, 0.6);
+  transition: background-color 0.2s ease;
+}
+
+.warrant-row:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.warrant-row.danger {
+  background: rgba(255, 68, 68, 0.08);
+}
+
+.warrant-row.warning {
+  background: rgba(255, 170, 0, 0.08);
+}
+
+.warrant-row.normal {
+  background: rgba(0, 255, 136, 0.08);
+}
+
+/* 表格列样式 */
+.code, .underlying {
+  color: #00ff88;
+  font-weight: bold;
+}
+
+.name {
+  color: #e0e0e0;
+}
+
+.price {
+  color: #e0e0e0;
+  font-weight: bold;
+}
+
+.change.positive {
+  color: #00ff88;
+  font-weight: bold;
+}
+
+.change.negative {
+  color: #ff4444;
+  font-weight: bold;
+}
+
+.strike {
+  color: #8a94a6;
+}
+
+.type.bull {
+  color: #00ff88;
+  font-weight: bold;
+}
+
+.type.bear {
+  color: #ff4444;
+  font-weight: bold;
+}
+
+.leverage {
+  color: #ffaa00;
+  font-weight: bold;
+}
+
+.distance {
+  color: #e0e0e0;
+  font-weight: bold;
+}
+
+.volume {
+  color: #8a94a6;
+}
+
+.time-value {
+  color: #8a94a6;
+}
+
+.status-badge {
+  padding: 3px 6px;
+  border-radius: 10px;
+  font-size: 9px;
+  color: #0a0e14;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* 底部信息面板 - 专业金融终端标准 */
+.info-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-label {
+  color: #8a94a6;
+}
+
+.info-value {
+  color: #00ff88;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .warrants-content {
+    grid-template-columns: 240px 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .warrants-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .control-panel {
+    display: none;
+  }
+  
+  .warrants-table {
+    font-size: 10px;
+  }
+  
+  .warrants-table th,
+  .warrants-table td {
+    padding: 6px 4px;
+  }
+}
+
+/* 动画效果 */
+@keyframes priceUpdate {
+  0% { background-color: rgba(0, 255, 136, 0.2); }
+  100% { background-color: transparent; }
+}
+
+.price-update {
+  animation: priceUpdate 1s ease;
+}
+
+/* 滚动条样式 */
+.warrants-table-container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.warrants-table-container::-webkit-scrollbar-track {
+  background: rgba(42, 47, 61, 0.6);
+}
+
+.warrants-table-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.warrants-table-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}

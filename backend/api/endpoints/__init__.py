@@ -4,3 +4,5 @@ from . import alerts
 from . import users
 from . import technical_indicators
 from . import virtual_trading
+from . import warrants_analysis
+from . import semi_auto_trading
