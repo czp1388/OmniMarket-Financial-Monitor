@@ -4,19 +4,20 @@ from decimal import Decimal
 import logging
 from pydantic import BaseModel
 
-from backend.services.virtual_trading_engine import (
+from services.virtual_trading_engine import (
     virtual_trading_engine, 
     OrderType, 
     OrderSide,
     OrderStatus
 )
-from backend.services.data_service import data_service
-from backend.models.market_data import MarketType
+from services.data_service import data_service
+from models.market_data import MarketType
 
 # Pydantic模型用于请求体
 class CreateAccountRequest(BaseModel):
     name: str
     initial_balance: float = 100000.0
+    currency: str = "USD"
 
 class PlaceOrderRequest(BaseModel):
     account_id: str
@@ -26,6 +27,10 @@ class PlaceOrderRequest(BaseModel):
     quantity: float
     price: Optional[float] = None
     stop_price: Optional[float] = None
+
+class UpdatePriceRequest(BaseModel):
+    symbol: str
+    price: float
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +45,9 @@ async def create_virtual_account(request: CreateAccountRequest):
             initial_balance=Decimal(str(request.initial_balance))
         )
         return {
-            "success": True,
             "account_id": account_id,
+            "name": request.name,
+            "initial_balance": request.initial_balance,
             "message": f"虚拟账户 '{request.name}' 创建成功"
         }
     except Exception as e:
@@ -56,10 +62,7 @@ async def get_virtual_account(account_id: str):
         if not account_info:
             raise HTTPException(status_code=404, detail="虚拟账户不存在")
         
-        return {
-            "success": True,
-            "account": account_info
-        }
+        return account_info
     except HTTPException:
         raise
     except Exception as e:
@@ -77,10 +80,7 @@ async def list_virtual_accounts():
             if account_info:
                 accounts.append(account_info)
         
-        return {
-            "success": True,
-            "accounts": accounts
-        }
+        return accounts
     except Exception as e:
         logger.error(f"列出虚拟账户失败: {e}")
         raise HTTPException(status_code=500, detail=f"列出虚拟账户失败: {str(e)}")
@@ -91,36 +91,47 @@ async def place_virtual_order(request: PlaceOrderRequest):
     try:
         # 验证订单类型
         try:
-            order_type_enum = OrderType(order_type.lower())
+            order_type_enum = OrderType(request.order_type.lower())
         except ValueError:
-            raise HTTPException(status_code=400, detail=f"无效的订单类型: {order_type}")
+            raise HTTPException(status_code=400, detail=f"无效的订单类型: {request.order_type}")
         
         # 验证买卖方向
         try:
-            side_enum = OrderSide(side.lower())
+            side_enum = OrderSide(request.side.lower())
         except ValueError:
-            raise HTTPException(status_code=400, detail=f"无效的买卖方向: {side}")
+            raise HTTPException(status_code=400, detail=f"无效的买卖方向: {request.side}")
         
         # 获取当前市场价格（用于验证）
         if order_type_enum == OrderType.MARKET:
             # 对于市价单，需要获取当前价格
-            current_price = await data_service.get_current_price(symbol, MarketType.CRYPTO)
-            await virtual_trading_engine.update_market_price(symbol, Decimal(str(current_price)))
+            try:
+                from services.futu_data_service import futu_data_service
+                quote = await futu_data_service.get_stock_quote(request.symbol)
+                if quote and 'last_price' in quote:
+                    current_price = Decimal(str(quote['last_price']))
+                    await virtual_trading_engine.update_market_price(request.symbol, current_price)
+            except Exception as e:
+                logger.warning(f"获取实时价格失败，使用最后已知价格: {e}")
         
         # 下订单
         order_id = await virtual_trading_engine.place_order(
-            account_id=account_id,
-            symbol=symbol,
+            account_id=request.account_id,
+            symbol=request.symbol,
             order_type=order_type_enum,
             side=side_enum,
-            quantity=Decimal(str(quantity)),
-            price=Decimal(str(price)) if price else None,
-            stop_price=Decimal(str(stop_price)) if stop_price else None
+            quantity=Decimal(str(request.quantity)),
+            price=Decimal(str(request.price)) if request.price else None,
+            stop_price=Decimal(str(request.stop_price)) if request.stop_price else None
         )
         
         return {
-            "success": True,
             "order_id": order_id,
+            "account_id": request.account_id,
+            "symbol": request.symbol,
+            "order_type": request.order_type,
+            "side": request.side,
+            "quantity": request.quantity,
+            "price": request.price,
             "message": "虚拟订单提交成功"
         }
         
@@ -139,7 +150,8 @@ async def cancel_virtual_order(order_id: str):
             raise HTTPException(status_code=404, detail="订单不存在或无法取消")
         
         return {
-            "success": True,
+            "order_id": order_id,
+            "status": "cancelled",
             "message": "虚拟订单取消成功"
         }
     except HTTPException:
@@ -153,10 +165,7 @@ async def get_virtual_order_history(account_id: str, limit: int = 100):
     """获取虚拟订单历史"""
     try:
         orders = await virtual_trading_engine.get_order_history(account_id, limit)
-        return {
-            "success": True,
-            "orders": orders
-        }
+        return orders
     except Exception as e:
         logger.error(f"获取虚拟订单历史失败: {e}")
         raise HTTPException(status_code=500, detail=f"获取虚拟订单历史失败: {str(e)}")
@@ -166,10 +175,7 @@ async def get_virtual_performance(account_id: str):
     """获取虚拟交易绩效指标"""
     try:
         metrics = await virtual_trading_engine.get_performance_metrics(account_id)
-        return {
-            "success": True,
-            "performance": metrics
-        }
+        return metrics
     except Exception as e:
         logger.error(f"获取虚拟交易绩效失败: {e}")
         raise HTTPException(status_code=500, detail=f"获取虚拟交易绩效失败: {str(e)}")
@@ -185,6 +191,7 @@ async def update_market_prices():
                 all_symbols.add(symbol)
         
         # 更新每个符号的市场价格
+        updated_count = 0
         for symbol in all_symbols:
             try:
                 current_price = await data_service.get_current_price(symbol, MarketType.CRYPTO)
@@ -192,15 +199,34 @@ async def update_market_prices():
                     symbol, 
                     Decimal(str(current_price))
                 )
+                updated_count += 1
             except Exception as e:
                 logger.warning(f"更新 {symbol} 价格失败: {e}")
                 continue
         
         return {
-            "success": True,
-            "message": f"已更新 {len(all_symbols)} 个交易对的市场价格"
+            "updated_symbols": updated_count,
+            "total_symbols": len(all_symbols),
+            "message": f"已更新 {updated_count} 个交易对的市场价格"
         }
         
+    except Exception as e:
+        logger.error(f"更新市场价格失败: {e}")
+        raise HTTPException(status_code=500, detail=f"更新市场价格失败: {str(e)}")
+
+@router.post("/market/price")
+async def update_specific_market_price(request: UpdatePriceRequest):
+    """更新特定交易对的市场价格（用于测试）"""
+    try:
+        await virtual_trading_engine.update_market_price(
+            request.symbol, 
+            Decimal(str(request.price))
+        )
+        return {
+            "symbol": request.symbol,
+            "price": request.price,
+            "message": f"已更新 {request.symbol} 的市场价格为 {request.price}"
+        }
     except Exception as e:
         logger.error(f"更新市场价格失败: {e}")
         raise HTTPException(status_code=500, detail=f"更新市场价格失败: {str(e)}")

@@ -40,6 +40,11 @@ const AlertsPage: React.FC = () => {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [systemStatus, setSystemStatus] = useState<'正常' | '连接异常' | '市场关闭'>('正常');
   const [connectionDelay, setConnectionDelay] = useState<number>(0);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [sortField, setSortField] = useState<keyof Alert>('createdAt');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [notifications, setNotifications] = useState<string[]>([]);
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
 
   // 从后端API获取实时价格数据
   const fetchRealTimeData = async (): Promise<SymbolData[]> => {
@@ -281,14 +286,75 @@ const AlertsPage: React.FC = () => {
   };
 
   const getFilteredAlerts = () => {
+    let filtered = alerts;
+    
+    // 按标签过滤
     switch (activeTab) {
       case 'active':
-        return alerts.filter(alert => alert.isActive);
+        filtered = filtered.filter(alert => alert.isActive);
+        break;
       case 'triggered':
-        return alerts.filter(alert => !alert.isActive);
+        filtered = filtered.filter(alert => !alert.isActive);
+        break;
       case 'all':
       default:
-        return alerts;
+        break;
+    }
+    
+    // 按搜索词过滤
+    if (searchTerm) {
+      filtered = filtered.filter(alert => 
+        alert.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        getAlertTypeText(alert.alertType).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        getConditionText(alert.condition).toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // 排序
+    filtered.sort((a, b) => {
+      const aValue = a[sortField];
+      const bValue = b[sortField];
+      
+      if (aValue === undefined || bValue === undefined) return 0;
+      
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortDirection === 'asc' 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortDirection === 'asc' 
+          ? aValue - bValue
+          : bValue - aValue;
+      } else if (typeof aValue === 'boolean' && typeof bValue === 'boolean') {
+        return sortDirection === 'asc' 
+          ? (aValue === bValue ? 0 : aValue ? 1 : -1)
+          : (aValue === bValue ? 0 : aValue ? -1 : 1);
+      }
+      
+      return 0;
+    });
+    
+    return filtered;
+  };
+
+  // 添加通知
+  const addNotification = (message: string) => {
+    const newNotification = `${new Date().toLocaleTimeString('zh-CN')} - ${message}`;
+    setNotifications(prev => [newNotification, ...prev].slice(0, 10)); // 只保留最近10条
+  };
+
+  // 模拟预警触发
+  const simulateAlertTrigger = () => {
+    const activeAlerts = alerts.filter(alert => alert.isActive);
+    if (activeAlerts.length > 0) {
+      const randomAlert = activeAlerts[Math.floor(Math.random() * activeAlerts.length)];
+      const message = `预警触发: ${randomAlert.symbol} ${getConditionText(randomAlert.condition)} ${randomAlert.value}`;
+      addNotification(message);
+      
+      if (soundEnabled) {
+        // 在实际应用中，这里会播放声音
+        console.log('播放预警声音');
+      }
     }
   };
 
@@ -468,6 +534,60 @@ const AlertsPage: React.FC = () => {
                 >
                   全部
                 </button>
+              </div>
+              <div className="alerts-controls">
+                <div className="search-control">
+                  <input
+                    type="text"
+                    placeholder="搜索交易对、类型、条件..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="search-input"
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="clear-search"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                <div className="sort-control">
+                  <select
+                    value={sortField}
+                    onChange={(e) => setSortField(e.target.value as keyof Alert)}
+                    className="sort-select"
+                  >
+                    <option value="createdAt">创建时间</option>
+                    <option value="symbol">交易对</option>
+                    <option value="priority">优先级</option>
+                    <option value="value">阈值</option>
+                  </select>
+                  <button
+                    onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+                    className="sort-direction"
+                  >
+                    {sortDirection === 'asc' ? '↑' : '↓'}
+                  </button>
+                </div>
+                <div className="notification-controls">
+                  <button
+                    onClick={simulateAlertTrigger}
+                    className="test-alert-button"
+                    title="测试预警触发"
+                  >
+                    测试预警
+                  </button>
+                  <label className="sound-toggle">
+                    <input
+                      type="checkbox"
+                      checked={soundEnabled}
+                      onChange={(e) => setSoundEnabled(e.target.checked)}
+                    />
+                    声音提醒
+                  </label>
+                </div>
               </div>
               <div className="alerts-stats">
                 <span className="active-alerts">活跃: {alerts.filter(a => a.isActive).length}</span>

@@ -54,7 +54,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             >
               <span className="text-lg">{item.icon}</span>
               {isSidebarOpen && (
-                <span className="ml-3 font-medium">{item.name}</span>
+                <span className="ml-3 font-medium text-xl">{item.name}</span>
               )}
             </Link>
           ))}

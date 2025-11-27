@@ -7,7 +7,7 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 import redis
 import asyncio
 
-from .config import settings
+from backend.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -82,9 +82,9 @@ class MarketDataBase:
             logger.error(f"创建表失败: {e}")
 
 # 导入所有模型以确保它们被注册
-from .models.market_data import MarketData, KlineData
-from .models.alerts import Alert
-from .models.users import User
+from backend.models.market_data import MarketData, KlineData
+from backend.models.alerts import Alert
+from backend.models.users import User
 
 # 创建所有表
 async def create_tables():

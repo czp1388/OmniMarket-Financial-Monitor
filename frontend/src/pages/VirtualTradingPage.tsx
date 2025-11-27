@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ApiService } from '../services/api';
+import { realTimeDataService, MarketData } from '../services/realTimeDataService';
 import './VirtualTradingPage.css';
 
 // 实时价格数据类型
@@ -9,6 +10,9 @@ interface SymbolData {
   change: number;
   changePercent: number;
   volume: number;
+  type: string;
+  lastUpdate: string;
+  source: string;
 }
 
 interface VirtualAccount {
@@ -64,42 +68,43 @@ const VirtualTradingPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
-  // 从后端API获取实时价格数据
-  const fetchRealTimeData = async (): Promise<SymbolData[]> => {
+  // 使用realTimeDataService获取实时数据
+  const updateRealTimeData = async () => {
     try {
       const symbols = ['BTC/USDT', 'ETH/USDT', 'AAPL', 'USD/CNY', 'TSLA', 'EUR/USD', 'XAU/USD', 'SPY'];
-      const response = await ApiService.market.getTickers(symbols);
+      const marketData = await realTimeDataService.getMarketData(symbols);
       
-      // 安全的类型检查和处理
-      if (Array.isArray(response)) {
-        return response.map((ticker: any) => ({
-          symbol: ticker.symbol,
-          price: ticker.last || ticker.close || 0,
-          change: ticker.change || 0,
-          changePercent: ticker.change_percent || 0,
-          volume: ticker.baseVolume || ticker.volume || 0
-        }));
-      } else {
-        console.warn('Invalid response format from API, using fallback data');
-        return generateFallbackData();
-      }
+      const symbolData: SymbolData[] = marketData.map(item => ({
+        symbol: item.symbol,
+        price: item.price,
+        change: item.change,
+        changePercent: item.changePercent,
+        volume: item.volume || 0,
+        type: item.type,
+        lastUpdate: item.lastUpdate,
+        source: item.source
+      }));
+      
+      setSymbolsData(symbolData);
     } catch (error) {
       console.error('Failed to fetch real-time data:', error);
-      return generateFallbackData();
+      // 如果API调用失败，使用备用数据
+      const fallbackData = generateFallbackData();
+      setSymbolsData(fallbackData);
     }
   };
 
   // 备用数据生成（当API不可用时）
   const generateFallbackData = (): SymbolData[] => {
     const baseData = [
-      { symbol: 'BTC/USDT', price: 42567.39, change: 975.42, changePercent: 2.34, volume: 28456789 },
-      { symbol: 'ETH/USDT', price: 2345.67, change: 28.51, changePercent: 1.23, volume: 15678923 },
-      { symbol: 'AAPL', price: 182.45, change: -1.03, changePercent: -0.56, volume: 4567890 },
-      { symbol: 'TSLA', price: 245.67, change: 3.21, changePercent: 1.32, volume: 2345678 },
-      { symbol: 'USD/CNY', price: 7.1987, change: 0.0086, changePercent: 0.12, volume: 123456789 },
-      { symbol: 'EUR/USD', price: 1.0856, change: -0.0023, changePercent: -0.21, volume: 98765432 },
-      { symbol: 'XAU/USD', price: 1987.45, change: 12.34, changePercent: 0.62, volume: 345678 },
-      { symbol: 'SPY', price: 456.78, change: 2.34, changePercent: 0.51, volume: 1234567 }
+      { symbol: 'BTC/USDT', price: 42567.39, change: 975.42, changePercent: 2.34, volume: 28456789, type: 'crypto', lastUpdate: new Date().toLocaleString(), source: 'CoinGecko' },
+      { symbol: 'ETH/USDT', price: 2345.67, change: 28.51, changePercent: 1.23, volume: 15678923, type: 'crypto', lastUpdate: new Date().toLocaleString(), source: 'CoinGecko' },
+      { symbol: 'AAPL', price: 182.45, change: -1.03, changePercent: -0.56, volume: 4567890, type: 'stock', lastUpdate: new Date().toLocaleString(), source: 'Yahoo Finance' },
+      { symbol: 'TSLA', price: 245.67, change: 3.21, changePercent: 1.32, volume: 2345678, type: 'stock', lastUpdate: new Date().toLocaleString(), source: 'Yahoo Finance' },
+      { symbol: 'USD/CNY', price: 7.1987, change: 0.0086, changePercent: 0.12, volume: 123456789, type: 'forex', lastUpdate: new Date().toLocaleString(), source: 'ExchangeRate-API' },
+      { symbol: 'EUR/USD', price: 1.0856, change: -0.0023, changePercent: -0.21, volume: 98765432, type: 'forex', lastUpdate: new Date().toLocaleString(), source: 'ExchangeRate-API' },
+      { symbol: 'XAU/USD', price: 1987.45, change: 12.34, changePercent: 0.62, volume: 345678, type: 'commodity', lastUpdate: new Date().toLocaleString(), source: 'Alpha Vantage' },
+      { symbol: 'SPY', price: 456.78, change: 2.34, changePercent: 0.51, volume: 1234567, type: 'stock', lastUpdate: new Date().toLocaleString(), source: 'Yahoo Finance' }
     ];
     
     // 添加一些随机波动以模拟实时更新
@@ -149,10 +154,9 @@ const VirtualTradingPage: React.FC = () => {
   const loadAccountDetails = async (accountId: string) => {
     try {
       setLoading(true);
-      const [accountRes, positionsRes, ordersRes, performanceRes] = await Promise.all([
+      const [accountRes, ordersRes, performanceRes] = await Promise.all([
         ApiService.virtual.getAccount(accountId),
-        ApiService.virtual.getPositions(accountId),
-        ApiService.virtual.getOrders(accountId),
+        ApiService.virtual.getOrderHistory(accountId),
         ApiService.virtual.getPerformance(accountId)
       ]);
 
@@ -163,8 +167,14 @@ const VirtualTradingPage: React.FC = () => {
         setSelectedAccount(null);
       }
 
-      if (Array.isArray(positionsRes)) {
-        setPositions(positionsRes as unknown as Position[]);
+      // 从账户信息中提取持仓数据
+      if (accountRes && typeof accountRes === 'object') {
+        const accountData = accountRes as any;
+        if (accountData.positions && Array.isArray(accountData.positions)) {
+          setPositions(accountData.positions as unknown as Position[]);
+        } else {
+          setPositions([]);
+        }
       } else {
         setPositions([]);
       }
@@ -209,7 +219,16 @@ const VirtualTradingPage: React.FC = () => {
     if (!selectedAccount) return;
     
     try {
-      await ApiService.virtual.placeOrder(selectedAccount.id, orderForm);
+      const orderData = {
+        account_id: selectedAccount.id,
+        symbol: orderForm.symbol,
+        order_type: orderForm.type,
+        side: orderForm.side,
+        quantity: orderForm.quantity,
+        price: orderForm.price || undefined
+      };
+      
+      await ApiService.virtual.placeOrder(orderData);
       setOrderForm({ symbol: '', side: 'buy', type: 'market', quantity: 0, price: 0 });
       await loadAccountDetails(selectedAccount.id);
       alert('订单提交成功！');
@@ -221,11 +240,11 @@ const VirtualTradingPage: React.FC = () => {
 
   // 取消订单
   const cancelOrder = async (orderId: string) => {
-    if (!selectedAccount) return;
-    
     try {
-      await ApiService.virtual.cancelOrder(selectedAccount.id, orderId);
-      await loadAccountDetails(selectedAccount.id);
+      await ApiService.virtual.cancelOrder(orderId);
+      if (selectedAccount) {
+        await loadAccountDetails(selectedAccount.id);
+      }
       alert('订单取消成功！');
     } catch (error) {
       console.error('Failed to cancel order:', error);
@@ -235,15 +254,7 @@ const VirtualTradingPage: React.FC = () => {
 
   // 更新实时价格数据
   const updateSymbolData = async () => {
-    try {
-      const realTimeData = await fetchRealTimeData();
-      setSymbolsData(realTimeData);
-    } catch (error) {
-      console.error('Failed to update real-time data:', error);
-      // 如果API调用失败，使用备用数据并添加一些随机波动
-      const updatedData = generateFallbackData();
-      setSymbolsData(updatedData);
-    }
+    await updateRealTimeData();
   };
 
   useEffect(() => {
@@ -251,46 +262,87 @@ const VirtualTradingPage: React.FC = () => {
     // 初始化实时价格数据
     updateSymbolData();
     
-    // 每5秒更新一次实时价格（减少频率以避免API限制）
-    const interval = setInterval(updateSymbolData, 5000);
-    return () => clearInterval(interval);
+    // 使用realTimeDataService的实时更新功能
+    const symbols = ['BTC/USDT', 'ETH/USDT', 'AAPL', 'USD/CNY', 'TSLA', 'EUR/USD', 'XAU/USD', 'SPY'];
+    const stopUpdates = realTimeDataService.startRealTimeUpdates(
+      (data: MarketData[]) => {
+        const symbolData: SymbolData[] = data.map(item => ({
+          symbol: item.symbol,
+          price: item.price,
+          change: item.change,
+          changePercent: item.changePercent,
+          volume: item.volume || 0,
+          type: item.type,
+          lastUpdate: item.lastUpdate,
+          source: item.source
+        }));
+        setSymbolsData(symbolData);
+      },
+      symbols,
+      5000 // 5秒更新间隔
+    );
+    
+    return () => {
+      stopUpdates();
+    };
   }, []);
+
+  // 格式化价格显示
+  const formatPrice = (price: number, type: string) => {
+    if (type === 'forex') return price.toFixed(4);
+    if (type === 'crypto') return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `$${price.toFixed(2)}`;
+  };
+
+  // 格式化成交量显示
+  const formatVolume = (volume: number) => {
+    if (volume >= 1000000) return `${(volume / 1000000).toFixed(1)}M`;
+    if (volume >= 1000) return `${(volume / 1000).toFixed(1)}K`;
+    return volume.toFixed(0);
+  };
+
+  // 格式化变化金额显示
+  const formatChange = (change: number, type: string) => {
+    if (type === 'forex') return change.toFixed(4);
+    return change.toFixed(2);
+  };
 
   return (
     <div className="virtual-trading-container">
       <div className="virtual-trading-header">
-        <h1>虚拟交易系统</h1>
+        <h1>寰宇虚拟交易系统</h1>
         <p>专业级模拟交易平台 - 实时市场数据与高级分析</p>
       </div>
 
       <div className="virtual-trading-layout">
-        {/* 左侧实时价格监控 */}
+        {/* 左侧实时价格监控 - 彭博终端风格 */}
         <div className="real-time-monitor">
           <div className="monitor-header">
             <h3>实时价格监控</h3>
-            <span className="status-indicator active">实时</span>
+            <div className="status-indicator-group">
+              <div className="status-indicator connected"></div>
+              <span className="status-text">实时</span>
+            </div>
           </div>
           <div className="symbols-grid">
             {symbolsData.map((symbol) => (
               <div key={symbol.symbol} className="symbol-card">
                 <div className="symbol-header">
                   <span className="symbol-name">{symbol.symbol}</span>
+                  <span className="data-source">{symbol.source}</span>
+                </div>
+                <div className="price-display">
+                  <span className="current-price">
+                    {formatPrice(symbol.price, symbol.type)}
+                  </span>
                   <span className={`price-change ${symbol.change >= 0 ? 'positive' : 'negative'}`}>
                     {symbol.change >= 0 ? '+' : ''}{symbol.changePercent.toFixed(2)}%
                   </span>
                 </div>
-                <div className="price-display">
-                  <span className="current-price">
-                    {symbol.symbol.includes('/') ? '$' : ''}{symbol.price.toLocaleString(undefined, {
-                      minimumFractionDigits: symbol.symbol.includes('/') ? 4 : 2,
-                      maximumFractionDigits: symbol.symbol.includes('/') ? 4 : 2
-                    })}
-                  </span>
-                </div>
                 <div className="symbol-footer">
-                  <span className="volume">量: {(symbol.volume / 1000000).toFixed(1)}M</span>
+                  <span className="volume">量: {formatVolume(symbol.volume)}</span>
                   <span className={`change-amount ${symbol.change >= 0 ? 'positive' : 'negative'}`}>
-                    {symbol.change >= 0 ? '+' : ''}{symbol.change.toFixed(2)}
+                    {symbol.change >= 0 ? '+' : ''}{formatChange(symbol.change, symbol.type)}
                   </span>
                 </div>
               </div>

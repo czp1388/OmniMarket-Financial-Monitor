@@ -11,6 +11,8 @@ import PortfolioPage from './pages/PortfolioPage';
 import SettingsPage from './pages/SettingsPage';
 import VirtualTradingPage from './pages/VirtualTradingPage';
 import WarrantsMonitoringPage from './pages/WarrantsMonitoringPage';
+import AutoTradingPage from './pages/AutoTradingPage';
+import SemiAutoTradingPage from './pages/SemiAutoTradingPage';
 
 function App() {
   return (
@@ -28,6 +30,8 @@ function App() {
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/virtual-trading" element={<VirtualTradingPage />} />
         <Route path="/warrants" element={<WarrantsMonitoringPage />} />
+        <Route path="/auto-trading" element={<AutoTradingPage />} />
+        <Route path="/semi-auto-trading" element={<SemiAutoTradingPage />} />
       </Routes>
     </Router>
   );

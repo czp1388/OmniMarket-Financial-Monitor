@@ -1,11 +1,12 @@
 /* AlertsPage Styles - Professional Trading Terminal Standard */
 .alerts-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  color: white;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #0a0e17;
+  color: #ffffff;
+  font-family: 'Courier New', Monaco, Menlo, monospace;
   margin: 0;
-  padding: 20px;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 /* 功能导航栏样式 - 与主页保持一致 */

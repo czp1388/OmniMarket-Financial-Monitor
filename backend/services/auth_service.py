@@ -4,8 +4,8 @@ from datetime import datetime, timedelta
 from jose import jwt, JWTError, ExpiredSignatureError
 from fastapi import HTTPException
 
-from backend.services.user_service import user_service
-from backend.config import settings
+from .user_service import user_service
+from config import settings
 
 logger = logging.getLogger(__name__)
 

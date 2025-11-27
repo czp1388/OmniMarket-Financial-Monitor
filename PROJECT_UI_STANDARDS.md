@@ -1,18 +1,109 @@
 # OmniMarket 金融监控系统 - 项目界面标准
 
 ## 概述
-本文档定义了 OmniMarket 金融监控系统的统一界面设计标准和开发规范，确保所有页面具有一致的视觉风格和用户体验。
+本文档定义了 OmniMarket 金融监控系统的统一界面设计标准和开发规范，确保所有页面具有一致的视觉风格和用户体验。**所有新界面开发必须遵循彭博终端风格标准**，提供专业金融软件的视觉体验。
+
+## 彭博终端风格标准
+
+### 1. 核心视觉主题
+- **主背景**: `#0a0e17` (深蓝黑色，专业金融终端背景)
+- **次级背景**: `#141a2a` (深色容器背景)
+- **边框颜色**: `#2a3a5a` (深蓝色边框)
+- **文字颜色**: 
+  - 主文字: `#e0e0e0` (浅灰色)
+  - 次要文字: `#a0a0a0` (中灰色)
+  - 强调文字: `#ffffff` (白色)
+- **状态颜色**:
+  - 上涨/正面: `#00ff88` (亮绿色)
+  - 下跌/负面: `#ff4444` (亮红色)
+  - 中性/信息: `#00ccff` (亮蓝色)
+  - 警告: `#ffaa00` (琥珀色)
+
+### 2. 布局和信息密度
+- **紧凑网格布局**: 使用CSS Grid实现高信息密度
+- **最小边距**: `2px` 到 `5px` 之间
+- **面板间距**: `8px` 到 `12px`
+- **字体大小**: 
+  - 数据字体: `12px` 到 `14px` (等宽字体)
+  - 标签字体: `10px` 到 `12px`
+  - 标题字体: `16px` 到 `18px`
+
+### 3. 金融数据展示标准
+#### 价格卡片规范
+```css
+.price-card {
+  background: #141a2a;
+  border: 1px solid #2a3a5a;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-family: 'Courier New', Monaco, Menlo, monospace;
+  font-size: 13px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px;
+  min-height: 40px;
+}
+
+.price-positive {
+  color: #00ff88;
+  font-weight: bold;
+}
+
+.price-negative {
+  color: #ff4444;
+  font-weight: bold;
+}
+```
+
+#### K线图表区域
+- 使用深色主题的ECharts或Lightweight Charts
+- 图表背景: `#0a0e17`
+- 网格线: `#1a243a`
+- 坐标轴: `#4a5a7a`
+
+### 4. 控制面板规范
+```css
+.control-panel {
+  background: #141a2a;
+  border: 1px solid #2a3a5a;
+  border-radius: 4px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.control-button {
+  background: #2a3a5a;
+  border: 1px solid #3a4a6a;
+  color: #e0e0e0;
+  padding: 6px 12px;
+  border-radius: 3px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.control-button:hover {
+  background: #3a4a7a;
+  border-color: #4a5a8a;
+}
+
+.control-button:active {
+  background: #1a2a4a;
+}
+```
 
 ## 核心设计原则
 
 ### 1. 视觉主题
-- **主背景**: `linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)`
-- **容器背景**: `rgba(255, 255, 255, 0.1)` 带 `backdrop-filter: blur(10px)`
-- **文字颜色**: 白色 `#ffffff`
+- **主背景**: `#0a0e17` (彭博终端风格深色主题)
+- **容器背景**: `#141a2a` 带轻微透明度
+- **文字颜色**: `#e0e0e0` (主文字)，`#a0a0a0` (次要文字)
 - **强调色**: 
   - 绿色 (上涨/正面): `#00ff88`
   - 红色 (下跌/负面): `#ff4444`
-  - 渐变强调: `linear-gradient(45deg, #00ff88, #00ccff)`
+  - 蓝色 (信息/中性): `#00ccff`
 
 ### 2. 导航键标准 (核心组件)
 
@@ -111,6 +202,54 @@
 9. **FinancialMonitoringSystem** (`FinancialMonitoringSystem.css`)
    - 类名: `financial-nav-bar`, `financial-nav-btn`
    - 状态: 已完成
+
+10. **AutoTradingPage** (`AutoTradingPage.css`)
+    - 类名: 使用标准按钮样式，无特定导航键
+    - 状态: 已完成 - 彭博终端风格改造
+    - 特色: 全自动交易系统专用界面，包含策略选择、风险控制、紧急熔断等功能
+
+11. **SemiAutoTradingPage** (`SemiAutoTradingPage.css`)
+    - 类名: `semi-auto-trading-nav-bar`, `semi-auto-trading-nav-btn`
+    - 状态: 已完成 - 彭博终端风格改造
+    - 特色: 半自动交易系统专用界面，包含信号生成、交易验证、人工确认执行等功能
+
+### 全自动交易系统专用标准
+
+#### 控制面板布局
+```css
+.main-content {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 15px;
+}
+```
+
+#### 交易控制按钮
+```css
+.btn-start { background: #1a3a2a; color: #00ff88; border: 1px solid #00ff88; }
+.btn-stop { background: #3a1a1a; color: #ff4444; border: 1px solid #ff4444; }
+.btn-pause { background: #3a3a1a; color: #ffaa00; border: 1px solid #ffaa00; }
+.btn-resume { background: #1a2a3a; color: #00ccff; border: 1px solid #00ccff; }
+.btn-emergency { background: #3a1a2a; color: #ff0066; border: 1px solid #ff0066; }
+```
+
+#### 风险等级颜色编码
+```css
+.risk-低风险 { background: #1a3a2a; color: #00ff88; }
+.risk-中等风险 { background: #3a3a1a; color: #ffaa00; }
+.risk-高风险 { background: #3a1a1a; color: #ff4444; }
+.risk-极高风险 { background: #3a1a2a; color: #ff0066; }
+```
+
+#### 状态指示器
+```css
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+```
 
 ## 响应式设计标准
 

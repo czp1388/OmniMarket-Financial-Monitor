@@ -146,36 +146,61 @@ export class ApiService {
     // 获取虚拟账户详情
     getAccount: (accountId: string) => apiClient.get(`/virtual/accounts/${accountId}`),
     
-    // 更新虚拟账户
-    updateAccount: (accountId: string, accountData: any) => 
-      apiClient.put(`/virtual/accounts/${accountId}`, accountData),
-    
-    // 删除虚拟账户
-    deleteAccount: (accountId: string) => apiClient.delete(`/virtual/accounts/${accountId}`),
-    
     // 下单交易
-    placeOrder: (accountId: string, orderData: any) => 
-      apiClient.post(`/virtual/accounts/${accountId}/orders`, orderData),
+    placeOrder: (orderData: any) => apiClient.post('/virtual/orders', orderData),
     
-    // 获取订单列表
-    getOrders: (accountId: string, status?: string) => 
-      apiClient.get(`/virtual/accounts/${accountId}/orders`, { params: { status } }),
+    // 获取订单历史
+    getOrderHistory: (accountId: string, limit?: number) => 
+      apiClient.get(`/virtual/orders/${accountId}`, { params: { limit } }),
     
     // 取消订单
-    cancelOrder: (accountId: string, orderId: string) => 
-      apiClient.delete(`/virtual/accounts/${accountId}/orders/${orderId}`),
-    
-    // 获取持仓列表
-    getPositions: (accountId: string) => 
-      apiClient.get(`/virtual/accounts/${accountId}/positions`),
-    
-    // 获取交易记录
-    getTrades: (accountId: string, symbol?: string) => 
-      apiClient.get(`/virtual/accounts/${accountId}/trades`, { params: { symbol } }),
+    cancelOrder: (orderId: string) => apiClient.delete(`/virtual/orders/${orderId}`),
     
     // 获取绩效分析
-    getPerformance: (accountId: string) => 
-      apiClient.get(`/virtual/accounts/${accountId}/performance`),
+    getPerformance: (accountId: string) => apiClient.get(`/virtual/performance/${accountId}`),
+    
+    // 更新市场价格
+    updateMarketPrices: () => apiClient.post('/virtual/market/update'),
+  };
+
+  // 全自动交易API
+  static autoTrading = {
+    // 健康检查
+    health: () => apiClient.get('/auto-trading/health'),
+    
+    // 获取可用交易策略
+    getStrategies: () => apiClient.get('/auto-trading/strategies'),
+    
+    // 获取交易状态
+    getStatus: () => apiClient.get('/auto-trading/status'),
+    
+    // 获取交易绩效
+    getPerformance: () => apiClient.get('/auto-trading/performance'),
+    
+    // 获取风险指标
+    getRiskMetrics: () => apiClient.get('/auto-trading/risk-metrics'),
+    
+    // 启动交易
+    start: (strategyId: string, config?: any) => 
+      apiClient.post('/auto-trading/start', { strategy_id: strategyId, config }),
+    
+    // 停止交易
+    stop: () => apiClient.post('/auto-trading/stop'),
+    
+    // 暂停交易
+    pause: () => apiClient.post('/auto-trading/pause'),
+    
+    // 恢复交易
+    resume: () => apiClient.post('/auto-trading/resume'),
+    
+    // 紧急停止
+    emergencyStop: () => apiClient.post('/auto-trading/emergency-stop'),
+    
+    // 重置熔断
+    resetBrakes: () => apiClient.post('/auto-trading/reset-brakes'),
+    
+    // 配置交易参数
+    configure: (config: any) => apiClient.post('/auto-trading/configure', config),
   };
 }
 

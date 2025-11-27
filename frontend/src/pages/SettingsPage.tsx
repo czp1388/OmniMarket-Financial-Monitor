@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ApiService } from '../services/api';
+import { realTimeDataService } from '../services/realTimeDataService';
 import './SettingsPage.css';
 
 interface SymbolData {
@@ -14,6 +14,9 @@ interface SymbolData {
   low: number;
   close: number;
   timestamp: string;
+  type: string;
+  source: string;
+  lastUpdate: string;
 }
 
 const SettingsPage: React.FC = () => {
@@ -24,6 +27,7 @@ const SettingsPage: React.FC = () => {
     marketStatus: '交易中',
     lastUpdate: new Date().toLocaleString('zh-CN')
   });
+  const [activeNav, setActiveNav] = useState('常规设置');
   const [settings, setSettings] = useState({
     // 数据源设置
     dataSources: {
@@ -152,52 +156,39 @@ const SettingsPage: React.FC = () => {
     });
   };
 
-  // 从API获取实时数据
-  const fetchRealTimeData = async () => {
-    try {
-      const response = await ApiService.market.getTickers();
-      // 安全地处理API响应，确保是数组类型
-      const tickers = Array.isArray(response) ? response : [];
-      const symbolData = tickers.map((ticker: any) => ({
-        symbol: ticker.symbol,
-        price: ticker.last,
-        change: ticker.change,
-        changePercent: ticker.change_percent,
-        volume: ticker.volume,
-        last: ticker.last,
-        open: ticker.open,
-        high: ticker.high,
-        low: ticker.low,
-        close: ticker.close,
-        timestamp: ticker.timestamp
-      }));
-      setSymbolsData(symbolData);
-    } catch (error) {
-      console.error('获取实时数据失败:', error);
-      // 如果API失败，使用模拟数据作为后备
-      const mockData: SymbolData[] = [
-        { symbol: 'BTC/USDT', price: 42567.39, change: 975.42, changePercent: 2.34, volume: 28456789, last: 42567.39, open: 41591.97, high: 42789.12, low: 41456.78, close: 42567.39, timestamp: new Date().toISOString() },
-        { symbol: 'ETH/USDT', price: 2345.67, change: 28.51, changePercent: 1.23, volume: 15678923, last: 2345.67, open: 2317.16, high: 2367.89, low: 2301.45, close: 2345.67, timestamp: new Date().toISOString() },
-        { symbol: 'AAPL', price: 182.45, change: -1.03, changePercent: -0.56, volume: 4567890, last: 182.45, open: 183.48, high: 184.12, low: 181.89, close: 182.45, timestamp: new Date().toISOString() },
-        { symbol: 'TSLA', price: 245.67, change: 3.21, changePercent: 1.32, volume: 2345678, last: 245.67, open: 242.46, high: 248.34, low: 241.23, close: 245.67, timestamp: new Date().toISOString() },
-        { symbol: 'USD/CNY', price: 7.1987, change: 0.0086, changePercent: 0.12, volume: 123456789, last: 7.1987, open: 7.1901, high: 7.2034, low: 7.1889, close: 7.1987, timestamp: new Date().toISOString() },
-        { symbol: 'EUR/USD', price: 1.0856, change: -0.0023, changePercent: -0.21, volume: 98765432, last: 1.0856, open: 1.0879, high: 1.0892, low: 1.0841, close: 1.0856, timestamp: new Date().toISOString() },
-        { symbol: 'XAU/USD', price: 1987.45, change: 12.34, changePercent: 0.62, volume: 345678, last: 1987.45, open: 1975.11, high: 1992.67, low: 1972.89, close: 1987.45, timestamp: new Date().toISOString() },
-        { symbol: 'SPY', price: 456.78, change: 2.34, changePercent: 0.51, volume: 1234567, last: 456.78, open: 454.44, high: 458.12, low: 453.67, close: 456.78, timestamp: new Date().toISOString() }
-      ];
-      setSymbolsData(mockData);
-    }
-  };
-
-  // 实时数据更新
+  // 使用realTimeDataService获取实时数据
   useEffect(() => {
-    fetchRealTimeData(); // 立即获取一次数据
+    const symbols = ['BTC/USDT', 'ETH/USDT', 'AAPL', 'USD/CNY', 'TSLA', 'EUR/USD', 'XAU/USD', 'SPY'];
+    
+    const stopUpdates = realTimeDataService.startRealTimeUpdates(
+      (data: any[]) => {
+        const updatedSymbols = data.map(item => ({
+          symbol: item.symbol,
+          price: item.price,
+          change: item.change,
+          changePercent: item.changePercent,
+          volume: item.volume || 0,
+          last: item.price,
+          open: item.open || item.price,
+          high: item.high || item.price,
+          low: item.low || item.price,
+          close: item.close || item.price,
+          timestamp: item.lastUpdate || new Date().toISOString(),
+          type: item.type || 'crypto',
+          source: item.source || 'realTimeDataService',
+          lastUpdate: item.lastUpdate || new Date().toLocaleTimeString('zh-CN', { hour12: false })
+        }));
+        setSymbolsData(updatedSymbols);
+        setSystemStatus(prev => ({
+          ...prev,
+          lastUpdate: new Date().toLocaleString('zh-CN')
+        }));
+      },
+      symbols,
+      5000 // 5秒更新间隔
+    );
 
-    const interval = setInterval(() => {
-      fetchRealTimeData();
-    }, 3000); // 每3秒更新一次
-
-    return () => clearInterval(interval);
+    return stopUpdates;
   }, []);
 
   const saveSettings = async () => {
@@ -262,6 +253,52 @@ const SettingsPage: React.FC = () => {
 
       {/* 右侧设置内容 */}
       <div className="settings-content">
+        {/* 功能导航栏 - 彭博终端风格 */}
+        <div className="settings-nav-bar">
+          <button 
+            className={`settings-nav-btn ${activeNav === '常规设置' ? 'active' : ''}`}
+            onClick={() => setActiveNav('常规设置')}
+          >
+            常规设置
+          </button>
+          <button 
+            className={`settings-nav-btn ${activeNav === '数据源' ? 'active' : ''}`}
+            onClick={() => setActiveNav('数据源')}
+          >
+            数据源
+          </button>
+          <button 
+            className={`settings-nav-btn ${activeNav === '通知' ? 'active' : ''}`}
+            onClick={() => setActiveNav('通知')}
+          >
+            通知
+          </button>
+          <button 
+            className={`settings-nav-btn ${activeNav === '图表' ? 'active' : ''}`}
+            onClick={() => setActiveNav('图表')}
+          >
+            图表
+          </button>
+          <button 
+            className={`settings-nav-btn ${activeNav === '风险' ? 'active' : ''}`}
+            onClick={() => setActiveNav('风险')}
+          >
+            风险
+          </button>
+          <button 
+            className={`settings-nav-btn ${activeNav === '数据质量' ? 'active' : ''}`}
+            onClick={() => setActiveNav('数据质量')}
+          >
+            数据质量
+          </button>
+          <button 
+            className={`settings-nav-btn ${activeNav === '预警策略' ? 'active' : ''}`}
+            onClick={() => setActiveNav('预警策略')}
+          >
+            预警策略
+          </button>
+        </div>
+
         <div className="settings-header">
           <h1>系统设置</h1>
           <p>配置您的监控系统偏好</p>

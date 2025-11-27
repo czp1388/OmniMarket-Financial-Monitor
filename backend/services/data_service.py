@@ -4,8 +4,10 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 import pandas as pd
 import ccxt
-from backend.models.market_data import KlineData, MarketType, Timeframe
-from backend.database import get_influxdb
+from models.market_data import KlineData, MarketType, Timeframe
+from database import get_influxdb
+from .websocket_manager import websocket_manager
+from .yfinance_data_service import yfinance_data_service
 
 logger = logging.getLogger(__name__)
 
@@ -83,9 +85,12 @@ class DataService:
                 
                 return klines
                 
+            elif market_type == MarketType.STOCK:
+                # 使用Yahoo Finance获取股票数据
+                return await yfinance_data_service.get_stock_klines(symbol, timeframe, limit, start_time, end_time)
+                
             else:
-                # 其他市场类型的实现（股票、外汇等）
-                # 这里可以集成其他数据源API
+                # 其他市场类型的实现（外汇等）
                 return await self._get_mock_data(symbol, timeframe, market_type, limit)
                 
         except Exception as e:
@@ -187,6 +192,10 @@ class DataService:
                 if exchange:
                     ticker = exchange.fetch_ticker(symbol)
                     return ticker['last']
+            elif market_type == MarketType.STOCK:
+                # 使用Yahoo Finance获取股票实时价格
+                quote = await yfinance_data_service.get_stock_quote(symbol)
+                return quote['last_price']
             return 0.0
         except Exception as e:
             logger.error(f"获取当前价格失败: {e}")
@@ -347,11 +356,46 @@ class DataService:
         """获取支持的交易所列表"""
         return list(self.exchanges.keys())
     
+    async def start_real_time_updates(self):
+        """启动实时数据更新服务"""
+        logger.info("启动实时数据更新服务")
+        # 启动定时任务，定期推送实时数据
+        asyncio.create_task(self._real_time_update_loop())
+    
+    async def _real_time_update_loop(self):
+        """实时数据更新循环"""
+        while True:
+            try:
+                # 获取最新的行情数据
+                tickers = await self.get_tickers()
+                
+                # 向所有订阅者广播实时数据
+                for ticker in tickers:
+                    await websocket_manager.broadcast_to_subscribers(
+                        ticker['symbol'],
+                        {
+                            'type': 'price_update',
+                            'symbol': ticker['symbol'],
+                            'price': ticker['last'],
+                            'change': ticker['change'],
+                            'change_percent': ticker['change_percent'],
+                            'volume': ticker['volume'],
+                            'timestamp': datetime.now().isoformat()
+                        }
+                    )
+                
+                # 每5秒更新一次
+                await asyncio.sleep(5)
+                
+            except Exception as e:
+                logger.error(f"实时数据更新循环出错: {e}")
+                await asyncio.sleep(10)  # 出错时等待更长时间
+    
     async def start(self):
         """启动数据服务"""
         logger.info("数据服务已启动")
-        # 这里可以添加数据服务启动时的初始化逻辑
-        # 例如：开始定时获取数据、监控市场等
+        # 启动实时数据更新
+        await self.start_real_time_updates()
     
     async def stop(self):
         """停止数据服务"""

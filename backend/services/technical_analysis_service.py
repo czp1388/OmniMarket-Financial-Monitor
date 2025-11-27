@@ -1,7 +1,7 @@
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
-from backend.models.market_data import KlineData
+from models.market_data import KlineData
 
 logger = logging.getLogger(__name__)
 
@@ -10,17 +10,18 @@ class TechnicalAnalysisService:
         pass
     
     def calculate_sma(self, prices: List[float], period: int) -> List[Optional[float]]:
-        """计算简单移动平均线"""
+        """计算简单移动平均线 - 优化版本使用numpy"""
         if len(prices) < period:
             return [None] * len(prices)
         
-        sma_values = []
-        for i in range(len(prices)):
-            if i < period - 1:
-                sma_values.append(None)
-            else:
-                sma = sum(prices[i-period+1:i+1]) / period
-                sma_values.append(sma)
+        # 使用numpy进行向量化计算以提高性能
+        prices_array = np.array(prices)
+        sma_values = [None] * (period - 1)
+        
+        for i in range(period - 1, len(prices_array)):
+            window = prices_array[i-period+1:i+1]
+            sma = np.mean(window)
+            sma_values.append(float(sma))
         
         return sma_values
     
@@ -217,6 +218,166 @@ class TechnicalAnalysisService:
                     signals[i] = True
         
         return signals
+
+    def calculate_stochastic(self, high_prices: List[float], low_prices: List[float], 
+                           close_prices: List[float], k_period: int = 14, 
+                           d_period: int = 3) -> Dict[str, List[Optional[float]]]:
+        """计算随机指标(Stochastic Oscillator)"""
+        if len(high_prices) < k_period:
+            return {
+                "k": [None] * len(high_prices),
+                "d": [None] * len(high_prices)
+            }
+        
+        k_values = [None] * (k_period - 1)
+        d_values = [None] * (k_period - 1)
+        
+        for i in range(k_period - 1, len(high_prices)):
+            # 计算%K
+            highest_high = max(high_prices[i-k_period+1:i+1])
+            lowest_low = min(low_prices[i-k_period+1:i+1])
+            
+            if highest_high == lowest_low:
+                k_value = 50.0  # 避免除以零
+            else:
+                k_value = ((close_prices[i] - lowest_low) / (highest_high - lowest_low)) * 100
+            k_values.append(k_value)
+        
+        # 计算%D (%K的SMA)
+        for i in range(len(k_values)):
+            if k_values[i] is None:
+                d_values.append(None)
+            elif i < k_period + d_period - 2:
+                d_values.append(None)
+            else:
+                d_window = k_values[i-d_period+1:i+1]
+                d_value = sum(d_window) / d_period
+                d_values.append(d_value)
+        
+        return {
+            "k": k_values,
+            "d": d_values
+        }
+
+    def calculate_cci(self, high_prices: List[float], low_prices: List[float], 
+                     close_prices: List[float], period: int = 20) -> List[Optional[float]]:
+        """计算商品通道指数(CCI)"""
+        if len(high_prices) < period:
+            return [None] * len(high_prices)
+        
+        cci_values = [None] * (period - 1)
+        
+        for i in range(period - 1, len(high_prices)):
+            # 计算典型价格
+            typical_prices = [(high_prices[j] + low_prices[j] + close_prices[j]) / 3 
+                             for j in range(i-period+1, i+1)]
+            
+            # 计算简单移动平均
+            sma = sum(typical_prices) / period
+            
+            # 计算平均偏差
+            mean_deviation = sum(abs(tp - sma) for tp in typical_prices) / period
+            
+            # 计算CCI
+            current_tp = (high_prices[i] + low_prices[i] + close_prices[i]) / 3
+            if mean_deviation == 0:
+                cci = 0.0
+            else:
+                cci = (current_tp - sma) / (0.015 * mean_deviation)
+            
+            cci_values.append(cci)
+        
+        return cci_values
+
+    def calculate_momentum(self, prices: List[float], period: int = 10) -> List[Optional[float]]:
+        """计算动量指标"""
+        if len(prices) < period:
+            return [None] * len(prices)
+        
+        momentum_values = [None] * period
+        
+        for i in range(period, len(prices)):
+            momentum = prices[i] - prices[i-period]
+            momentum_values.append(momentum)
+        
+        return momentum_values
+
+    def calculate_volume_profile(self, prices: List[float], volumes: List[float], 
+                                price_levels: int = 20) -> Dict[str, List[float]]:
+        """计算成交量分布"""
+        if not prices or not volumes:
+            return {"price_levels": [], "volumes": []}
+        
+        min_price = min(prices)
+        max_price = max(prices)
+        price_range = max_price - min_price
+        
+        if price_range == 0:
+            return {"price_levels": [min_price], "volumes": [sum(volumes)]}
+        
+        # 创建价格水平
+        level_size = price_range / price_levels
+        price_levels_list = [min_price + i * level_size for i in range(price_levels + 1)]
+        
+        # 计算每个价格水平的成交量
+        volume_at_levels = [0.0] * price_levels
+        
+        for price, volume in zip(prices, volumes):
+            level_index = int((price - min_price) / level_size)
+            level_index = min(level_index, price_levels - 1)  # 确保不超过范围
+            volume_at_levels[level_index] += volume
+        
+        return {
+            "price_levels": price_levels_list,
+            "volumes": volume_at_levels
+        }
+
+    def calculate_support_resistance(self, prices: List[float], window: int = 10) -> Dict[str, List[float]]:
+        """计算支撑和阻力位"""
+        if len(prices) < window * 2:
+            return {"support": [], "resistance": []}
+        
+        support_levels = []
+        resistance_levels = []
+        
+        for i in range(window, len(prices) - window):
+            # 检查是否为局部最小值（支撑）
+            if all(prices[i] <= prices[j] for j in range(i-window, i+window+1) if j != i):
+                support_levels.append(prices[i])
+            
+            # 检查是否为局部最大值（阻力）
+            if all(prices[i] >= prices[j] for j in range(i-window, i+window+1) if j != i):
+                resistance_levels.append(prices[i])
+        
+        return {
+            "support": support_levels,
+            "resistance": resistance_levels
+        }
+
+    def calculate_vwap(self, high_prices: List[float], low_prices: List[float], 
+                      close_prices: List[float], volumes: List[float]) -> List[Optional[float]]:
+        """计算成交量加权平均价(VWAP)"""
+        if len(high_prices) == 0:
+            return [None]
+        
+        vwap_values = []
+        cumulative_volume = 0.0
+        cumulative_price_volume = 0.0
+        
+        for i in range(len(high_prices)):
+            # 典型价格
+            typical_price = (high_prices[i] + low_prices[i] + close_prices[i]) / 3
+            
+            cumulative_price_volume += typical_price * volumes[i]
+            cumulative_volume += volumes[i]
+            
+            if cumulative_volume == 0:
+                vwap_values.append(None)
+            else:
+                vwap = cumulative_price_volume / cumulative_volume
+                vwap_values.append(vwap)
+        
+        return vwap_values
 
 
 # 全局技术分析服务实例

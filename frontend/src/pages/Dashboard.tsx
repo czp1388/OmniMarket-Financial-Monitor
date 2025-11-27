@@ -2,13 +2,24 @@ import React, { useState, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { Link, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
+import { realTimeDataService } from '../services/realTimeDataService';
 import './Dashboard.css';
 
-interface PriceCard {
+interface MarketData {
   symbol: string;
   price: number;
   change: number;
   changePercent: number;
+  volume?: number;
+  last?: number;
+  open?: number;
+  high?: number;
+  low?: number;
+  close?: number;
+  timestamp?: string;
+  type?: string;
+  source?: string;
+  lastUpdate?: string;
 }
 
 const Dashboard: React.FC = () => {
@@ -20,40 +31,56 @@ const Dashboard: React.FC = () => {
     { name: '图表分析', href: '/chart', icon: '📈' },
     { name: '预警管理', href: '/alerts', icon: '🔔' },
     { name: '投资组合', href: '/portfolio', icon: '💼' },
+    { name: '虚拟交易', href: '/virtual-trading', icon: '💰' },
+    { name: '牛熊证监控', href: '/warrants', icon: '📉' },
     { name: '系统设置', href: '/settings', icon: '⚙️' },
   ];
 
   const isActive = (path: string) => location.pathname === path;
-  const [priceCards, setPriceCards] = useState<PriceCard[]>([
-    { symbol: 'BTC/USDT', price: 42567.89, change: 2.34, changePercent: 2.34 },
-    { symbol: 'ETH/USDT', price: 2345.67, change: 1.23, changePercent: 1.23 },
-    { symbol: 'AAPL', price: 182.45, change: -0.56, changePercent: -0.56 },
-    { symbol: 'USD/CNY', price: 7.1987, change: 0.12, changePercent: 0.12 }
-  ]);
+  const [marketData, setMarketData] = useState<MarketData[]>([]);
+  const [systemStatus, setSystemStatus] = useState({
+    lastUpdate: new Date().toLocaleString('zh-CN'),
+    activeAlerts: 85,
+    marketStatus: '正常',
+    dataStatus: '实时',
+    latency: '12ms'
+  });
 
   const [selectedMarket, setSelectedMarket] = useState('股票');
   const [selectedTimeframe, setSelectedTimeframe] = useState('1小时');
   const [selectedIndicator, setSelectedIndicator] = useState('无指标');
 
-  // 模拟实时数据更新
+  // 使用真实实时数据服务
   useEffect(() => {
-    const priceUpdateInterval = setInterval(() => {
-      setPriceCards(prev => prev.map(card => {
-        const randomChange = (Math.random() - 0.5) * 2;
-        const newPrice = card.price * (1 + randomChange / 100);
-        const change = newPrice - card.price;
-        const changePercent = (change / card.price) * 100;
-        
-        return {
-          ...card,
-          price: parseFloat(newPrice.toFixed(2)),
-          change: parseFloat(change.toFixed(2)),
-          changePercent: parseFloat(changePercent.toFixed(2))
-        };
-      }));
-    }, 3000);
-
-    return () => clearInterval(priceUpdateInterval);
+    const symbols = ['BTC/USDT', 'ETH/USDT', 'AAPL', 'USD/CNY', 'TSLA', 'EUR/USD', 'XAU/USD', 'SPY'];
+    const stopUpdates = realTimeDataService.startRealTimeUpdates(
+      (data: any[]) => {
+        const updatedMarketData = data.map(item => ({
+          symbol: item.symbol,
+          price: item.price,
+          change: item.change,
+          changePercent: item.changePercent,
+          volume: item.volume || 0,
+          last: item.price,
+          open: item.open || item.price,
+          high: item.high || item.price,
+          low: item.low || item.price,
+          close: item.close || item.price,
+          timestamp: item.lastUpdate || new Date().toISOString(),
+          type: item.type || 'crypto',
+          source: item.source || 'realTimeDataService',
+          lastUpdate: item.lastUpdate || new Date().toLocaleTimeString('zh-CN', { hour12: false })
+        }));
+        setMarketData(updatedMarketData);
+        setSystemStatus(prev => ({
+          ...prev,
+          lastUpdate: new Date().toLocaleString('zh-CN')
+        }));
+      },
+      symbols,
+      5000 // 5秒更新间隔
+    );
+    return stopUpdates;
   }, []);
 
   // K线图配置
@@ -120,33 +147,45 @@ const Dashboard: React.FC = () => {
     };
   };
 
-  const handleSimulateData = () => {
-    setPriceCards(prev => prev.map(card => {
-      const randomChange = (Math.random() - 0.5) * 4;
-      const newPrice = card.price * (1 + randomChange / 100);
-      const change = newPrice - card.price;
-      const changePercent = (change / card.price) * 100;
-      
-      return {
-        ...card,
-        price: parseFloat(newPrice.toFixed(2)),
-        change: parseFloat(change.toFixed(2)),
-        changePercent: parseFloat(changePercent.toFixed(2))
-      };
-    }));
+  const handleRefreshData = () => {
+    // 手动刷新数据
+    const symbols = ['BTC/USDT', 'ETH/USDT', 'AAPL', 'USD/CNY', 'TSLA', 'EUR/USD', 'XAU/USD', 'SPY'];
+    realTimeDataService.getMarketData(symbols).then(data => {
+      const updatedMarketData = data.map(item => ({
+        symbol: item.symbol,
+        price: item.price,
+        change: item.change,
+        changePercent: item.changePercent,
+        volume: item.volume || 0,
+        last: item.price,
+        open: item.open || item.price,
+        high: item.high || item.price,
+        low: item.low || item.price,
+        close: item.close || item.price,
+        timestamp: item.lastUpdate || new Date().toISOString(),
+        type: item.type || 'crypto',
+        source: item.source || 'realTimeDataService',
+        lastUpdate: item.lastUpdate || new Date().toLocaleTimeString('zh-CN', { hour12: false })
+      }));
+      setMarketData(updatedMarketData);
+      setSystemStatus(prev => ({
+        ...prev,
+        lastUpdate: new Date().toLocaleString('zh-CN')
+      }));
+    });
   };
 
   return (
     <div className="financial-dashboard">
-      {/* 顶部导航栏 */}
-      <header className="top-navigation" style={{ background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)' }}>
+      {/* 专业顶部导航栏 - 彭博终端风格 */}
+      <header className="top-navigation">
         <div className="nav-container">
           <div className="nav-brand">
             <h1 className="brand-title">OmniMarket</h1>
             <p className="brand-subtitle">寰宇多市场金融监控系统</p>
           </div>
           
-          {/* 统一导航键 */}
+          {/* 专业导航键 - 符合彭博终端标准 */}
           <div className="dashboard-nav-keys">
             {navigation.map((item) => (
               <Link
@@ -175,22 +214,22 @@ const Dashboard: React.FC = () => {
 
       {/* 主内容区域 - 30/70分栏布局 */}
       <div className="dashboard-content">
-        {/* 左侧30% - 品种监控 */}
+        {/* 左侧30% - 专业品种监控面板 */}
         <div className="left-panel">
           <div className="panel-header">
-            <h3 className="panel-title">监控品种</h3>
+            <h3 className="panel-title">实时监控品种</h3>
           </div>
           <div className="price-card-container">
-            {priceCards.map((card, index) => (
+            {marketData.map((data, index) => (
               <div key={index} className="price-card">
                 <div className="card-header">
                   <span className="symbol-icon">█</span>
-                  <span className="symbol">{card.symbol}</span>
+                  <span className="symbol">{data.symbol}</span>
                 </div>
-                <div className="price">${card.price.toLocaleString()}</div>
-                <div className={`change ${card.change >= 0 ? 'positive' : 'negative'}`}>
-                  {card.change >= 0 ? '+' : ''}{card.change} ({card.changePercent}%)
-                  <span className="status-indicator">{card.change >= 0 ? '🟢' : '🔴'}</span>
+                <div className="price">${data.price.toLocaleString()}</div>
+                <div className={`change ${data.change >= 0 ? 'positive' : 'negative'}`}>
+                  {data.change >= 0 ? '+' : ''}{data.change.toFixed(2)} ({data.changePercent.toFixed(2)}%)
+                  <span className="status-indicator">{data.change >= 0 ? '🟢' : '🔴'}</span>
                 </div>
               </div>
             ))}
@@ -199,10 +238,10 @@ const Dashboard: React.FC = () => {
 
         {/* 右侧70% - 核心功能区域 */}
         <div className="right-panel">
-          {/* 专业K线图表区域 */}
+          {/* 专业K线图表区域 - 彭博终端风格 */}
           <div className="chart-container">
             <div className="chart-header">
-              <h3>📊 专业K线图表区域</h3>
+              <h3>📊 专业K线图表分析</h3>
             </div>
             <ReactECharts 
               option={getKLineOption()} 
@@ -211,10 +250,10 @@ const Dashboard: React.FC = () => {
             />
           </div>
 
-          {/* 控制面板 */}
+          {/* 专业控制面板 - 彭博终端风格 */}
           <div className="control-panel">
             <div className="control-group">
-              <label>市场选择 ▾</label>
+              <label>市场选择</label>
               <select 
                 value={selectedMarket} 
                 onChange={(e) => setSelectedMarket(e.target.value)}
@@ -224,11 +263,12 @@ const Dashboard: React.FC = () => {
                 <option value="加密货币">加密货币</option>
                 <option value="外汇">外汇</option>
                 <option value="期货">期货</option>
+                <option value="期权">期权</option>
               </select>
             </div>
 
             <div className="control-group">
-              <label>时间周期 ▾</label>
+              <label>时间周期</label>
               <select 
                 value={selectedTimeframe} 
                 onChange={(e) => setSelectedTimeframe(e.target.value)}
@@ -237,14 +277,16 @@ const Dashboard: React.FC = () => {
                 <option value="1分钟">1分钟</option>
                 <option value="5分钟">5分钟</option>
                 <option value="15分钟">15分钟</option>
+                <option value="30分钟">30分钟</option>
                 <option value="1小时">1小时</option>
                 <option value="4小时">4小时</option>
                 <option value="日线">日线</option>
+                <option value="周线">周线</option>
               </select>
             </div>
 
             <div className="control-group">
-              <label>技术指标 ▾</label>
+              <label>技术指标</label>
               <select 
                 value={selectedIndicator} 
                 onChange={(e) => setSelectedIndicator(e.target.value)}
@@ -252,38 +294,41 @@ const Dashboard: React.FC = () => {
               >
                 <option value="无指标">无指标</option>
                 <option value="MA">移动平均线</option>
+                <option value="EMA">指数移动平均</option>
                 <option value="MACD">MACD</option>
                 <option value="RSI">RSI</option>
                 <option value="布林带">布林带</option>
+                <option value="KDJ">KDJ</option>
+                <option value="OBV">OBV</option>
               </select>
             </div>
 
-            <button className="simulate-btn" onClick={handleSimulateData}>
-              🔄 模拟新数据
+            <button className="simulate-btn" onClick={handleRefreshData}>
+              🔄 刷新数据
             </button>
           </div>
 
-          {/* 状态信息面板 */}
+          {/* 专业状态信息面板 - 彭博终端风格 */}
           <div className="status-panel">
             <div className="status-item">
               <span className="status-icon">🔔</span>
-              <span className="status-label">活跃预警:</span>
-              <span className="status-value warning">85%</span>
+              <span className="status-label">活跃预警</span>
+              <span className="status-value warning">{systemStatus.activeAlerts}</span>
             </div>
             <div className="status-item">
               <span className="status-icon">✅</span>
-              <span className="status-label">市场状态:</span>
-              <span className="status-value normal">正常</span>
+              <span className="status-label">市场状态</span>
+              <span className="status-value normal">{systemStatus.marketStatus}</span>
             </div>
             <div className="status-item">
               <span className="status-icon">📡</span>
-              <span className="status-label">数据更新:</span>
-              <span className="status-value realtime">实时</span>
+              <span className="status-label">数据更新</span>
+              <span className="status-value realtime">{systemStatus.dataStatus}</span>
             </div>
             <div className="status-item">
               <span className="status-icon">⚡</span>
-              <span className="status-label">延迟:</span>
-              <span className="status-value latency">12ms</span>
+              <span className="status-label">延迟</span>
+              <span className="status-value latency">{systemStatus.latency}</span>
             </div>
           </div>
         </div>

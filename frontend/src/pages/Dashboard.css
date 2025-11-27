@@ -1,6 +1,6 @@
 /* 专业金融监控系统样式 - 优化版 */
 .financial-dashboard {
-  background-color: #0a0e14;
+  background-color: #0a0e17;
   color: #e0e0e0;
   font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
   min-height: 100vh;
@@ -116,8 +116,8 @@
 
 /* 左侧30% - 品种监控 */
 .left-panel {
-  background: #0f141f;
-  border-right: 1px solid #2a2f3d;
+  background: #141a2a;
+  border-right: 1px solid #2a3a5a;
   padding: 0;
   overflow-y: auto;
 }
@@ -125,7 +125,7 @@
 .panel-header {
   background: linear-gradient(135deg, #1a1f2e 0%, #151a26 100%);
   padding: 12px 16px;
-  border-bottom: 1px solid #2a2f3d;
+  border-bottom: 1px solid #2a3a5a;
 }
 
 .panel-title {
@@ -143,12 +143,18 @@
 }
 
 .price-card {
-  background: #151a26;
-  border: 1px solid #2a2f3d;
-  border-radius: 6px;
-  padding: 16px;
+  background: #141a2a;
+  border: 1px solid #2a3a5a;
+  border-radius: 4px;
+  padding: 8px 12px;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  font-family: 'Courier New', Monaco, Menlo, monospace;
+  font-size: 13px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px;
+  min-height: 40px;
 }
 
 .price-card:hover {
@@ -177,20 +183,22 @@
 }
 
 .price-card .price {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: bold;
   color: #ffffff;
-  margin-bottom: 6px;
   font-family: 'Courier New', monospace;
   letter-spacing: 0.5px;
+  grid-column: 1;
 }
 
 .price-card .change {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: bold;
+  grid-column: 2;
+  text-align: right;
 }
 
 .price-card .change.positive {
@@ -207,7 +215,7 @@
 
 /* 右侧70% - 核心功能区域 */
 .right-panel {
-  background: #0a0e14;
+  background: #0a0e17;
   display: flex;
   flex-direction: column;
   padding: 20px;
@@ -216,8 +224,8 @@
 
 /* 专业K线图表区域 */
 .chart-container {
-  background: #0f141f;
-  border: 1px solid #2a2f3d;
+  background: #141a2a;
+  border: 1px solid #2a3a5a;
   border-radius: 8px;
   flex: 1;
   display: flex;
@@ -241,13 +249,13 @@
 
 /* 控制面板 - 优化布局 */
 .control-panel {
-  background: #0f141f;
-  border: 1px solid #2a2f3d;
-  border-radius: 8px;
-  padding: 12px 16px;
+  background: #141a2a;
+  border: 1px solid #2a3a5a;
+  border-radius: 4px;
+  padding: 12px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
   align-items: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
@@ -305,8 +313,8 @@
 
 /* 状态信息面板 - 优化布局 */
 .status-panel {
-  background: #0f141f;
-  border: 1px solid #2a2f3d;
+  background: #141a2a;
+  border: 1px solid #2a3a5a;
   border-radius: 8px;
   padding: 12px 16px;
   display: grid;
@@ -372,16 +380,16 @@
 }
 
 .left-panel::-webkit-scrollbar-track {
-  background: #0f141f;
+  background: #141a2a;
 }
 
 .left-panel::-webkit-scrollbar-thumb {
-  background: #2a2f3d;
+  background: #2a3a5a;
   border-radius: 3px;
 }
 
 .left-panel::-webkit-scrollbar-thumb:hover {
-  background: #3a3f4d;
+  background: #3a4a6a;
 }
 
 /* 响应式设计 */

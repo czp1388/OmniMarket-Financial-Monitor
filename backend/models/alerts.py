@@ -6,7 +6,7 @@ from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
 from datetime import datetime
 
-from backend.models.market_data import MarketType, Timeframe
+from .market_data import MarketType, Timeframe
 
 class AlertConditionType(enum.Enum):
     PRICE_ABOVE = "price_above"
@@ -32,6 +32,7 @@ class NotificationType(enum.Enum):
 
 class Alert(Base):
     __tablename__ = "alerts"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, nullable=False, index=True)
@@ -69,6 +70,7 @@ class Alert(Base):
 
 class AlertTrigger(Base):
     __tablename__ = "alert_triggers"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     alert_id = Column(Integer, nullable=False, index=True)

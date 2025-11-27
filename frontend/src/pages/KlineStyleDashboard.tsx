@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createChart, ColorType, CrosshairMode, CandlestickData, LineData } from 'lightweight-charts';
+import { realTimeDataService, MarketData } from '../services/realTimeDataService';
 import './KlineStyleDashboard.css';
 
 interface MarketSymbol {
@@ -10,10 +11,12 @@ interface MarketSymbol {
   changePercent: number;
   volume?: number;
   type: 'stock' | 'crypto' | 'forex' | 'commodity';
+  lastUpdate: string;
+  source: string;
 }
 
 interface ChartData {
-  time: number;
+  time: string;
   open: number;
   high: number;
   low: number;
@@ -31,21 +34,12 @@ const KlineStyleDashboard: React.FC = () => {
   const [selectedMarket, setSelectedMarket] = useState<string>('crypto');
   const [timeframe, setTimeframe] = useState<string>('1h');
   const [selectedIndicator, setSelectedIndicator] = useState<string>('none');
-  const [marketSymbols, setMarketSymbols] = useState<MarketSymbol[]>([
-    { symbol: 'BTC/USDT', price: 42567.39, change: 2.34, changePercent: 2.34, type: 'crypto', volume: 28456789 },
-    { symbol: 'ETH/USDT', price: 2345.67, change: 1.23, changePercent: 1.23, type: 'crypto', volume: 15678900 },
-    { symbol: 'AAPL', price: 182.45, change: -0.56, changePercent: -0.56, type: 'stock', volume: 45678900 },
-    { symbol: 'USD/CNY', price: 7.1987, change: 0.12, changePercent: 0.12, type: 'forex', volume: 98765432 },
-    { symbol: 'TSLA', price: 245.67, change: 1.45, changePercent: 1.45, type: 'stock', volume: 34567890 },
-    { symbol: 'EUR/USD', price: 1.0856, change: -0.08, changePercent: -0.08, type: 'forex', volume: 87654321 },
-    { symbol: 'XAU/USD', price: 1987.65, change: 15.23, changePercent: 0.77, type: 'commodity', volume: 1234567 },
-    { symbol: 'SPY', price: 456.78, change: -2.34, changePercent: -0.51, type: 'stock', volume: 56789012 }
-  ]);
+  const [marketSymbols, setMarketSymbols] = useState<MarketSymbol[]>([]);
 
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [lastUpdate, setLastUpdate] = useState<string>('刚刚');
 
-  // 生成模拟K线数据 - 完全匹配kline_demo.html的逻辑
+  // 生成模拟K线数据 - 使用字符串时间格式
   const generateSampleData = (count: number = 200): ChartData[] => {
     const data: ChartData[] = [];
     let time = new Date();
@@ -68,7 +62,7 @@ const KlineStyleDashboard: React.FC = () => {
       const volume = Math.random() * 1000 + 500;
       
       data.push({
-        time: time.getTime() / 1000, // 使用浮点数而不是整数
+        time: time.toISOString().split('T')[0], // 使用日期字符串格式
         open: open,
         high: high,
         low: low,
@@ -84,7 +78,7 @@ const KlineStyleDashboard: React.FC = () => {
 
   // 计算移动平均线
   const calculateSMA = (data: ChartData[], period: number) => {
-    const result: { time: number; value: number }[] = [];
+    const result: { time: string; value: number }[] = [];
     for (let i = period - 1; i < data.length; i++) {
       let sum = 0;
       for (let j = 0; j < period; j++) {
@@ -172,33 +166,43 @@ const KlineStyleDashboard: React.FC = () => {
     };
   }, []);
 
-  // 模拟实时数据更新
+  // 实时数据更新
   useEffect(() => {
-    const interval = setInterval(() => {
-      setMarketSymbols(prev => prev.map(symbol => {
-        const randomChange = (Math.random() - 0.5) * 0.5;
-        const newPrice = symbol.price * (1 + randomChange / 100);
-        const change = newPrice - symbol.price;
-        const changePercent = (change / symbol.price) * 100;
-        
-        return {
-          ...symbol,
-          price: parseFloat(newPrice.toFixed(symbol.type === 'forex' ? 4 : 2)),
-          change: parseFloat(change.toFixed(symbol.type === 'forex' ? 4 : 2)),
-          changePercent: parseFloat(changePercent.toFixed(2))
-        };
-      }));
-    }, 2000);
+    const symbols = [
+      'BTC/USDT', 'ETH/USDT', 'AAPL', 'USD/CNY', 
+      'TSLA', 'EUR/USD', 'XAU/USD', 'SPY'
+    ];
+    
+    const stopUpdates = realTimeDataService.startRealTimeUpdates(
+      (data: MarketData[]) => {
+        const updatedSymbols = data.map(item => ({
+          symbol: item.symbol,
+          price: item.price,
+          change: item.change,
+          changePercent: item.changePercent,
+          type: item.type,
+          volume: item.volume,
+          lastUpdate: item.lastUpdate,
+          source: item.source
+        }));
+        setMarketSymbols(updatedSymbols);
+        setLastUpdate(new Date().toLocaleTimeString('zh-CN', { hour12: false }));
+      },
+      symbols,
+      5000 // 5秒更新间隔
+    );
 
-    return () => clearInterval(interval);
+    return stopUpdates;
   }, []);
 
-  // 模拟新数据按钮功能 - 匹配kline_demo.html的逻辑
+  // 模拟新数据按钮功能
   const addRandomData = () => {
     if (chartData.length === 0 || !candleSeriesRef.current || !smaSeriesRef.current) return;
 
     const lastData = chartData[chartData.length - 1];
-    const time = lastData.time + 86400; // 增加一天
+    const lastDate = new Date(lastData.time);
+    lastDate.setDate(lastDate.getDate() + 1); // 增加一天
+    const time = lastDate.toISOString().split('T')[0];
     
     const volatility = 0.015;
     const changePercent = 2 * volatility * Math.random() - volatility;
@@ -307,16 +311,29 @@ const KlineStyleDashboard: React.FC = () => {
           </button>
         </div>
 
-        {/* 市场信息卡片 - 匹配kline_demo.html的网格布局 */}
-        <div className="market-info">
-          {marketSymbols.slice(0, 4).map((symbol, index) => (
-            <div key={index} className="info-card">
-              <div>{symbol.symbol}</div>
-              <div className={`info-value ${symbol.changePercent >= 0 ? 'positive' : 'negative'}`}>
-                {formatPrice(symbol.price, symbol.type)}
+        {/* 市场信息卡片 - 专业金融终端布局 */}
+        <div className="market-info-grid">
+          {marketSymbols.slice(0, 8).map((symbol, index) => (
+            <div key={index} className="market-card">
+              <div className="symbol-row">
+                <span className="symbol-name">{symbol.symbol}</span>
+                <span className="data-source">{symbol.source}</span>
               </div>
-              <div className={symbol.changePercent >= 0 ? 'positive' : 'negative'}>
-                {symbol.changePercent >= 0 ? '+' : ''}{symbol.changePercent}%
+              <div className={`price-row ${symbol.changePercent >= 0 ? 'positive' : 'negative'}`}>
+                <span className="price-value">{formatPrice(symbol.price, symbol.type)}</span>
+                <span className="change-value">
+                  {symbol.changePercent >= 0 ? '+' : ''}{symbol.changePercent}%
+                </span>
+              </div>
+              <div className="volume-row">
+                <span className="volume-label">量:</span>
+                <span className="volume-value">
+                  {symbol.volume ? (symbol.volume > 1000000 
+                    ? `${(symbol.volume / 1000000).toFixed(2)}M` 
+                    : symbol.volume > 1000 
+                    ? `${(symbol.volume / 1000).toFixed(2)}K` 
+                    : symbol.volume.toFixed(0)) : 'N/A'}
+                </span>
               </div>
             </div>
           ))}
@@ -388,13 +405,27 @@ const KlineStyleDashboard: React.FC = () => {
           <div ref={chartContainerRef} style={{ width: '100%', height: '100%' }} />
         </div>
 
-        {/* 状态栏 */}
-        <div className="status-bar">
-          <div className="status">
-            <div className="status-dot"></div>
-            <span>实时数据连接正常</span>
+        {/* 专业状态栏 */}
+        <div className="professional-status-bar">
+          <div className="status-left">
+            <div className="connection-status">
+              <div className="status-indicator connected"></div>
+              <span>实时数据连接正常</span>
+            </div>
+            <div className="data-sources">
+              <span>数据源: </span>
+              {Array.from(new Set(marketSymbols.map(s => s.source))).join(', ')}
+            </div>
           </div>
-          <div>最后更新: <span>{lastUpdate}</span></div>
+          <div className="status-right">
+            <div className="update-time">
+              <span>最后更新: </span>
+              <span className="time-value">{lastUpdate}</span>
+            </div>
+            <div className="market-hours">
+              <span>市场状态: 交易中</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

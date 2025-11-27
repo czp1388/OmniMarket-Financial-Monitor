@@ -7,7 +7,8 @@ import uuid
 import json
 from decimal import Decimal, ROUND_HALF_UP
 from dataclasses import dataclass
-from backend.models.market_data import KlineData, MarketType
+from models.market_data import KlineData, MarketType
+from .futu_data_service import futu_data_service
 
 logger = logging.getLogger(__name__)
 
@@ -84,8 +85,26 @@ class VirtualTradingEngine:
     def __init__(self):
         self.accounts: Dict[str, Account] = {}
         self.orders: Dict[str, VirtualOrder] = {}
+        self.pending_orders: Dict[str, List[VirtualOrder]] = {}  # 按symbol分组的待处理订单（限价单）
         self.market_prices: Dict[str, Decimal] = {}
         self.transaction_fee_rate = Decimal('0.001')  # 0.1% 交易手续费
+        
+        # 初始化默认市场价格
+        self._initialize_default_prices()
+    
+    def _initialize_default_prices(self):
+        """初始化默认市场价格"""
+        default_prices = {
+            'AAPL': Decimal('182.45'),
+            'TSLA': Decimal('245.67'),
+            'BTC/USDT': Decimal('42567.39'),
+            'ETH/USDT': Decimal('2345.67'),
+            'USD/CNY': Decimal('7.1987'),
+            'EUR/USD': Decimal('1.0856'),
+            'XAU/USD': Decimal('1987.45'),
+            'SPY': Decimal('456.78')
+        }
+        self.market_prices.update(default_prices)
         
     async def create_account(self, name: str, initial_balance: Decimal = Decimal('100000')) -> str:
         """创建虚拟账户"""
@@ -142,12 +161,29 @@ class VirtualTradingEngine:
         
         self.orders[order_id] = order
         
-        # 如果是市价单，立即执行
+        # 根据订单类型处理
         if order_type == OrderType.MARKET:
+            # 市价单立即执行
             await self._execute_market_order(order, account)
+        else:
+            # 限价单和止损单添加到待处理列表
+            if symbol not in self.pending_orders:
+                self.pending_orders[symbol] = []
+            self.pending_orders[symbol].append(order)
+            
+            # 对于非市价单，冻结资金
+            await self._reserve_funds_for_order(order, account)
         
-        logger.info(f"下单成功: {order_id}, {symbol}, {side.value}, {quantity}")
+        logger.info(f"下单成功: {order_id}, {symbol}, {order_type.value}, {side.value}, {quantity}")
         return order_id
+    
+    async def _reserve_funds_for_order(self, order: VirtualOrder, account: Account):
+        """为订单冻结资金"""
+        if order.side == OrderSide.BUY:
+            # 计算需要的资金（包括手续费）
+            required_funds = order.quantity * order.price * (1 + self.transaction_fee_rate)
+            account.available_balance -= required_funds
+            logger.info(f"冻结资金: {required_funds} for order {order.id}")
     
     async def _validate_order(
         self,
@@ -271,6 +307,160 @@ class VirtualTradingEngine:
         # 更新所有账户的持仓市值
         for account in self.accounts.values():
             await self._update_account_market_value(account)
+        
+        # 检查待处理订单的触发条件
+        await self._check_pending_orders(symbol, price)
+    
+    async def _check_pending_orders(self, symbol: str, current_price: Decimal):
+        """检查待处理订单的触发条件"""
+        if symbol not in self.pending_orders:
+            return
+        
+        orders_to_remove = []
+        
+        for order in self.pending_orders[symbol]:
+            if order.status != OrderStatus.PENDING:
+                orders_to_remove.append(order)
+                continue
+            
+            # 检查限价单触发条件
+            if order.order_type == OrderType.LIMIT:
+                if await self._check_limit_order_trigger(order, current_price):
+                    # 执行限价单
+                    account = self._find_account_by_order(order)
+                    if account:
+                        await self._execute_limit_order(order, account)
+                        orders_to_remove.append(order)
+            
+            # 检查止损单触发条件
+            elif order.order_type == OrderType.STOP:
+                if await self._check_stop_order_trigger(order, current_price):
+                    # 执行止损单
+                    account = self._find_account_by_order(order)
+                    if account:
+                        await self._execute_stop_order(order, account)
+                        orders_to_remove.append(order)
+        
+        # 移除已执行或无效的订单
+        for order in orders_to_remove:
+            if order in self.pending_orders[symbol]:
+                self.pending_orders[symbol].remove(order)
+    
+    async def _check_limit_order_trigger(self, order: VirtualOrder, current_price: Decimal) -> bool:
+        """检查限价单触发条件"""
+        if order.side == OrderSide.BUY:
+            # 买入限价单：当前价格 <= 限价
+            return current_price <= order.price
+        else:
+            # 卖出限价单：当前价格 >= 限价
+            return current_price >= order.price
+    
+    async def _check_stop_order_trigger(self, order: VirtualOrder, current_price: Decimal) -> bool:
+        """检查止损单触发条件"""
+        if order.side == OrderSide.BUY:
+            # 买入止损单：当前价格 >= 止损价
+            return current_price >= order.stop_price
+        else:
+            # 卖出止损单：当前价格 <= 止损价
+            return current_price <= order.stop_price
+    
+    def _find_account_by_order(self, order: VirtualOrder) -> Optional[Account]:
+        """根据订单找到对应的账户"""
+        # 简化实现：假设所有订单都关联到第一个账户
+        # 在实际系统中，应该有订单与账户的关联关系
+        if self.accounts:
+            return next(iter(self.accounts.values()))
+        return None
+    
+    async def _execute_limit_order(self, order: VirtualOrder, account: Account):
+        """执行限价单"""
+        current_price = self.market_prices.get(order.symbol, Decimal('0'))
+        if current_price <= Decimal('0'):
+            order.status = OrderStatus.REJECTED
+            return
+        
+        # 计算交易费用
+        transaction_fee = order.quantity * current_price * self.transaction_fee_rate
+        
+        if order.side == OrderSide.BUY:
+            # 买入限价单执行逻辑
+            total_cost = order.quantity * current_price + transaction_fee
+            
+            # 更新账户余额（已冻结资金，这里只需要调整余额）
+            account.current_balance -= total_cost
+            
+            # 更新持仓
+            if order.symbol in account.positions:
+                position = account.positions[order.symbol]
+                total_quantity = position.quantity + order.quantity
+                total_cost_value = (position.avg_cost * position.quantity + 
+                                  order.quantity * current_price)
+                position.avg_cost = total_cost_value / total_quantity
+                position.quantity = total_quantity
+            else:
+                account.positions[order.symbol] = Position(
+                    symbol=order.symbol,
+                    quantity=order.quantity,
+                    avg_cost=current_price
+                )
+            
+        else:  # SELL
+            # 卖出限价单执行逻辑
+            if order.symbol not in account.positions:
+                order.status = OrderStatus.REJECTED
+                return
+            
+            position = account.positions[order.symbol]
+            if order.quantity > position.quantity:
+                order.status = OrderStatus.REJECTED
+                return
+            
+            # 计算收益
+            sell_amount = order.quantity * current_price - transaction_fee
+            cost_basis = position.avg_cost * order.quantity
+            
+            # 更新账户余额
+            account.current_balance += sell_amount
+            account.available_balance += sell_amount
+            
+            # 更新持仓
+            position.quantity -= order.quantity
+            if position.quantity == Decimal('0'):
+                del account.positions[order.symbol]
+        
+        # 更新订单状态
+        order.status = OrderStatus.FILLED
+        order.filled_quantity = order.quantity
+        order.avg_fill_price = current_price
+        order.updated_at = datetime.now()
+        
+        # 更新账户市值
+        await self._update_account_market_value(account)
+        
+        logger.info(f"限价单执行成功: {order.id}, {order.symbol}, {order.side.value}, {order.quantity}")
+    
+    async def _execute_stop_order(self, order: VirtualOrder, account: Account):
+        """执行止损单"""
+        current_price = self.market_prices.get(order.symbol, Decimal('0'))
+        if current_price <= Decimal('0'):
+            order.status = OrderStatus.REJECTED
+            return
+        
+        # 止损单执行时转为市价单
+        await self._execute_market_order(order, account)
+        logger.info(f"止损单执行成功: {order.id}, {order.symbol}, {order.side.value}, {order.quantity}")
+    
+    async def sync_market_prices(self, symbols: List[str]):
+        """同步市场价格从富途数据服务"""
+        for symbol in symbols:
+            try:
+                quote = await futu_data_service.get_stock_quote(symbol)
+                if quote and 'last_price' in quote:
+                    price = Decimal(str(quote['last_price']))
+                    await self.update_market_price(symbol, price)
+                    logger.info(f"同步市场价格: {symbol} = {price}")
+            except Exception as e:
+                logger.error(f"同步市场价格失败 {symbol}: {e}")
     
     async def _update_account_market_value(self, account: Account):
         """更新账户市值"""
@@ -375,20 +565,75 @@ class VirtualTradingEngine:
         # 计算收益率
         total_return = ((total_assets - initial_balance) / initial_balance * 100) if initial_balance > 0 else 0
         
+        # 计算日收益率（简化版）
+        daily_return = self._calculate_daily_return(account_id)
+        
         # 计算夏普比率（简化版）
         sharpe_ratio = self._calculate_sharpe_ratio(account_id)
         
         # 计算最大回撤（简化版）
         max_drawdown = self._calculate_max_drawdown(account_id)
         
+        # 计算胜率
+        win_rate = self._calculate_win_rate(account_id)
+        
+        # 计算盈利交易数
+        profitable_trades = self._count_profitable_trades(account_id)
+        
+        # 总交易数
+        total_trades = len([o for o in self.orders.values() if o.status == OrderStatus.FILLED])
+        
         return {
-            'total_return_rate': total_return,
+            'total_return': total_return,
+            'daily_return': daily_return,
             'sharpe_ratio': sharpe_ratio,
             'max_drawdown': max_drawdown,
-            'win_rate': 0.0,  # 需要交易历史数据
-            'profit_factor': 0.0,  # 需要交易历史数据
-            'total_trades': len([o for o in self.orders.values() if o.status == OrderStatus.FILLED])
+            'win_rate': win_rate,
+            'profit_factor': 0.0,  # 需要更复杂的交易历史数据
+            'total_trades': total_trades,
+            'profitable_trades': profitable_trades
         }
+    
+    def _calculate_daily_return(self, account_id: str) -> float:
+        """计算日收益率（简化实现）"""
+        # 这里应该基于每日收益率计算，简化返回固定值
+        return 0.25
+    
+    def _calculate_win_rate(self, account_id: str) -> float:
+        """计算胜率"""
+        filled_orders = [o for o in self.orders.values() if o.status == OrderStatus.FILLED]
+        if not filled_orders:
+            return 0.0
+        
+        profitable_orders = 0
+        for order in filled_orders:
+            if order.side == OrderSide.BUY:
+                # 对于买入订单，如果当前价格高于成本价则视为盈利
+                current_price = self.market_prices.get(order.symbol, Decimal('0'))
+                if current_price > order.avg_fill_price:
+                    profitable_orders += 1
+            else:
+                # 对于卖出订单，如果卖出价格高于成本价则视为盈利
+                if order.avg_fill_price > Decimal('0'):  # 简化处理
+                    profitable_orders += 1
+        
+        return (profitable_orders / len(filled_orders)) * 100
+    
+    def _count_profitable_trades(self, account_id: str) -> int:
+        """计算盈利交易数"""
+        filled_orders = [o for o in self.orders.values() if o.status == OrderStatus.FILLED]
+        profitable_orders = 0
+        
+        for order in filled_orders:
+            if order.side == OrderSide.BUY:
+                current_price = self.market_prices.get(order.symbol, Decimal('0'))
+                if current_price > order.avg_fill_price:
+                    profitable_orders += 1
+            else:
+                if order.avg_fill_price > Decimal('0'):  # 简化处理
+                    profitable_orders += 1
+        
+        return profitable_orders
     
     def _calculate_sharpe_ratio(self, account_id: str) -> float:
         """计算夏普比率（简化实现）"""

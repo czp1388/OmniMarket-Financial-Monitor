@@ -3,10 +3,10 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, timedelta
 
-from backend.database import get_db
-from backend.models.users import User, UserCreate, UserUpdate, UserResponse, UserLogin, Token
-from backend.services.user_service import user_service
-from backend.services.auth_service import auth_service
+from database import get_db
+from models.users import User, UserCreate, UserUpdate, UserResponse, UserLogin, Token
+from services.user_service import user_service
+from services.auth_service import auth_service
 
 router = APIRouter()
 

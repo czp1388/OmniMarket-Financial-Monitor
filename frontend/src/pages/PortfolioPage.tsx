@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ApiService } from '../services/api';
+import { realTimeDataService, MarketData } from '../services/realTimeDataService';
 import './PortfolioPage.css';
 
 interface PortfolioItem {
@@ -22,6 +23,9 @@ interface SymbolData {
   changePercent: number;
   volume: number;
   category: string;
+  type: string;
+  lastUpdate: string;
+  source: string;
 }
 
 interface AssetAllocation {
@@ -63,6 +67,7 @@ const PortfolioPage: React.FC = () => {
     var: -8.2
   });
   const [dataSource, setDataSource] = useState<'API' | '模拟数据'>('模拟数据');
+  const [activeNav, setActiveNav] = useState('投资组合');
 
   // 从API获取实时数据
   const fetchRealTimeData = async () => {
@@ -70,15 +75,18 @@ const PortfolioPage: React.FC = () => {
       const response = await ApiService.market.getTickers();
       // 安全地处理API响应，确保是数组类型
       const tickers = Array.isArray(response) ? response : [];
-      const symbolData: SymbolData[] = tickers.map((ticker: ApiTicker) => ({
+      const portfolioData: SymbolData[] = tickers.map(ticker => ({
         symbol: ticker.symbol,
         price: ticker.last,
         change: ticker.change,
         changePercent: ticker.change_percent,
         volume: ticker.volume,
-        category: getCategoryFromSymbol(ticker.symbol)
+        category: getCategoryFromSymbol(ticker.symbol),
+        type: getTypeFromSymbol(ticker.symbol),
+        lastUpdate: new Date().toISOString(),
+        source: 'API'
       }));
-      setSymbolsData(symbolData);
+      setSymbolsData(portfolioData);
       setDataSource('API');
     } catch (error) {
       console.error('获取实时数据失败:', error);
@@ -102,17 +110,33 @@ const PortfolioPage: React.FC = () => {
     }
   };
 
+  // 根据交易对符号判断类型
+  const getTypeFromSymbol = (symbol: string): string => {
+    if (symbol.includes('BTC') || symbol.includes('ETH') || symbol.includes('USDT')) {
+      return '现货';
+    } else if (symbol.includes('/')) {
+      return '现货';
+    } else if (symbol.length <= 5) {
+      return '股票';
+    } else if (symbol.includes('ETF')) {
+      return 'ETF';
+    } else {
+      return '其他';
+    }
+  };
+
   // 生成模拟数据作为后备
   const generateMockSymbolData = (): SymbolData[] => {
+    const now = new Date().toISOString();
     return [
-      { symbol: 'BTC/USDT', price: 42567.39, change: 975.42, changePercent: 2.34, volume: 28456789, category: '加密货币' },
-      { symbol: 'ETH/USDT', price: 2345.67, change: 28.51, changePercent: 1.23, volume: 15678923, category: '加密货币' },
-      { symbol: 'AAPL', price: 182.45, change: -1.03, changePercent: -0.56, volume: 4567890, category: '股票' },
-      { symbol: 'TSLA', price: 245.67, change: 3.21, changePercent: 1.32, volume: 2345678, category: '股票' },
-      { symbol: 'USD/CNY', price: 7.1987, change: 0.0086, changePercent: 0.12, volume: 123456789, category: '外汇' },
-      { symbol: 'EUR/USD', price: 1.0856, change: -0.0023, changePercent: -0.21, volume: 98765432, category: '外汇' },
-      { symbol: 'XAU/USD', price: 1987.45, change: 12.34, changePercent: 0.62, volume: 345678, category: '商品' },
-      { symbol: 'SPY', price: 456.78, change: 2.34, changePercent: 0.51, volume: 1234567, category: 'ETF' }
+      { symbol: 'BTC/USDT', price: 42567.39, change: 975.42, changePercent: 2.34, volume: 28456789, category: '加密货币', type: '现货', lastUpdate: now, source: '模拟数据' },
+      { symbol: 'ETH/USDT', price: 2345.67, change: 28.51, changePercent: 1.23, volume: 15678923, category: '加密货币', type: '现货', lastUpdate: now, source: '模拟数据' },
+      { symbol: 'AAPL', price: 182.45, change: -1.03, changePercent: -0.56, volume: 4567890, category: '股票', type: '股票', lastUpdate: now, source: '模拟数据' },
+      { symbol: 'TSLA', price: 245.67, change: 3.21, changePercent: 1.32, volume: 2345678, category: '股票', type: '股票', lastUpdate: now, source: '模拟数据' },
+      { symbol: 'USD/CNY', price: 7.1987, change: 0.0086, changePercent: 0.12, volume: 123456789, category: '外汇', type: '现货', lastUpdate: now, source: '模拟数据' },
+      { symbol: 'EUR/USD', price: 1.0856, change: -0.0023, changePercent: -0.21, volume: 98765432, category: '外汇', type: '现货', lastUpdate: now, source: '模拟数据' },
+      { symbol: 'XAU/USD', price: 1987.45, change: 12.34, changePercent: 0.62, volume: 345678, category: '商品', type: '现货', lastUpdate: now, source: '模拟数据' },
+      { symbol: 'SPY', price: 456.78, change: 2.34, changePercent: 0.51, volume: 1234567, category: 'ETF', type: 'ETF', lastUpdate: now, source: '模拟数据' }
     ];
   };
 
@@ -255,6 +279,52 @@ const PortfolioPage: React.FC = () => {
           <span className="current-time">{currentTime}</span>
           <span className="data-source">数据源: 模拟数据</span>
         </div>
+      </div>
+
+      {/* 功能导航栏 - 彭博终端风格 */}
+      <div className="portfolio-nav-bar">
+        <button 
+          className={`portfolio-nav-btn ${activeNav === '投资组合' ? 'active' : ''}`}
+          onClick={() => setActiveNav('投资组合')}
+        >
+          投资组合
+        </button>
+        <button 
+          className={`portfolio-nav-btn ${activeNav === '资产分配' ? 'active' : ''}`}
+          onClick={() => setActiveNav('资产分配')}
+        >
+          资产分配
+        </button>
+        <button 
+          className={`portfolio-nav-btn ${activeNav === '风险分析' ? 'active' : ''}`}
+          onClick={() => setActiveNav('风险分析')}
+        >
+          风险分析
+        </button>
+        <button 
+          className={`portfolio-nav-btn ${activeNav === '持仓明细' ? 'active' : ''}`}
+          onClick={() => setActiveNav('持仓明细')}
+        >
+          持仓明细
+        </button>
+        <button 
+          className={`portfolio-nav-btn ${activeNav === '交易历史' ? 'active' : ''}`}
+          onClick={() => setActiveNav('交易历史')}
+        >
+          交易历史
+        </button>
+        <button 
+          className={`portfolio-nav-btn ${activeNav === '绩效报告' ? 'active' : ''}`}
+          onClick={() => setActiveNav('绩效报告')}
+        >
+          绩效报告
+        </button>
+        <button 
+          className={`portfolio-nav-btn ${activeNav === '设置' ? 'active' : ''}`}
+          onClick={() => setActiveNav('设置')}
+        >
+          设置
+        </button>
       </div>
 
       <div className="portfolio-main">

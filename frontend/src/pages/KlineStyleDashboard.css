@@ -1,41 +1,50 @@
-/* K线风格仪表板样式 - 完全匹配kline_demo.html的视觉效果 */
+/* K线风格仪表板样式 - 彭博终端专业金融监控界面 */
 .kline-terminal {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  color: white;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #0a0e17 0%, #141a2a 100%);
+  color: #d1d4dc;
+  font-family: 'Courier New', Monaco, Menlo, monospace;
   margin: 0;
-  padding: 20px;
+  padding: 16px;
+  font-size: 12px;
+  line-height: 1.2;
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  background: rgba(10, 14, 23, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .header {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .header h1 {
-  font-size: 2.5em;
-  margin: 0;
+  font-size: 20px;
+  margin: 0 0 4px 0;
   background: linear-gradient(45deg, #00ff88, #00ccff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
 
 .header p {
-  margin: 10px 0 0 0;
-  opacity: 0.8;
-  font-size: 1.1em;
+  margin: 0;
+  opacity: 0.7;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: 'Courier New', Monaco, Menlo, monospace;
 }
 
 /* 功能导航栏样式 - 专业金融终端终极优化版 */
@@ -214,31 +223,101 @@
   box-shadow: 0 0 1.5px rgba(0, 0, 0, 0.4);
 }
 
-.market-info {
+/* 市场信息网格 - 专业金融终端布局 */
+.market-info-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
-.info-card {
+.market-card {
+  background: rgba(20, 26, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 8px;
+  transition: all 0.15s ease;
+  backdrop-filter: blur(10px);
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.market-card:hover {
+  background: rgba(25, 32, 50, 0.95);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.symbol-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.symbol-name {
+  font-weight: 700;
+  font-size: 11px;
+  color: #ffffff;
+  letter-spacing: 0.3px;
+}
+
+.data-source {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.5);
   background: rgba(255, 255, 255, 0.1);
-  padding: 15px;
-  border-radius: 8px;
-  text-align: center;
-  transition: transform 0.2s, background-color 0.2s;
+  padding: 1px 4px;
+  border-radius: 2px;
 }
 
-.info-card:hover {
-  transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.15);
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+  font-weight: 600;
 }
 
-.info-value {
-  font-size: 1.5em;
-  font-weight: bold;
-  margin: 5px 0;
-  font-family: 'Courier New', monospace;
+.price-row.positive .price-value,
+.price-row.positive .change-value {
+  color: #00ff88;
+}
+
+.price-row.negative .price-value,
+.price-row.negative .change-value {
+  color: #ff4444;
+}
+
+.price-value {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Courier New', Monaco, Menlo, monospace;
+}
+
+.change-value {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Courier New', Monaco, Menlo, monospace;
+}
+
+.volume-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.volume-label {
+  opacity: 0.7;
+}
+
+.volume-value {
+  font-weight: 600;
+  font-family: 'Courier New', Monaco, Menlo, monospace;
 }
 
 .positive {
@@ -251,83 +330,155 @@
 
 .controls {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+  background: rgba(20, 26, 42, 0.8);
+  padding: 12px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .control-group {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 15px;
-  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .control-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: bold;
-  font-size: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 2px;
 }
 
 .control-select {
-  width: 100%;
-  padding: 10px;
-  margin: 5px 0;
-  border: none;
-  border-radius: 5px;
-  background: linear-gradient(135deg, #1a1f2e 0%, #151a26 100%);
-  color: white;
-  font-size: 14px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  background: rgba(10, 14, 23, 0.9);
+  color: #d1d4dc;
+  font-size: 11px;
+  font-family: 'Courier New', Monaco, Menlo, monospace;
+  transition: all 0.15s ease;
+}
+
+.control-select:focus {
+  outline: none;
+  border-color: #00ccff;
+  box-shadow: 0 0 0 1px rgba(0, 204, 255, 0.2);
 }
 
 .control-btn {
-  width: 100%;
-  padding: 10px;
-  margin: 5px 0;
-  border: none;
-  border-radius: 5px;
-  background: linear-gradient(45deg, #00ff88, #00ccff);
-  color: #1a1a1a;
-  font-weight: bold;
+  padding: 6px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+  color: #000000;
+  font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s;
-  font-size: 14px;
+  transition: all 0.15s ease;
+  font-size: 11px;
+  font-family: 'Courier New', Monaco, Menlo, monospace;
+  margin: 2px;
 }
 
 .control-btn:hover {
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #00ffaa 0%, #00dd7a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 255, 136, 0.3);
+}
+
+.control-btn:active {
+  transform: translateY(0);
 }
 
 .chart-container {
-  background: #1a1a1a;
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 20px;
-  height: 500px;
+  background: #0a0e17;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 16px;
+  height: 450px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
 }
 
-.status-bar {
+.chart-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(0, 255, 136, 0.3) 50%, 
+    transparent 100%);
+  z-index: 1;
+}
+
+/* 专业状态栏 - 彭博终端风格 */
+.professional-status-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 8px;
-  margin-top: 20px;
+  padding: 8px 12px;
+  background: rgba(10, 14, 23, 0.95);
+  border-radius: 4px;
+  margin-top: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 11px;
 }
 
-.status {
+.status-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 16px;
 }
 
-.status-dot {
-  width: 10px;
-  height: 10px;
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: #00ff88;
-  animation: pulse 2s infinite;
+  animation: pulse 1.5s infinite;
+  box-shadow: 0 0 4px rgba(0, 255, 136, 0.5);
+}
+
+.status-indicator.connected {
+  background: #00ff88;
+  box-shadow: 0 0 4px rgba(0, 255, 136, 0.5);
+}
+
+.data-sources {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 10px;
+}
+
+.update-time {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.time-value {
+  color: #00ccff;
+  font-weight: 600;
+  font-family: 'Courier New', Monaco, Menlo, monospace;
+}
+
+.market-hours {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 @keyframes pulse {
@@ -335,51 +486,92 @@
     opacity: 1;
   }
   50% {
-    opacity: 0.5;
+    opacity: 0.6;
   }
   100% {
     opacity: 1;
   }
 }
 
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .kline-terminal {
-    padding: 10px;
-  }
-  
-  .container {
-    padding: 15px;
-  }
-  
-  .header h1 {
-    font-size: 2em;
-  }
-  
-  .market-info {
+/* 响应式设计 - 专业金融终端优化 */
+@media (max-width: 1200px) {
+  .market-info-grid {
     grid-template-columns: repeat(2, 1fr);
   }
   
   .controls {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .kline-terminal {
+    padding: 12px;
+  }
+  
+  .container {
+    padding: 12px;
+  }
+  
+  .header h1 {
+    font-size: 18px;
+  }
+  
+  .market-info-grid {
     grid-template-columns: 1fr;
   }
   
+  .controls {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
   .chart-container {
-    height: 400px;
-    padding: 15px;
+    height: 350px;
+    padding: 12px;
+  }
+  
+  .professional-status-bar {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  
+  .status-left,
+  .status-right {
+    gap: 12px;
   }
 }
 
 @media (max-width: 480px) {
-  .market-info {
-    grid-template-columns: 1fr;
+  .kline-terminal {
+    padding: 8px;
+    font-size: 11px;
+  }
+  
+  .container {
+    padding: 8px;
   }
   
   .header h1 {
-    font-size: 1.5em;
+    font-size: 16px;
   }
   
   .chart-container {
-    height: 300px;
+    height: 280px;
+    padding: 8px;
+  }
+  
+  .market-card {
+    padding: 6px;
+    min-height: 55px;
+  }
+  
+  .price-value {
+    font-size: 12px;
+  }
+  
+  .change-value {
+    font-size: 10px;
   }
 }

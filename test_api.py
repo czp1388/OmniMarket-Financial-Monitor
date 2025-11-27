@@ -18,8 +18,8 @@ def test_market_data_endpoints():
     """测试市场数据相关端点"""
     endpoints = [
         "/market/exchanges",
-        "/market/symbols?exchange=binance",
-        "/market/tickers?exchange=binance&symbol=BTC/USDT"
+        "/market/symbols",
+        "/market/tickers?symbols=BTC/USDT,ETH/USDT,AAPL,EUR/USD"
     ]
     
     for endpoint in endpoints:
@@ -28,7 +28,17 @@ def test_market_data_endpoints():
             print(f"{endpoint}: {response.status_code}")
             if response.status_code == 200:
                 data = response.json()
-                print(f"  响应: {json.dumps(data, indent=2)[:200]}...")
+                if isinstance(data, list) and len(data) > 0:
+                    print(f"  响应: 返回了 {len(data)} 条数据")
+                    if endpoint == "/market/tickers":
+                        # 显示前几个ticker的详细信息
+                        for i, ticker in enumerate(data[:3]):
+                            symbol = ticker.get('symbol', 'N/A')
+                            last = ticker.get('last', 0)
+                            change_percent = ticker.get('change_percent', 0)
+                            print(f"    {symbol}: ${last} ({change_percent}%)")
+                else:
+                    print(f"  响应: {json.dumps(data, indent=2)[:200]}...")
             else:
                 print(f"  错误: {response.text}")
         except Exception as e:

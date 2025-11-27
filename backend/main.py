@@ -1,3 +1,11 @@
+import sys
+from pathlib import Path
+
+# 添加项目根目录到Python路径
+current_dir = Path(__file__).parent
+project_root = current_dir.parent
+sys.path.insert(0, str(project_root))
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -8,11 +16,12 @@ from typing import List, Dict, Any
 import json
 import logging
 
-from backend.config import settings
-from backend.database import init_db
-from backend.api.routes import api_router
-from backend.services.data_service import DataService
-from backend.services.websocket_manager import WebSocketManager
+from config import settings
+from database import init_db
+from api.routes import api_router
+from services.data_service import DataService
+from services.alert_service import alert_service
+from services.websocket_manager import websocket_manager
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -29,11 +38,21 @@ async def lifespan(app: FastAPI):
     data_service = DataService()
     asyncio.create_task(data_service.start())
     
+    # 启动预警服务
+    logger.info("启动预警监控服务...")
+    await alert_service.start_monitoring()
+    
+    # 启动WebSocket服务器
+    logger.info("启动WebSocket服务器...")
+    websocket_server = await websocket_manager.start_websocket_server()
+    
     yield  # 应用运行期间
     
     # 关闭时清理
     logger.info("关闭数据服务...")
     await data_service.stop()
+    logger.info("关闭WebSocket管理器...")
+    await websocket_manager.stop()
 
 # 创建FastAPI应用
 app = FastAPI(
@@ -55,12 +74,9 @@ app.add_middleware(
 # 包含API路由
 app.include_router(api_router, prefix="/api/v1")
 
-# WebSocket管理器实例
-websocket_manager = WebSocketManager()
-
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    await websocket_manager.connect(websocket)
+    await websocket_manager.register(websocket)
     try:
         while True:
             data = await websocket.receive_text()
@@ -68,7 +84,7 @@ async def websocket_endpoint(websocket: WebSocket):
             message = json.loads(data)
             await websocket_manager.handle_message(websocket, message)
     except WebSocketDisconnect:
-        websocket_manager.disconnect(websocket)
+        await websocket_manager.unregister(websocket)
 
 @app.get("/")
 async def root():
@@ -84,7 +100,7 @@ async def health_check():
 
 if __name__ == "__main__":
     uvicorn.run(
-        "backend.main:app",
+        "main:app",
         host=settings.HOST,
         port=settings.PORT,
         reload=settings.DEBUG,

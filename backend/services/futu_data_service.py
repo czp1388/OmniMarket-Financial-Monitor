@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from typing import List, Dict, Optional
 import pandas as pd
-from backend.models.market_data import KlineData, MarketType, Timeframe
+from models.market_data import KlineData, MarketType, Timeframe
 
 logger = logging.getLogger(__name__)
 
@@ -15,15 +15,16 @@ class FutuDataService:
         self.futu_conn = None
         
     async def connect(self, host: str = "127.0.0.1", port: int = 11111):
-        """连接富途OpenD"""
+        """连接富途OpenD - 需要用户已安装富途证券并开启OpenD服务"""
         try:
-            # 这里需要安装futu-api: pip install futu-api
-            # import futu as ft
-            # self.futu_conn = ft.OpenQuoteContext(host=host, port=port)
+            import futu as ft
+            # 合法合规数据获取：仅连接用户本地已授权的富途OpenD服务
+            self.futu_conn = ft.OpenQuoteContext(host=host, port=port)
             self.connected = True
-            logger.info("富途数据服务连接成功")
+            logger.info("富途数据服务连接成功 - 使用本地授权OpenD服务")
         except Exception as e:
             logger.error(f"富途数据服务连接失败: {e}")
+            logger.info("请确保已安装富途证券并开启OpenD服务，或使用模拟数据进行开发")
             self.connected = False
     
     async def get_hk_stocks_klines(
@@ -54,15 +55,32 @@ class FutuDataService:
             futu_tf = tf_mapping.get(timeframe, "K_DAY")
             
             # 获取K线数据
-            # ret, data = self.futu_conn.get_cur_kline(
-            #     code=symbol, 
-            #     ktype=futu_tf, 
-            #     autype='qfq', 
-            #     fields=['time_key', 'open', 'high', 'low', 'close', 'volume']
-            # )
+            ret, data = self.futu_conn.get_cur_kline(
+                code=symbol, 
+                ktype=futu_tf, 
+                autype='qfq', 
+                fields=['time_key', 'open', 'high', 'low', 'close', 'volume']
+            )
             
-            # 模拟数据 - 实际使用时需要取消注释上面的代码
-            return await self._get_mock_hk_data(symbol, timeframe, limit)
+            if ret == 0 and data is not None:
+                klines = []
+                for _, row in data.iterrows():
+                    kline = KlineData(
+                        symbol=symbol,
+                        timeframe=timeframe,
+                        market_type=MarketType.STOCK,
+                        timestamp=row['time_key'],
+                        open=float(row['open']),
+                        high=float(row['high']),
+                        low=float(row['low']),
+                        close=float(row['close']),
+                        volume=float(row['volume'])
+                    )
+                    klines.append(kline)
+                return klines
+            else:
+                logger.warning("富途API返回空数据，使用模拟数据")
+                return await self._get_mock_hk_data(symbol, timeframe, limit)
             
         except Exception as e:
             logger.error(f"获取港股K线数据失败: {e}")
@@ -122,14 +140,32 @@ class FutuDataService:
         return timeframe_delta.get(timeframe, timedelta(hours=1))
     
     async def get_stock_quote(self, symbol: str) -> Dict:
-        """获取股票实时报价"""
+        """获取股票实时报价 - 使用真实富途API"""
         if not self.connected:
+            logger.warning("富途数据服务未连接，使用模拟数据")
             return await self._get_mock_quote(symbol)
         
         try:
-            # ret, data = self.futu_conn.get_market_snapshot([symbol])
-            # 模拟数据
-            return await self._get_mock_quote(symbol)
+            # 使用富途API获取市场快照数据
+            ret, data = self.futu_conn.get_market_snapshot([symbol])
+            
+            if ret == 0 and data is not None and not data.empty:
+                snapshot = data.iloc[0]
+                return {
+                    'symbol': symbol,
+                    'last_price': float(snapshot.get('last_price', 0)),
+                    'open': float(snapshot.get('open_price', 0)),
+                    'high': float(snapshot.get('high_price', 0)),
+                    'low': float(snapshot.get('low_price', 0)),
+                    'volume': float(snapshot.get('volume', 0)),
+                    'turnover': float(snapshot.get('turnover', 0)),
+                    'change': float(snapshot.get('change_rate', 0)),
+                    'timestamp': datetime.now()
+                }
+            else:
+                logger.warning("富途API返回空数据，使用模拟数据")
+                return await self._get_mock_quote(symbol)
+                
         except Exception as e:
             logger.error(f"获取股票报价失败: {e}")
             return await self._get_mock_quote(symbol)

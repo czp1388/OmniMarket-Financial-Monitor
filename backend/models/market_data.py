@@ -26,6 +26,7 @@ class Timeframe(enum.Enum):
 
 class MarketData(Base):
     __tablename__ = "market_data"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     symbol = Column(String(50), nullable=False, index=True)
@@ -46,6 +47,7 @@ class MarketData(Base):
 
 class KlineData(Base):
     __tablename__ = "kline_data"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(BigInteger, primary_key=True, index=True)
     symbol = Column(String(50), nullable=False, index=True)

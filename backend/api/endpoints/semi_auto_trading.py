@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any
 import logging
-from backend.services.semi_auto_trading_service import SemiAutoTradingService, TradingSignal
+from services.semi_auto_trading_service import SemiAutoTradingService, TradingSignal
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

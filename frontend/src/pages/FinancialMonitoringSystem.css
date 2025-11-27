@@ -1,116 +1,132 @@
-/* 金融监控系统样式 - 完全匹配 kline_demo.html 标准 */
+/* 金融监控系统样式 - 彭博终端风格标准 */
 .financial-monitoring-system {
   margin: 0;
-  padding: 20px;
+  padding: 15px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  color: white;
+  background: #0a0e17;
+  color: #e0e0e0;
   min-height: 100vh;
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  background: #141a2a;
+  border: 1px solid #2a3a5a;
+  border-radius: 4px;
+  padding: 12px;
 }
 
 .header {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #2a3a5a;
 }
 
 .header h1 {
-  font-size: 2.5em;
+  font-size: 18px;
   margin: 0;
-  background: linear-gradient(45deg, #00ff88, #00ccff);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 .header p {
-  margin: 10px 0 0 0;
-  font-size: 1.1em;
-  opacity: 0.9;
+  margin: 5px 0 0 0;
+  font-size: 12px;
+  color: #a0a0a0;
 }
 
 .chart-container {
-  background: #1a1a1a;
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 20px;
-  height: 500px;
+  background: #0a0e17;
+  border: 1px solid #2a3a5a;
+  border-radius: 4px;
+  padding: 8px;
+  margin-bottom: 12px;
+  height: 450px;
 }
 
 .controls {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .control-group {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 15px;
-  border-radius: 8px;
+  background: #141a2a;
+  border: 1px solid #2a3a5a;
+  border-radius: 3px;
+  padding: 8px;
 }
 
 .control-group label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   font-weight: 600;
+  font-size: 11px;
+  color: #a0a0a0;
 }
 
 select, button {
   width: 100%;
-  padding: 10px;
-  margin: 5px 0;
-  border: none;
-  border-radius: 5px;
-  background: #2a2a2a;
-  color: white;
-  font-size: 14px;
+  padding: 6px 8px;
+  margin: 2px 0;
+  border: 1px solid #3a4a6a;
+  border-radius: 2px;
+  background: #2a3a5a;
+  color: #e0e0e0;
+  font-size: 11px;
+  font-family: 'Courier New', Monaco, Menlo, monospace;
 }
 
 button {
-  background: linear-gradient(45deg, #00ff88, #00ccff);
-  color: #1a1a1a;
-  font-weight: bold;
+  background: #2a3a5a;
+  color: #e0e0e0;
+  font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: all 0.2s ease;
 }
 
 button:hover {
-  transform: translateY(-2px);
+  background: #3a4a7a;
+  border-color: #4a5a8a;
 }
 
 .market-info {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .info-card {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 15px;
-  border-radius: 8px;
+  background: #141a2a;
+  border: 1px solid #2a3a5a;
+  border-radius: 3px;
+  padding: 8px 10px;
   text-align: center;
+  font-family: 'Courier New', Monaco, Menlo, monospace;
+  transition: all 0.2s ease;
+}
+
+.info-card:hover {
+  background: #1a243a;
+  border-color: #3a4a6a;
 }
 
 .info-card div:first-child {
-  font-size: 14px;
-  opacity: 0.9;
-  margin-bottom: 5px;
+  font-size: 11px;
+  color: #a0a0a0;
+  margin-bottom: 4px;
+  font-weight: 600;
 }
 
 .info-value {
-  font-size: 1.5em;
+  font-size: 13px;
   font-weight: bold;
-  margin: 5px 0;
+  margin: 4px 0;
+  font-family: 'Courier New', Monaco, Menlo, monospace;
 }
 
 .positive { 
@@ -125,28 +141,36 @@ button:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 8px;
-  margin-top: 20px;
+  padding: 6px 10px;
+  background: #141a2a;
+  border: 1px solid #2a3a5a;
+  border-radius: 3px;
+  margin-top: 12px;
+  font-size: 11px;
 }
 
 .status {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
 }
 
 .status-dot {
-  width: 10px;
-  height: 10px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: #00ff88;
+  animation: pulse 2s infinite;
 }
 
 .last-update {
-  font-size: 14px;
-  opacity: 0.9;
+  font-size: 11px;
+  color: #a0a0a0;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 /* 响应式设计 */

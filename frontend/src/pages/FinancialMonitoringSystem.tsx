@@ -6,17 +6,20 @@ const FinancialMonitoringSystem: React.FC = () => {
   const [selectedMarket, setSelectedMarket] = useState<string>('crypto');
   const [timeframe, setTimeframe] = useState<string>('1h');
   const [technicalIndicator, setTechnicalIndicator] = useState<string>('none');
+  const [activeNav, setActiveNav] = useState<string>('overview');
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<any>(null);
   const candleSeriesRef = useRef<any>(null);
   const smaSeriesRef = useRef<any>(null);
 
-  // 精确匹配用户要求的数据 - 与kline_demo.html保持一致
+  // 专业金融数据 - 彭博终端风格
   const [marketData] = useState([
     { 
       symbol: 'BTC/USDT', 
       price: 42567.89, 
       change: 2.34,
+      changeAmount: 975.42,
+      volume: '28.4M',
       type: 'crypto',
       isPositive: true
     },
@@ -24,6 +27,8 @@ const FinancialMonitoringSystem: React.FC = () => {
       symbol: 'ETH/USDT', 
       price: 2345.67, 
       change: 1.23,
+      changeAmount: 28.54,
+      volume: '15.2M',
       type: 'crypto',
       isPositive: true
     },
@@ -31,6 +36,8 @@ const FinancialMonitoringSystem: React.FC = () => {
       symbol: 'AAPL', 
       price: 182.45, 
       change: -0.56,
+      changeAmount: -1.02,
+      volume: '45.6M',
       type: 'stock',
       isPositive: false
     },
@@ -38,6 +45,8 @@ const FinancialMonitoringSystem: React.FC = () => {
       symbol: 'USD/CNY', 
       price: 7.1987, 
       change: 0.12,
+      changeAmount: 0.0086,
+      volume: '1.2B',
       type: 'forex',
       isPositive: true
     }
@@ -180,82 +189,81 @@ const FinancialMonitoringSystem: React.FC = () => {
 
   return (
     <div className="financial-monitoring-system">
-      <div className="header">
-        <h1>寰宇多市场金融监控系统</h1>
-        <p>实时K线图表演示 - 支持多市场多周期监控</p>
-      </div>
+      <div className="container">
+        <div className="header">
+          <h1>寰宇多市场金融监控系统</h1>
+          <p>实时K线图表演示 - 支持多市场多周期监控</p>
+        </div>
 
-      <div className="market-info">
-        {marketData.map((item, index) => (
-          <div key={index} className="info-card">
-            <div>{item.symbol}</div>
-            <div className={`info-value ${item.isPositive ? 'positive' : 'negative'}`}>
-              {formatPrice(item.price, item.type)}
+        <div className="market-info">
+          {marketData.map((item, index) => (
+            <div key={index} className="info-card">
+              <div>{item.symbol}</div>
+              <div className={`info-value ${item.isPositive ? 'positive' : 'negative'}`}>
+                {formatPrice(item.price, item.type)}
+              </div>
+              <div>{formatChange(item.change)}</div>
             </div>
-            <div>{formatChange(item.change)}</div>
+          ))}
+        </div>
+
+        <div className="controls">
+          <div className="control-group">
+            <label>市场选择:</label>
+            <select 
+              value={selectedMarket} 
+              onChange={(e) => setSelectedMarket(e.target.value)}
+            >
+              <option value="crypto">加密货币 (BTC/USDT)</option>
+              <option value="stock">股票 (AAPL)</option>
+              <option value="forex">外汇 (USD/CNY)</option>
+              <option value="futures">期货</option>
+            </select>
           </div>
-        ))}
-      </div>
+          <div className="control-group">
+            <label>时间周期:</label>
+            <select 
+              value={timeframe} 
+              onChange={(e) => setTimeframe(e.target.value)}
+            >
+              <option value="1m">1分钟</option>
+              <option value="5m">5分钟</option>
+              <option value="15m">15分钟</option>
+              <option value="1h">1小时</option>
+              <option value="4h">4小时</option>
+              <option value="1d">日线</option>
+            </select>
+          </div>
+          <div className="control-group">
+            <label>技术指标:</label>
+            <select 
+              value={technicalIndicator} 
+              onChange={(e) => setTechnicalIndicator(e.target.value)}
+            >
+              <option value="none">无指标</option>
+              <option value="sma">简单移动平均线</option>
+              <option value="ema">指数移动平均线</option>
+              <option value="macd">MACD</option>
+              <option value="rsi">RSI</option>
+              <option value="bollinger">布林带</option>
+            </select>
+          </div>
+          <div className="control-group">
+            <label>操作:</label>
+            <button>模拟新数据</button>
+            <button>重置图表</button>
+          </div>
+        </div>
 
-      <div className="controls">
-        <div className="control-group">
-          <label>市场选择:</label>
-          <select 
-            value={selectedMarket} 
-            onChange={(e) => setSelectedMarket(e.target.value)}
-            className="control-select"
-          >
-            <option value="crypto">加密货币 (BTC/USDT)</option>
-            <option value="stock">股票 (AAPL)</option>
-            <option value="forex">外汇 (USD/CNY)</option>
-            <option value="futures">期货</option>
-          </select>
-        </div>
-        <div className="control-group">
-          <label>时间周期:</label>
-          <select 
-            value={timeframe} 
-            onChange={(e) => setTimeframe(e.target.value)}
-            className="control-select"
-          >
-            <option value="1m">1分钟</option>
-            <option value="5m">5分钟</option>
-            <option value="15m">15分钟</option>
-            <option value="1h">1小时</option>
-            <option value="4h">4小时</option>
-            <option value="1d">日线</option>
-          </select>
-        </div>
-        <div className="control-group">
-          <label>技术指标:</label>
-          <select 
-            value={technicalIndicator} 
-            onChange={(e) => setTechnicalIndicator(e.target.value)}
-            className="control-select"
-          >
-            <option value="none">无指标</option>
-            <option value="sma">简单移动平均线</option>
-            <option value="ema">指数移动平均线</option>
-            <option value="macd">MACD</option>
-            <option value="rsi">RSI</option>
-            <option value="bollinger">布林带</option>
-          </select>
-        </div>
-        <div className="control-group">
-          <label>操作:</label>
-          <button className="action-button">模拟新数据</button>
-          <button className="action-button">重置图表</button>
-        </div>
-      </div>
+        <div className="chart-container" ref={chartContainerRef}></div>
 
-      <div id="chart" className="chart-container" ref={chartContainerRef}></div>
-
-      <div className="status-bar">
-        <div className="status">
-          <div className="status-dot"></div>
-          <span>实时数据连接正常</span>
+        <div className="status-bar">
+          <div className="status">
+            <div className="status-dot"></div>
+            <span>实时数据连接正常</span>
+          </div>
+          <div className="last-update">最后更新: <span>刚刚</span></div>
         </div>
-        <div>最后更新: <span id="lastUpdate">刚刚</span></div>
       </div>
     </div>
   );

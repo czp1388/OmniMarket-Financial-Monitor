@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
 import './ChartPage.css';
 import { ApiService } from '../services/api';
+import { realTimeDataService } from '../services/realTimeDataService';
 
 interface KLineData {
   time: string;
@@ -41,7 +42,7 @@ const ChartPage: React.FC = () => {
   const symbols = ['BTC/USDT', 'ETH/USDT', 'AAPL', 'TSLA', 'EUR/USD', 'USD/CNY', 'XAU/USD', 'SPY'];
   const timeframes = ['1m', '5m', '15m', '1h', '4h', '1d', '1w'];
   const indicators = ['none', 'ma', 'macd', 'rsi', 'bollinger'];
-  const [dataSource, setDataSource] = useState<'API' | '模拟数据'>('模拟数据');
+  const [dataSource, setDataSource] = useState<'API' | '模拟数据' | '实时数据服务'>('实时数据服务');
 
   // 根据符号名称推断类别
   const getCategoryFromSymbol = (symbol: string): string => {
@@ -149,16 +150,26 @@ const ChartPage: React.FC = () => {
     return data;
   };
 
-  // 初始化符号数据
+  // 初始化符号数据 - 使用实时数据服务
   useEffect(() => {
-    setSymbolsData(generateMockSymbolData());
-    
-    // 每2秒更新价格数据
-    const interval = setInterval(() => {
-      setSymbolsData(generateMockSymbolData());
-    }, 2000);
+    const stopUpdates = realTimeDataService.startRealTimeUpdates(
+      (data: any[]) => {
+        const updatedSymbolData: SymbolData[] = data.map(item => ({
+          symbol: item.symbol,
+          price: item.price,
+          change: item.change,
+          changePercent: item.changePercent,
+          volume: item.volume || 0,
+          category: getCategoryFromSymbol(item.symbol)
+        }));
+        setSymbolsData(updatedSymbolData);
+        setDataSource('实时数据服务');
+      },
+      symbols,
+      3000 // 3秒更新间隔
+    );
 
-    return () => clearInterval(interval);
+    return stopUpdates;
   }, []);
 
   // 更新K线数据
@@ -192,24 +203,274 @@ const ChartPage: React.FC = () => {
       };
     });
 
-    // 计算移动平均线
-    const maData = klineData.map((item, index) => {
-      const window = 20;
-      if (index < window - 1) {
-        return item.close;
+  // 计算移动平均线
+  const maData = klineData.map((item, index) => {
+    const window = 20;
+    if (index < window - 1) {
+      return item.close;
+    }
+    const sum = klineData
+      .slice(index - window + 1, index + 1)
+      .reduce((acc, curr) => acc + curr.close, 0);
+    return sum / window;
+  });
+
+  // 计算MACD指标
+  const calculateMACD = () => {
+    const ema12 = calculateEMA(klineData, 12);
+    const ema26 = calculateEMA(klineData, 26);
+    const dif = ema12.map((ema12Val, i) => ema12Val - ema26[i]);
+    
+    // 为DEA计算创建临时K线数据
+    const tempDataForDea: KLineData[] = dif.map((val, i) => ({
+      time: klineData[i]?.time || '',
+      open: val,
+      high: val,
+      low: val,
+      close: val,
+      volume: 0
+    }));
+    
+    const dea = calculateEMA(tempDataForDea, 9);
+    const macd = dif.map((difVal, i) => (difVal - dea[i]) * 2);
+    
+    return { dif, dea, macd };
+  };
+
+  // 计算指数移动平均线
+  const calculateEMA = (data: KLineData[], period: number) => {
+    const ema: number[] = [];
+    const multiplier = 2 / (period + 1);
+    
+    // 第一个EMA是SMA
+    let sma = 0;
+    for (let i = 0; i < period && i < data.length; i++) {
+      sma += data[i].close;
+    }
+    sma = sma / Math.min(period, data.length);
+    ema.push(sma);
+    
+    // 计算后续EMA
+    for (let i = 1; i < data.length; i++) {
+      const currentEMA = (data[i].close - ema[i-1]) * multiplier + ema[i-1];
+      ema.push(currentEMA);
+    }
+    
+    return ema;
+  };
+
+  // 计算RSI指标
+  const calculateRSI = (period: number = 14) => {
+    const rsi: number[] = [];
+    const gains: number[] = [];
+    const losses: number[] = [];
+    
+    // 计算价格变化
+    for (let i = 1; i < klineData.length; i++) {
+      const change = klineData[i].close - klineData[i-1].close;
+      gains.push(change > 0 ? change : 0);
+      losses.push(change < 0 ? Math.abs(change) : 0);
+    }
+    
+    // 计算初始平均增益和平均损失
+    let avgGain = gains.slice(0, period).reduce((sum, gain) => sum + gain, 0) / period;
+    let avgLoss = losses.slice(0, period).reduce((sum, loss) => sum + loss, 0) / period;
+    
+    // 填充前period个RSI值为50
+    for (let i = 0; i < period; i++) {
+      rsi.push(50);
+    }
+    
+    // 计算后续RSI值
+    for (let i = period; i < gains.length; i++) {
+      avgGain = (avgGain * (period - 1) + gains[i]) / period;
+      avgLoss = (avgLoss * (period - 1) + losses[i]) / period;
+      
+      const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+      const rsiValue = 100 - (100 / (1 + rs));
+      rsi.push(rsiValue);
+    }
+    
+    // 确保长度与原始数据一致
+    while (rsi.length < klineData.length) {
+      rsi.unshift(50);
+    }
+    
+    return rsi;
+  };
+
+  // 计算布林带指标
+  const calculateBollingerBands = (period: number = 20, stdDev: number = 2) => {
+    const middle: number[] = [];
+    const upper: number[] = [];
+    const lower: number[] = [];
+    
+    for (let i = 0; i < klineData.length; i++) {
+      if (i < period - 1) {
+        middle.push(klineData[i].close);
+        upper.push(klineData[i].close);
+        lower.push(klineData[i].close);
+        continue;
       }
-      const sum = klineData
-        .slice(index - window + 1, index + 1)
-        .reduce((acc, curr) => acc + curr.close, 0);
-      return sum / window;
-    });
+      
+      const slice = klineData.slice(i - period + 1, i + 1);
+      const prices = slice.map(item => item.close);
+      const mean = prices.reduce((sum, price) => sum + price, 0) / period;
+      
+      const variance = prices.reduce((sum, price) => sum + Math.pow(price - mean, 2), 0) / period;
+      const standardDeviation = Math.sqrt(variance);
+      
+      middle.push(mean);
+      upper.push(mean + standardDeviation * stdDev);
+      lower.push(mean - standardDeviation * stdDev);
+    }
+    
+    return { middle, upper, lower };
+  };
+
+    // 根据激活的指标添加相应的图表系列
+    const indicatorSeries = [];
+
+    if (activeIndicator === 'ma' || activeIndicator === 'none') {
+      indicatorSeries.push({
+        name: 'MA20',
+        type: 'line',
+        data: maData,
+        smooth: true,
+        lineStyle: {
+          color: 'rgba(0, 150, 255, 1)',
+          width: 2
+        },
+        symbol: 'none'
+      });
+    }
+
+    if (activeIndicator === 'macd') {
+      const { dif, dea, macd } = calculateMACD();
+      
+      // 添加MACD子图
+      indicatorSeries.push(
+        {
+          name: 'DIF',
+          type: 'line',
+          data: dif,
+          smooth: true,
+          lineStyle: {
+            color: '#ff9900',
+            width: 2
+          },
+          symbol: 'none'
+        },
+        {
+          name: 'DEA',
+          type: 'line',
+          data: dea,
+          smooth: true,
+          lineStyle: {
+            color: '#00ff88',
+            width: 2
+          },
+          symbol: 'none'
+        },
+        {
+          name: 'MACD',
+          type: 'bar',
+          data: macd.map((value, index) => ({
+            value: value,
+            itemStyle: {
+              color: value >= 0 ? '#00ff88' : '#ff4444'
+            }
+          })),
+          barWidth: '60%'
+        }
+      );
+    }
+
+    if (activeIndicator === 'rsi') {
+      const rsiData = calculateRSI();
+      
+      indicatorSeries.push({
+        name: 'RSI14',
+        type: 'line',
+        data: rsiData,
+        smooth: true,
+        lineStyle: {
+          color: '#ff9900',
+          width: 2
+        },
+        symbol: 'none',
+        markLine: {
+          data: [
+            { yAxis: 70, name: '超买线', lineStyle: { color: '#ff4444', type: 'dashed' } },
+            { yAxis: 30, name: '超卖线', lineStyle: { color: '#00ff88', type: 'dashed' } }
+          ]
+        }
+      });
+    }
+
+    if (activeIndicator === 'bollinger') {
+      const { middle, upper, lower } = calculateBollingerBands();
+      
+      indicatorSeries.push(
+        {
+          name: '布林带中线',
+          type: 'line',
+          data: middle,
+          smooth: true,
+          lineStyle: {
+            color: '#ff9900',
+            width: 2
+          },
+          symbol: 'none'
+        },
+        {
+          name: '布林带上轨',
+          type: 'line',
+          data: upper,
+          smooth: true,
+          lineStyle: {
+            color: '#00ff88',
+            width: 1,
+            type: 'dashed'
+          },
+          symbol: 'none'
+        },
+        {
+          name: '布林带下轨',
+          type: 'line',
+          data: lower,
+          smooth: true,
+          lineStyle: {
+            color: '#ff4444',
+            width: 1,
+            type: 'dashed'
+          },
+          symbol: 'none'
+        }
+      );
+    }
+
+    // 更新图例数据
+    const legendData = [selectedSymbol, '成交量'];
+    if (activeIndicator === 'ma' || activeIndicator === 'none') {
+      legendData.push('MA20');
+    }
+    if (activeIndicator === 'macd') {
+      legendData.push('DIF', 'DEA', 'MACD');
+    }
+    if (activeIndicator === 'rsi') {
+      legendData.push('RSI14');
+    }
+    if (activeIndicator === 'bollinger') {
+      legendData.push('布林带中线', '布林带上轨', '布林带下轨');
+    }
 
     return {
       animation: false,
       legend: {
         bottom: 10,
         left: 'center',
-        data: [selectedSymbol, '成交量', 'MA20'],
+        data: legendData,
         textStyle: {
           color: '#e0e0e0'
         }
