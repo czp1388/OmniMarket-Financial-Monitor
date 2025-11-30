@@ -1,491 +1,510 @@
 /* 全自动交易系统 - 彭博终端风格样式 */
-.auto-trading-page {
+.auto-trading-container {
   margin: 0;
   padding: 15px;
   font-family: 'Courier New', Monaco, Menlo, monospace;
-  background: #0a0e17;
+  background: #0a0e14;
   color: #d1d4dc;
   min-height: 100vh;
   font-size: 13px;
 }
 
-.container {
-  max-width: 1400px;
-  margin: 0 auto;
-  background: #141a2a;
-  border: 1px solid #2a3a5a;
-  border-radius: 4px;
-  padding: 15px;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #2a3a5a;
-}
-
-.header h1 {
-  font-size: 18px;
-  margin: 0;
-  color: #00ff88;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-
-.header p {
-  margin: 5px 0 0 0;
-  color: #8a94a6;
-  font-size: 11px;
-}
-
 /* 状态栏 */
 .status-bar {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 20px;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   background: #1a2235;
-  padding: 8px 12px;
+  padding: 8px 15px;
   border-radius: 3px;
   margin-bottom: 15px;
   border: 1px solid #2a3a5a;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.status-indicator {
+.status-item {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.status-info {
-  display: flex;
-  gap: 20px;
-  justify-content: flex-end;
+.status-label {
   font-size: 11px;
   color: #8a94a6;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.status-info span {
-  padding: 2px 8px;
-  background: #2a3a5a;
+.status-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: #d1d4dc;
+  padding: 2px 6px;
+  background: #0a0e14;
   border-radius: 2px;
+  border: 1px solid #2a3a5a;
 }
 
-/* 主内容布局 */
+/* 主内容区域 - 两栏布局 */
 .main-content {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 350px 1fr;
   gap: 15px;
+  height: calc(100vh - 120px);
 }
 
-/* 控制面板 */
-.control-panel {
+/* 左侧面板 - 控制区 */
+.left-panel {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.panel-section {
-  background: #1a2235;
-  border: 1px solid #2a3a5a;
-  border-radius: 3px;
-  padding: 12px;
+/* 右侧面板 - 数据显示区 */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
 }
 
-.panel-section h3 {
-  margin: 0 0 10px 0;
-  font-size: 12px;
+/* 控制区域样式 */
+.control-section {
+  background: #1a2235;
+  border: 1px solid #2a3a5a;
+  border-radius: 4px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.section-title {
+  margin: 0 0 12px 0;
+  font-size: 13px;
   color: #00ccff;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-/* 策略列表 */
-.strategy-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.strategy-item {
   border-bottom: 1px solid #2a3a5a;
   padding-bottom: 6px;
 }
 
-.strategy-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
+/* 控制按钮 */
+.control-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.control-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  background: #2a3a5a;
+  color: #d1d4dc;
+  border: 1px solid #3a4a6a;
+}
+
+.control-btn:hover:not(:disabled) {
+  background: #3a4a6a;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.control-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.control-btn.active {
+  background: #00ff88;
+  color: #0a0e14;
+  border-color: #00ff88;
+}
+
+/* 策略列表 */
+.strategies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.strategy-item {
+  background: #0a0e14;
+  border: 1px solid #2a3a5a;
+  border-radius: 3px;
+  padding: 10px;
+  transition: all 0.2s ease;
+}
+
+.strategy-item:hover {
+  border-color: #00ccff;
+  box-shadow: 0 2px 4px rgba(0, 204, 255, 0.2);
 }
 
 .strategy-checkbox {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 2px;
-  transition: background-color 0.15s ease;
-}
-
-.strategy-checkbox:hover {
-  background: #2a3a5a;
 }
 
 .strategy-checkbox input {
   margin-top: 2px;
+  accent-color: #00ff88;
 }
 
-.checkmark {
-  width: 12px;
-  height: 12px;
-  border: 1px solid #4a5a7a;
-  border-radius: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 2px;
-}
-
-.strategy-checkbox input:checked + .checkmark {
-  background: #00ff88;
-  border-color: #00ff88;
-}
-
-.strategy-checkbox input:checked + .checkmark::after {
-  content: '✓';
-  color: #0a0e17;
-  font-size: 8px;
-  font-weight: bold;
+.strategy-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #d1d4dc;
+  margin-bottom: 4px;
 }
 
 .strategy-info {
   flex: 1;
 }
 
-.strategy-name {
-  font-size: 11px;
+.strategy-risk {
+  font-size: 10px;
   font-weight: 600;
-  color: #d1d4dc;
-  margin-bottom: 2px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background: #1a2235;
+  display: inline-block;
+  margin-bottom: 4px;
 }
 
 .strategy-desc {
-  font-size: 10px;
+  font-size: 11px;
   color: #8a94a6;
-  margin-bottom: 4px;
   line-height: 1.3;
 }
 
-.strategy-meta {
-  display: flex;
-  gap: 8px;
-  font-size: 9px;
-}
-
-.risk-level {
-  padding: 1px 4px;
-  border-radius: 2px;
-  font-weight: 600;
-}
-
-.risk-低风险 { background: #1a3a2a; color: #00ff88; }
-.risk-中等风险 { background: #3a3a1a; color: #ffaa00; }
-.risk-高风险 { background: #3a1a1a; color: #ff4444; }
-.risk-极高风险 { background: #3a1a2a; color: #ff0066; }
-
-.market {
-  color: #00ccff;
-  background: #1a2a3a;
-  padding: 1px 4px;
-  border-radius: 2px;
-}
-
-/* 按钮样式 */
-.control-buttons, .emergency-controls {
+/* 紧急控制 */
+.emergency-controls {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
-.btn {
-  padding: 6px 8px;
+.emergency-btn {
+  padding: 10px 12px;
   border: none;
-  border-radius: 2px;
-  font-size: 10px;
+  border-radius: 3px;
+  font-size: 11px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none !important;
-}
-
-.btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-}
-
-.btn-start {
-  background: #1a3a2a;
-  color: #00ff88;
-  border: 1px solid #00ff88;
-}
-
-.btn-start:hover:not(:disabled) {
-  background: #00ff88;
-  color: #0a0e17;
-}
-
-.btn-stop {
-  background: #3a1a1a;
-  color: #ff4444;
-  border: 1px solid #ff4444;
-}
-
-.btn-stop:hover:not(:disabled) {
-  background: #ff4444;
-  color: #0a0e17;
-}
-
-.btn-pause {
-  background: #3a3a1a;
-  color: #ffaa00;
-  border: 1px solid #ffaa00;
-}
-
-.btn-pause:hover:not(:disabled) {
-  background: #ffaa00;
-  color: #0a0e17;
-}
-
-.btn-resume {
-  background: #1a2a3a;
-  color: #00ccff;
-  border: 1px solid #00ccff;
-}
-
-.btn-resume:hover:not(:disabled) {
-  background: #00ccff;
-  color: #0a0e17;
-}
-
-.btn-emergency {
   background: #3a1a2a;
   color: #ff0066;
   border: 1px solid #ff0066;
-  grid-column: 1 / -1;
 }
 
-.btn-emergency:hover:not(:disabled) {
+.emergency-btn:hover:not(:disabled) {
   background: #ff0066;
-  color: #0a0e17;
+  color: #0a0e14;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(255, 0, 102, 0.3);
 }
 
-.btn-reset {
+.reset-btn {
+  padding: 10px 12px;
+  border: none;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
   background: #2a1a3a;
   color: #aa00ff;
   border: 1px solid #aa00ff;
-  grid-column: 1 / -1;
 }
 
-.btn-reset:hover:not(:disabled) {
+.reset-btn:hover:not(:disabled) {
   background: #aa00ff;
-  color: #0a0e17;
+  color: #0a0e14;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(170, 0, 255, 0.3);
 }
 
-.btn-configure {
-  background: #1a2a3a;
-  color: #00ccff;
-  border: 1px solid #00ccff;
-  width: 100%;
-  margin-top: 8px;
+/* 熔断状态 */
+.brakes-status {
+  margin-top: 12px;
 }
 
-.btn-configure:hover:not(:disabled) {
-  background: #00ccff;
-  color: #0a0e17;
+.brakes-status h4 {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  color: #8a94a6;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.brake-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  background: #0a0e14;
+  border: 1px solid #2a3a5a;
+  border-radius: 2px;
+  margin-bottom: 4px;
+}
+
+.brake-name {
+  font-size: 11px;
+  color: #8a94a6;
+  text-transform: capitalize;
+}
+
+.brake-status {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background: #1a2235;
+}
+
+.brake-status.active {
+  background: #3a1a1a;
+  color: #ff4444;
+}
+
+/* 数据区域样式 */
+.data-section {
+  background: #1a2235;
+  border: 1px solid #2a3a5a;
+  border-radius: 4px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* 绩效网格 */
+.performance-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.metric-card {
+  background: #0a0e14;
+  border: 1px solid #2a3a5a;
+  border-radius: 3px;
+  padding: 12px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.metric-card:hover {
+  border-color: #00ccff;
+  box-shadow: 0 2px 4px rgba(0, 204, 255, 0.2);
+}
+
+.metric-value {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #d1d4dc;
+}
+
+.metric-label {
+  font-size: 10px;
+  color: #8a94a6;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 /* 配置表单 */
 .config-form {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
 }
 
-.config-item {
+.config-row {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
 }
 
-.config-item label {
-  font-size: 10px;
-  color: #8a94a6;
-}
-
-.config-item input {
-  background: #0a0e17;
-  border: 1px solid #2a3a5a;
-  border-radius: 2px;
-  padding: 4px 6px;
-  color: #d1d4dc;
-  font-size: 10px;
-  font-family: inherit;
-  width: 80px;
-}
-
-.config-item input:focus {
-  outline: none;
-  border-color: #00ccff;
-}
-
-/* 信息面板 */
-.info-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* 绩效网格 */
-.performance-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-
-.metric-card {
-  background: #1a2235;
-  border: 1px solid #2a3a5a;
-  border-radius: 3px;
-  padding: 8px;
-  text-align: center;
-}
-
-.metric-value {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 2px;
-}
-
-.metric-value.positive {
-  color: #00ff88;
-}
-
-.metric-value.negative {
-  color: #ff4444;
-}
-
-.metric-label {
-  font-size: 9px;
+.config-label {
+  font-size: 11px;
   color: #8a94a6;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-/* 风险网格 */
-.risk-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+.config-input {
+  background: #0a0e14;
+  border: 1px solid #2a3a5a;
+  border-radius: 3px;
+  padding: 6px 8px;
+  color: #d1d4dc;
+  font-size: 11px;
+  font-family: inherit;
+  width: 100px;
+  transition: all 0.2s ease;
+}
+
+.config-input:focus {
+  outline: none;
+  border-color: #00ccff;
+  box-shadow: 0 0 0 2px rgba(0, 204, 255, 0.2);
+}
+
+.update-config-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  background: #1a2a3a;
+  color: #00ccff;
+  border: 1px solid #00ccff;
+  margin-top: 8px;
+}
+
+.update-config-btn:hover:not(:disabled) {
+  background: #00ccff;
+  color: #0a0e14;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 204, 255, 0.3);
+}
+
+/* 活跃策略 */
+.active-strategies {
+  display: flex;
+  flex-direction: column;
   gap: 6px;
 }
 
-.risk-item {
+.active-strategy {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 4px 6px;
-  background: #1a2235;
+  padding: 8px 10px;
+  background: #0a0e14;
   border: 1px solid #2a3a5a;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.active-strategy:hover {
+  border-color: #00ff88;
+  box-shadow: 0 2px 4px rgba(0, 255, 136, 0.2);
+}
+
+.strategy-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #00ff88;
+  background: #1a3a2a;
+  padding: 2px 6px;
   border-radius: 2px;
 }
 
-.risk-label {
+.strategy-market {
   font-size: 10px;
   color: #8a94a6;
 }
 
-.risk-value {
-  font-size: 10px;
-  font-weight: 600;
-  color: #d1d4dc;
-}
-
-/* 日志容器 */
-.log-container {
-  background: #0a0e17;
-  border: 1px solid #2a3a5a;
-  border-radius: 3px;
-  height: 150px;
-  overflow-y: auto;
-  padding: 6px;
-  font-size: 10px;
-  font-family: 'Courier New', monospace;
-}
-
-.log-entry {
-  padding: 2px 4px;
-  border-bottom: 1px solid #1a2235;
-  line-height: 1.3;
-}
-
-.log-entry:last-child {
-  border-bottom: none;
-}
-
-.no-logs {
+.no-strategies {
   text-align: center;
   color: #8a94a6;
   font-style: italic;
   padding: 20px;
+  font-size: 11px;
+}
+
+/* 错误消息 */
+.error-message {
+  background: #3a1a1a;
+  border: 1px solid #ff4444;
+  border-radius: 3px;
+  padding: 10px 15px;
+  color: #ff4444;
+  font-size: 11px;
+  margin-top: 15px;
+  text-align: center;
+}
+
+/* 加载状态 */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 14, 20, 0.9);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  color: #00ccff;
+  font-size: 12px;
+}
+
+.loading-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #2a3a5a;
+  border-top: 3px solid #00ccff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* 响应式设计 */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .main-content {
     grid-template-columns: 1fr;
+    height: auto;
   }
   
-  .control-panel {
-    order: 2;
-  }
-  
-  .info-panel {
-    order: 1;
+  .performance-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 768px) {
-  .auto-trading-page {
+  .auto-trading-container {
     padding: 10px;
   }
   
-  .container {
-    padding: 10px;
+  .status-bar {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
   }
   
-  .performance-grid,
-  .risk-grid {
+  .performance-grid {
     grid-template-columns: 1fr;
   }
   
@@ -494,31 +513,26 @@
     grid-template-columns: 1fr;
   }
   
-  .status-bar {
+  .config-row {
     grid-template-columns: 1fr;
-    gap: 8px;
-  }
-  
-  .status-info {
-    justify-content: flex-start;
-    flex-wrap: wrap;
+    gap: 6px;
   }
 }
 
 /* 滚动条样式 */
-.log-container::-webkit-scrollbar {
+.right-panel::-webkit-scrollbar {
   width: 6px;
 }
 
-.log-container::-webkit-scrollbar-track {
+.right-panel::-webkit-scrollbar-track {
   background: #1a2235;
 }
 
-.log-container::-webkit-scrollbar-thumb {
+.right-panel::-webkit-scrollbar-thumb {
   background: #2a3a5a;
   border-radius: 3px;
 }
 
-.log-container::-webkit-scrollbar-thumb:hover {
+.right-panel::-webkit-scrollbar-thumb:hover {
   background: #3a4a6a;
 }

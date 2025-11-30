@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 import secrets
 import hashlib
 
-from models.users import User, UserSession
-from database import get_db
+from backend.models.users import User, UserSession
+from backend.database import get_db
 
 logger = logging.getLogger(__name__)
 

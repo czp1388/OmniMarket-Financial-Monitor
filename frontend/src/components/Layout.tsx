@@ -11,6 +11,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { name: '专业监控', href: '/financial-monitoring', icon: '📊' },
     { name: '图表分析', href: '/chart', icon: '📈' },
     { name: '预警管理', href: '/alerts', icon: '🔔' },
+    { name: '牛熊证监控', href: '/warrants', icon: '📉' },
+    { name: '全自动交易', href: '/auto-trading', icon: '🤖' },
+    { name: '半自动交易', href: '/semi-auto-trading', icon: '🔄' },
+    { name: '虚拟交易', href: '/virtual-trading', icon: '🎮' },
     { name: '投资组合', href: '/portfolio', icon: '💼' },
     { name: '系统设置', href: '/settings', icon: '⚙️' },
   ];

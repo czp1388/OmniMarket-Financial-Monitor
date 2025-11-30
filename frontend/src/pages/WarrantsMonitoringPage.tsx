@@ -1,20 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './WarrantsMonitoringPage.css';
+import { ApiService } from '../services/api';
 
 interface WarrantData {
-  id: string;
-  code: string;
-  name: string;
-  underlying: string;
-  currentPrice: number;
-  changePercent: number;
-  strikePrice: number;
-  callPut: 'C' | 'P';
+  symbol: string;
+  underlying_symbol: string;
+  warrant_type: 'BULL' | 'BEAR';
+  strike_price: number;
+  knock_out_price: number;
+  current_price: number;
   leverage: number;
-  distanceToStrike: number;
-  volume: number;
-  timeValue: number;
-  status: 'normal' | 'warning' | 'danger';
+  time_to_maturity: number;
+  status: string;
+  alert_level?: 'danger' | 'warning' | 'normal';
+  volume?: number;
+  average_volume?: number;
+}
+
+interface WarrantMonitoringData {
+  symbol: string;
+  underlying_symbol: string;
+  warrant_type: string;
+  current_price: number;
+  underlying_price: number;
+  distance_to_knock_out: number;
+  effective_leverage: number;
+  time_to_maturity: number;
+  last_updated: string;
+  alerts: Array<{
+    type: string;
+    triggered_at: string | null;
+  }>;
 }
 
 const WarrantsMonitoringPage: React.FC = () => {
@@ -22,119 +38,128 @@ const WarrantsMonitoringPage: React.FC = () => {
   const [selectedMarket, setSelectedMarket] = useState<string>('HK');
   const [timeRange, setTimeRange] = useState<string>('1h');
   const [activeIndicator, setActiveIndicator] = useState<string>('distance');
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [lastUpdate, setLastUpdate] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(true);
+  const ws = useRef<WebSocket | null>(null);
 
-  // 模拟牛熊证数据
+  // 初始化数据加载
   useEffect(() => {
-    const mockWarrants: WarrantData[] = [
-      {
-        id: '1',
-        code: '12345',
-        name: '腾讯牛证',
-        underlying: '00700',
-        currentPrice: 0.85,
-        changePercent: 2.41,
-        strikePrice: 320,
-        callPut: 'C',
-        leverage: 8.5,
-        distanceToStrike: 12.3,
-        volume: 1500000,
-        timeValue: 0.15,
-        status: 'normal'
-      },
-      {
-        id: '2',
-        code: '12346',
-        name: '腾讯熊证',
-        underlying: '00700',
-        currentPrice: 0.92,
-        changePercent: -1.07,
-        strikePrice: 380,
-        callPut: 'P',
-        leverage: 7.2,
-        distanceToStrike: 8.7,
-        volume: 890000,
-        timeValue: 0.22,
-        status: 'warning'
-      },
-      {
-        id: '3',
-        code: '12347',
-        name: '阿里牛证',
-        underlying: '09988',
-        currentPrice: 1.23,
-        changePercent: 3.36,
-        strikePrice: 85,
-        callPut: 'C',
-        leverage: 6.8,
-        distanceToStrike: 15.2,
-        volume: 1200000,
-        timeValue: 0.18,
-        status: 'normal'
-      },
-      {
-        id: '4',
-        code: '12348',
-        name: '美团熊证',
-        underlying: '03690',
-        currentPrice: 0.78,
-        changePercent: -2.50,
-        strikePrice: 120,
-        callPut: 'P',
-        leverage: 9.1,
-        distanceToStrike: 5.8,
-        volume: 650000,
-        timeValue: 0.25,
-        status: 'danger'
-      },
-      {
-        id: '5',
-        code: '12349',
-        name: '平安牛证',
-        underlying: '02318',
-        currentPrice: 0.95,
-        changePercent: 1.06,
-        strikePrice: 48,
-        callPut: 'C',
-        leverage: 5.4,
-        distanceToStrike: 18.9,
-        volume: 980000,
-        timeValue: 0.12,
-        status: 'normal'
-      },
-      {
-        id: '6',
-        code: '12350',
-        name: '港交所熊证',
-        underlying: '00388',
-        currentPrice: 1.15,
-        changePercent: -0.86,
-        strikePrice: 280,
-        callPut: 'P',
-        leverage: 7.8,
-        distanceToStrike: 7.3,
-        volume: 720000,
-        timeValue: 0.19,
-        status: 'warning'
+    loadWarrantsData();
+    setupWebSocket();
+    
+    return () => {
+      if (ws.current) {
+        ws.current.close();
       }
-    ];
-
-    setWarrants(mockWarrants);
-
-    // 模拟实时数据更新
-    const interval = setInterval(() => {
-      setWarrants(prev => prev.map(warrant => ({
-        ...warrant,
-        currentPrice: warrant.currentPrice * (1 + (Math.random() - 0.5) * 0.02),
-        changePercent: warrant.changePercent + (Math.random() - 0.5) * 0.5,
-        volume: warrant.volume + Math.floor(Math.random() * 10000),
-        distanceToStrike: Math.max(0.1, warrant.distanceToStrike + (Math.random() - 0.5) * 0.3),
-        status: warrant.distanceToStrike < 3 ? 'danger' : 
-                warrant.distanceToStrike < 8 ? 'warning' : 'normal'
-      })));
-    }, 3000);
-
-    return () => clearInterval(interval);
+    };
   }, []);
+
+  // 加载牛熊证数据
+  const loadWarrantsData = async () => {
+    try {
+      setLoading(true);
+      const response = await ApiService.warrants.getAllWarrants();
+      if (response && Array.isArray(response)) {
+        setWarrants(response);
+        setLastUpdate(new Date().toLocaleTimeString('zh-CN'));
+      }
+    } catch (error) {
+      console.error('Failed to load warrants data:', error);
+      // 如果API失败，使用示例数据作为后备
+      const sampleResponse = await ApiService.warrants.getSampleWarrants();
+      if (sampleResponse && Array.isArray(sampleResponse)) {
+        setWarrants(sampleResponse);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 设置WebSocket连接 - 使用正确的后端端口
+  const setupWebSocket = () => {
+    // 开发环境直接连接后端端口8000，生产环境使用相对路径
+    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const wsUrl = isDevelopment 
+      ? 'ws://localhost:8000/api/warrants-monitoring/ws'
+      : '/api/warrants-monitoring/ws';
+    
+    ws.current = new WebSocket(wsUrl);
+    
+    ws.current.onopen = () => {
+      console.log('WebSocket connected to backend');
+      setIsConnected(true);
+    };
+    
+    ws.current.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('WebSocket message received:', data);
+        
+        if (data.type === 'warrant_update') {
+          setWarrants(prevWarrants => 
+            prevWarrants.map(warrant => 
+              warrant.symbol === data.data.symbol ? { ...warrant, ...data.data } : warrant
+            )
+          );
+          setLastUpdate(new Date().toLocaleTimeString('zh-CN'));
+        } else if (data.type === 'alert_triggered') {
+          // 处理预警通知
+          console.log('Alert triggered:', data.data);
+          showAlertNotification(data.data);
+        } else if (data.type === 'trading_signal') {
+          // 处理交易信号
+          console.log('Trading signal received:', data.data);
+          showTradingSignal(data.data);
+        } else if (data.type === 'connection_status') {
+          console.log('WebSocket status:', data.message);
+        }
+      } catch (error) {
+        console.error('WebSocket message parsing error:', error);
+      }
+    };
+    
+    ws.current.onclose = () => {
+      console.log('WebSocket disconnected');
+      setIsConnected(false);
+      // 尝试重新连接
+      setTimeout(setupWebSocket, 5000);
+    };
+    
+    ws.current.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      setIsConnected(false);
+    };
+  };
+
+  // 显示预警通知
+  const showAlertNotification = (alertData: any) => {
+    // 这里可以集成浏览器的通知API或自定义通知组件
+    if (Notification.permission === 'granted') {
+      new Notification(`牛熊证预警 - ${alertData.symbol}`, {
+        body: `${alertData.message} - 距回收价: ${alertData.distance_to_knock_out?.toFixed(2)}%`,
+        icon: '/favicon.ico'
+      });
+    }
+    // 也可以在UI中显示通知
+    console.log('Alert notification:', alertData);
+  };
+
+  // 显示交易信号
+  const showTradingSignal = (signalData: any) => {
+    if (Notification.permission === 'granted') {
+      new Notification(`交易信号 - ${signalData.symbol}`, {
+        body: `${signalData.signal} - ${signalData.reason}`,
+        icon: '/favicon.ico'
+      });
+    }
+    console.log('Trading signal:', signalData);
+  };
+
+  // 刷新数据
+  const handleRefresh = () => {
+    loadWarrantsData();
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -152,8 +177,107 @@ const WarrantsMonitoringPage: React.FC = () => {
     }
   };
 
+  // 计算有效杠杆比率 - 改进版本
+  const calculateEffectiveLeverage = (warrant: WarrantData) => {
+    // 有效杠杆 = (正股价格 / 牛熊证价格) * 名义杠杆
+    // 这里假设正股价格是牛熊证价格的10倍（典型关系）
+    const underlyingPriceRatio = 10; // 正股价格与牛熊证价格的典型比例
+    const baseLeverage = warrant.leverage || 1;
+    const effectiveLeverage = baseLeverage * underlyingPriceRatio;
+    return effectiveLeverage;
+  };
+
+  // 计算时间价值衰减 - 改进版本
+  const calculateTimeValueDecay = (warrant: WarrantData) => {
+    // 时间价值衰减 = 剩余天数倒数 * 当前价格 * 衰减因子
+    // 衰减因子根据牛熊证类型和剩余天数调整
+    const baseDecayFactor = warrant.warrant_type === 'BULL' ? 0.015 : 0.012;
+    const timeFactor = Math.max(1 / warrant.time_to_maturity, 0.1); // 最小衰减因子
+    const timeDecay = timeFactor * warrant.current_price * baseDecayFactor;
+    return timeDecay;
+  };
+
+  // 计算距回收价百分比 - 改进版本
+  const calculateDistanceToKnockOut = (warrant: WarrantData) => {
+    if (warrant.knock_out_price <= 0) return 0;
+    
+    // 对于牛证：回收价 > 当前价，距离 = (回收价 - 当前价) / 回收价 * 100
+    // 对于熊证：回收价 < 当前价，距离 = (当前价 - 回收价) / 回收价 * 100
+    let distance;
+    if (warrant.warrant_type === 'BULL') {
+      distance = ((warrant.knock_out_price - warrant.current_price) / warrant.knock_out_price) * 100;
+    } else {
+      distance = ((warrant.current_price - warrant.knock_out_price) / warrant.knock_out_price) * 100;
+    }
+    
+    return Math.max(distance, 0); // 确保不为负
+  };
+
+  // 计算杠杆预警级别
+  const getLeverageAlertLevel = (effectiveLeverage: number) => {
+    if (effectiveLeverage >= 15) return 'danger';
+    if (effectiveLeverage >= 10) return 'warning';
+    return 'normal';
+  };
+
+  // 计算时间价值衰减预警级别
+  const getTimeDecayAlertLevel = (timeDecay: number, timeToMaturity: number) => {
+    // 剩余天数越少，时间价值衰减越严重
+    if (timeToMaturity <= 7 && timeDecay >= 0.5) return 'danger';
+    if (timeToMaturity <= 14 && timeDecay >= 0.3) return 'warning';
+    return 'normal';
+  };
+
+  // 计算成交量异常预警级别
+  const getVolumeAlertLevel = (warrant: WarrantData) => {
+    if (!warrant.volume || !warrant.average_volume) return 'normal';
+    
+    const volumeRatio = warrant.volume / warrant.average_volume;
+    if (volumeRatio >= 3) return 'danger'; // 成交量是平均的3倍以上
+    if (volumeRatio >= 2) return 'warning'; // 成交量是平均的2倍以上
+    return 'normal';
+  };
+
+  // 计算成交量比率
+  const calculateVolumeRatio = (warrant: WarrantData) => {
+    if (!warrant.volume || !warrant.average_volume) return 0;
+    return warrant.volume / warrant.average_volume;
+  };
+
   return (
     <div className="warrants-monitoring-container">
+      {/* 统一导航键 - 专业金融终端标准 */}
+      <div className="warrants-nav-bar">
+        <button className="warrants-nav-btn active">
+          <span className="status-indicator"></span>
+          监控
+        </button>
+        <button className="warrants-nav-btn">
+          <span className="status-indicator"></span>
+          预警
+        </button>
+        <button className="warrants-nav-btn">
+          <span className="status-indicator"></span>
+          分析
+        </button>
+        <button className="warrants-nav-btn">
+          <span className="status-indicator"></span>
+          信号
+        </button>
+        <button className="warrants-nav-btn">
+          <span className="status-indicator"></span>
+          设置
+        </button>
+        <button className="warrants-nav-btn">
+          <span className="status-indicator"></span>
+          历史
+        </button>
+        <button className="warrants-nav-btn">
+          <span className="status-indicator"></span>
+          报告
+        </button>
+      </div>
+
       {/* 顶部状态栏 */}
       <div className="status-bar">
         <div className="status-item">
@@ -252,20 +376,30 @@ const WarrantsMonitoringPage: React.FC = () => {
             </div>
           </div>
 
-          <button className="refresh-btn">
+          <button className="refresh-btn" onClick={handleRefresh}>
             刷新数据
           </button>
         </div>
 
-        {/* 右侧主内容区域 */}
+          {/* 右侧主内容区域 */}
         <div className="main-content">
           <div className="content-header">
             <h2>牛熊证实时监控</h2>
-            <div className="market-stats">
-              <span>活跃牛熊证: {warrants.length}</span>
-              <span>高风险: {warrants.filter(w => w.status === 'danger').length}</span>
-              <span>警告: {warrants.filter(w => w.status === 'warning').length}</span>
-            </div>
+          <div className="market-stats">
+            <span>活跃牛熊证: {warrants.length}</span>
+            <span>高风险: {warrants.filter(w => {
+              const distanceToKnockOut = w.knock_out_price > 0 
+                ? Math.abs((w.current_price - w.knock_out_price) / w.knock_out_price * 100)
+                : 0;
+              return distanceToKnockOut <= 3;
+            }).length}</span>
+            <span>警告: {warrants.filter(w => {
+              const distanceToKnockOut = w.knock_out_price > 0 
+                ? Math.abs((w.current_price - w.knock_out_price) / w.knock_out_price * 100)
+                : 0;
+              return distanceToKnockOut > 3 && distanceToKnockOut <= 8;
+            }).length}</span>
+          </div>
           </div>
 
           {/* 牛熊证数据表格 */}
@@ -274,47 +408,76 @@ const WarrantsMonitoringPage: React.FC = () => {
               <thead>
                 <tr>
                   <th>代码</th>
-                  <th>名称</th>
                   <th>正股</th>
                   <th>现价</th>
-                  <th>涨跌幅</th>
                   <th>回收价</th>
+                  <th>距回收价</th>
+                  <th>有效杠杆</th>
+                  <th>时间衰减</th>
                   <th>类型</th>
-                  <th>杠杆</th>
-                  <th>距回收</th>
+                  <th>名义杠杆</th>
+                  <th>剩余天数</th>
                   <th>成交量</th>
-                  <th>时间价值</th>
+                  <th>成交量比率</th>
                   <th>状态</th>
                 </tr>
               </thead>
               <tbody>
-                {warrants.map((warrant) => (
-                  <tr key={warrant.id} className={`warrant-row ${warrant.status}`}>
-                    <td className="code">{warrant.code}</td>
-                    <td className="name">{warrant.name}</td>
-                    <td className="underlying">{warrant.underlying}</td>
-                    <td className="price">${warrant.currentPrice.toFixed(2)}</td>
-                    <td className={`change ${warrant.changePercent >= 0 ? 'positive' : 'negative'}`}>
-                      {warrant.changePercent >= 0 ? '+' : ''}{warrant.changePercent.toFixed(2)}%
-                    </td>
-                    <td className="strike">${warrant.strikePrice}</td>
-                    <td className={`type ${warrant.callPut === 'C' ? 'bull' : 'bear'}`}>
-                      {warrant.callPut === 'C' ? '牛证' : '熊证'}
-                    </td>
-                    <td className="leverage">{warrant.leverage.toFixed(1)}x</td>
-                    <td className="distance">{warrant.distanceToStrike.toFixed(1)}%</td>
-                    <td className="volume">{(warrant.volume / 10000).toFixed(1)}万</td>
-                    <td className="time-value">{warrant.timeValue.toFixed(2)}</td>
-                    <td className="status">
-                      <span 
-                        className="status-badge"
-                        style={{ backgroundColor: getStatusColor(warrant.status) }}
-                      >
-                        {getStatusText(warrant.status)}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {warrants.map((warrant, index) => {
+                  // 计算距回收价百分比（基于正股价格和回收价）
+                  const distanceToKnockOut = warrant.knock_out_price > 0 
+                    ? Math.abs((warrant.current_price - warrant.knock_out_price) / warrant.knock_out_price * 100)
+                    : 0;
+                  
+                  // 计算有效杠杆和时间衰减
+                  const effectiveLeverage = calculateEffectiveLeverage(warrant);
+                  const timeValueDecay = calculateTimeValueDecay(warrant);
+                  
+                  // 根据距回收价确定预警级别
+                  const alertLevel = distanceToKnockOut <= 3 ? 'danger' : 
+                                   distanceToKnockOut <= 8 ? 'warning' : 'normal';
+                  
+                  // 计算杠杆和时间衰减的预警级别
+                  const leverageAlertLevel = getLeverageAlertLevel(effectiveLeverage);
+                  const timeDecayAlertLevel = getTimeDecayAlertLevel(timeValueDecay, warrant.time_to_maturity);
+                  const volumeAlertLevel = getVolumeAlertLevel(warrant);
+                  const volumeRatio = calculateVolumeRatio(warrant);
+                  
+                  return (
+                    <tr key={`${warrant.symbol}-${index}`} className={`warrant-row ${alertLevel}`}>
+                      <td className="code">{warrant.symbol}</td>
+                      <td className="underlying">{warrant.underlying_symbol}</td>
+                      <td className="price">${warrant.current_price.toFixed(2)}</td>
+                      <td className="strike">${warrant.knock_out_price.toFixed(2)}</td>
+                      <td className="distance">{distanceToKnockOut.toFixed(2)}%</td>
+                      <td className={`effective-leverage ${leverageAlertLevel}`}>
+                        {effectiveLeverage.toFixed(1)}x
+                      </td>
+                      <td className={`time-decay ${timeDecayAlertLevel}`}>
+                        {timeValueDecay.toFixed(3)}
+                      </td>
+                      <td className={`type ${warrant.warrant_type === 'BULL' ? 'bull' : 'bear'}`}>
+                        {warrant.warrant_type === 'BULL' ? '牛证' : '熊证'}
+                      </td>
+                      <td className="nominal-leverage">{warrant.leverage.toFixed(1)}x</td>
+                      <td className="time-to-maturity">{warrant.time_to_maturity}天</td>
+                      <td className={`volume ${volumeAlertLevel}`}>
+                        {warrant.volume ? warrant.volume.toLocaleString() : 'N/A'}
+                      </td>
+                      <td className={`volume-ratio ${volumeAlertLevel}`}>
+                        {volumeRatio > 0 ? volumeRatio.toFixed(2) + 'x' : 'N/A'}
+                      </td>
+                      <td className="status">
+                        <span 
+                          className="status-badge"
+                          style={{ backgroundColor: getStatusColor(alertLevel) }}
+                        >
+                          {getStatusText(alertLevel)}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -323,15 +486,15 @@ const WarrantsMonitoringPage: React.FC = () => {
           <div className="info-panel">
             <div className="info-item">
               <span className="info-label">数据更新:</span>
-              <span className="info-value">实时</span>
+              <span className="info-value">{isConnected ? '实时' : '离线'}</span>
             </div>
             <div className="info-item">
-              <span className="info-label">监控品种:</span>
-              <span className="info-value">{warrants.length}</span>
+              <span className="info-label">连接状态:</span>
+              <span className="info-value">{isConnected ? '已连接' : '断开'}</span>
             </div>
             <div className="info-item">
               <span className="info-label">最后刷新:</span>
-              <span className="info-value">{new Date().toLocaleTimeString('zh-CN')}</span>
+              <span className="info-value">{lastUpdate || '未刷新'}</span>
             </div>
           </div>
         </div>

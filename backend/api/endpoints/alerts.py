@@ -3,13 +3,13 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 
-from database import get_db
-from models.alerts import (
+from backend.database import get_db
+from backend.models.alerts import (
     Alert, AlertCreate, AlertUpdate, AlertResponse, 
     AlertTriggerResponse, AlertStatus, AlertConditionType,
     NotificationType
 )
-from services.alert_service import AlertService
+from backend.services.alert_service import AlertService
 
 router = APIRouter()
 

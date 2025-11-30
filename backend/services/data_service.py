@@ -4,8 +4,8 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 import pandas as pd
 import ccxt
-from models.market_data import KlineData, MarketType, Timeframe
-from database import get_influxdb
+from backend.models.market_data import KlineData, MarketType, Timeframe
+from backend.database import get_influxdb
 from .websocket_manager import websocket_manager
 from .yfinance_data_service import yfinance_data_service
 

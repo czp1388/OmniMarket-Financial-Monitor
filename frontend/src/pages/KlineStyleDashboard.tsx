@@ -305,6 +305,18 @@ const KlineStyleDashboard: React.FC = () => {
           </button>
           <button 
             className="nav-btn"
+            onClick={() => navigate('/auto-trading')}
+          >
+            全自动交易
+          </button>
+          <button 
+            className="nav-btn"
+            onClick={() => navigate('/semi-auto-trading')}
+          >
+            半自动交易
+          </button>
+          <button 
+            className="nav-btn"
             onClick={() => navigate('/settings')}
           >
             系统设置

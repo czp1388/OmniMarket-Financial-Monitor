@@ -16,12 +16,13 @@ from typing import List, Dict, Any
 import json
 import logging
 
-from config import settings
-from database import init_db
-from api.routes import api_router
-from services.data_service import DataService
-from services.alert_service import alert_service
-from services.websocket_manager import websocket_manager
+from backend.config import settings
+from backend.database import init_db
+from backend.api.routes import api_router
+from backend.services.data_service import DataService
+from backend.services.alert_service import alert_service
+from backend.services.websocket_manager import websocket_manager
+from backend.services.warrants_monitoring_service import warrants_monitoring_service
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -45,6 +46,10 @@ async def lifespan(app: FastAPI):
     # 启动WebSocket服务器
     logger.info("启动WebSocket服务器...")
     websocket_server = await websocket_manager.start_websocket_server()
+    
+    # 启动牛熊证监控服务
+    logger.info("启动牛熊证监控服务...")
+    await warrants_monitoring_service.initialize_monitoring()
     
     yield  # 应用运行期间
     

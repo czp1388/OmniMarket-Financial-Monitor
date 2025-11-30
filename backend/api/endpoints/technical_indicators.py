@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-from database import get_db
-from services.technical_analysis_service import technical_analysis_service
+from backend.database import get_db
+from backend.services.technical_analysis_service import technical_analysis_service
 
 router = APIRouter()
 

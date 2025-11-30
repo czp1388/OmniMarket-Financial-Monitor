@@ -6,9 +6,9 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from typing import Dict, List, Optional, Any
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from services.auto_trading_service import (
+from backend.services.auto_trading_service import (
     auto_trading_service,
     AutoTradingStrategy,
     TradingStatus
@@ -16,7 +16,7 @@ from services.auto_trading_service import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/auto-trading", tags=["auto-trading"])
+router = APIRouter(prefix="", tags=["auto-trading"])
 
 
 @router.post("/start")
@@ -419,6 +419,119 @@ def _assess_overall_risk(risk_metrics: Dict, emergency_brakes: Dict) -> str:
 
 
 # 示例数据端点
+@router.get("/trade-logs")
+async def get_trade_logs():
+    """
+    获取交易日志
+    
+    Returns:
+        Dict: 交易日志数据
+    """
+    try:
+        # 模拟交易日志数据
+        logs = [
+            {
+                "id": "1",
+                "timestamp": datetime.now().isoformat(),
+                "symbol": "AAPL",
+                "action": "BUY",
+                "quantity": 100,
+                "price": 150.25,
+                "profit_loss": 0,
+                "strategy": "trend_following",
+                "status": "EXECUTED"
+            },
+            {
+                "id": "2",
+                "timestamp": datetime.now().isoformat(),
+                "symbol": "TSLA",
+                "action": "SELL",
+                "quantity": 50,
+                "price": 250.75,
+                "profit_loss": 1250.50,
+                "strategy": "momentum",
+                "status": "EXECUTED"
+            },
+            {
+                "id": "3",
+                "timestamp": datetime.now().isoformat(),
+                "symbol": "MSFT",
+                "action": "BUY",
+                "quantity": 75,
+                "price": 320.10,
+                "profit_loss": 0,
+                "strategy": "breakout",
+                "status": "PENDING"
+            }
+        ]
+        
+        return {
+            "success": True,
+            "logs": logs,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"获取交易日志失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"获取交易日志失败: {str(e)}")
+
+
+@router.get("/trading-history")
+async def get_trading_history():
+    """
+    获取交易历史
+    
+    Returns:
+        Dict: 交易历史数据
+    """
+    try:
+        # 模拟交易历史数据
+        history = [
+            {
+                "date": datetime.now().strftime("%Y-%m-%d"),
+                "total_trades": 25,
+                "successful_trades": 18,
+                "profit_loss": 3250.75,
+                "volume": 125000,
+                "win_rate": 0.72
+            },
+            {
+                "date": (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d"),
+                "total_trades": 18,
+                "successful_trades": 12,
+                "profit_loss": 1850.25,
+                "volume": 85000,
+                "win_rate": 0.67
+            },
+            {
+                "date": (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d"),
+                "total_trades": 22,
+                "successful_trades": 15,
+                "profit_loss": -450.50,
+                "volume": 110000,
+                "win_rate": 0.68
+            },
+            {
+                "date": (datetime.now() - timedelta(days=3)).strftime("%Y-%m-%d"),
+                "total_trades": 30,
+                "successful_trades": 22,
+                "profit_loss": 4200.00,
+                "volume": 150000,
+                "win_rate": 0.73
+            }
+        ]
+        
+        return {
+            "success": True,
+            "history": history,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"获取交易历史失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"获取交易历史失败: {str(e)}")
+
+
 @router.get("/sample-config")
 async def get_sample_config():
     """

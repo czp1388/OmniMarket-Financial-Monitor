@@ -1,22 +1,27 @@
 """
 牛熊证分析引擎API端点
 提供专业的风险分析、策略分析和模拟回测功能
+集成高级风险分析服务
 """
 
 from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, List, Optional
 import logging
 
-from services.warrants_analysis_service import (
+from backend.services.warrants_analysis_service import (
     warrants_analysis_service,
     WarrantAnalysis,
     RiskLevel,
     WarrantType
 )
+from backend.services.warrants_risk_analysis import (
+    warrants_risk_analysis_service,
+    WarrantsRiskAnalysisService
+)
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/warrants-analysis", tags=["warrants-analysis"])
+router = APIRouter(prefix="", tags=["warrants-analysis"])
 
 
 @router.post("/analyze-single", response_model=WarrantAnalysis)
@@ -273,6 +278,208 @@ def _get_safety_interpretation(safety_margin: float) -> str:
         return "投资安全边际较低，建议谨慎操作"
     else:
         return "投资安全边际极低，建议避免或立即处理"
+
+
+# 风险分析端点
+@router.post("/risk-analysis/comprehensive")
+async def comprehensive_risk_analysis(warrant_data: Dict):
+    """
+    综合风险分析
+    使用高级风险分析服务进行全面的风险评估
+    
+    Args:
+        warrant_data: 牛熊证数据
+        
+    Returns:
+        Dict: 综合风险分析结果
+    """
+    try:
+        analysis_result = warrants_risk_analysis_service.comprehensive_risk_analysis(warrant_data)
+        return analysis_result
+    except Exception as e:
+        logger.error(f"综合风险分析失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"风险分析失败: {str(e)}")
+
+
+@router.post("/risk-analysis/batch")
+async def batch_risk_analysis(warrants_list: List[Dict]):
+    """
+    批量风险分析
+    批量分析多个牛熊证的风险
+    
+    Args:
+        warrants_list: 牛熊证数据列表
+        
+    Returns:
+        List[Dict]: 批量分析结果
+    """
+    try:
+        results = await warrants_risk_analysis_service.analyze_warrants_batch(warrants_list)
+        return results
+    except Exception as e:
+        logger.error(f"批量风险分析失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"批量风险分析失败: {str(e)}")
+
+
+@router.post("/risk-analysis/summary")
+async def get_risk_summary(analysis_results: List[Dict]):
+    """
+    获取风险汇总统计
+    根据分析结果生成风险汇总报告
+    
+    Args:
+        analysis_results: 风险分析结果列表
+        
+    Returns:
+        Dict: 风险汇总统计
+    """
+    try:
+        summary = warrants_risk_analysis_service.get_risk_summary(analysis_results)
+        return summary
+    except Exception as e:
+        logger.error(f"生成风险汇总失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"风险汇总生成失败: {str(e)}")
+
+
+@router.get("/risk-analysis/knock-out-probability")
+async def calculate_knock_out_probability(
+    current_price: float,
+    knock_out_price: float,
+    volatility: float,
+    time_to_expiry: int,
+    warrant_type: str
+):
+    """
+    计算触回收概率
+    基于Black-Scholes模型的专业概率计算
+    
+    Args:
+        current_price: 当前正股价格
+        knock_out_price: 回收价
+        volatility: 年化波动率
+        time_to_expiry: 剩余到期天数
+        warrant_type: 牛熊证类型 ('BULL' or 'BEAR')
+        
+    Returns:
+        Dict: 触回收概率结果
+    """
+    try:
+        probability = warrants_risk_analysis_service.calculate_knock_out_probability(
+            current_price, knock_out_price, volatility, time_to_expiry, warrant_type
+        )
+        return {
+            "knock_out_probability": probability,
+            "interpretation": _get_probability_interpretation(probability)
+        }
+    except Exception as e:
+        logger.error(f"触回收概率计算失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"概率计算失败: {str(e)}")
+
+
+@router.get("/risk-analysis/time-decay")
+async def calculate_time_decay(
+    current_price: float,
+    strike_price: float,
+    time_to_expiry: int,
+    interest_rate: float = 0.03,
+    volatility: float = 0.3
+):
+    """
+    计算时间价值衰减
+    估算牛熊证时间价值衰减
+    
+    Args:
+        current_price: 当前正股价格
+        strike_price: 行使价
+        time_to_expiry: 剩余到期天数
+        interest_rate: 无风险利率
+        volatility: 年化波动率
+        
+    Returns:
+        Dict: 时间价值衰减分析
+    """
+    try:
+        decay_analysis = warrants_risk_analysis_service.calculate_time_decay_estimate(
+            current_price, strike_price, time_to_expiry, interest_rate, volatility
+        )
+        return decay_analysis
+    except Exception as e:
+        logger.error(f"时间价值衰减计算失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"时间衰减计算失败: {str(e)}")
+
+
+@router.get("/risk-analysis/leverage")
+async def analyze_leverage_effect(
+    warrant_price: float,
+    underlying_price: float,
+    conversion_ratio: float,
+    warrant_type: str
+):
+    """
+    分析杠杆效应
+    计算牛熊证的杠杆效应和风险
+    
+    Args:
+        warrant_price: 牛熊证价格
+        underlying_price: 正股价格
+        conversion_ratio: 兑换比率
+        warrant_type: 牛熊证类型
+        
+    Returns:
+        Dict: 杠杆效应分析结果
+    """
+    try:
+        leverage_analysis = warrants_risk_analysis_service.analyze_leverage_effect(
+            warrant_price, underlying_price, conversion_ratio, warrant_type
+        )
+        return leverage_analysis
+    except Exception as e:
+        logger.error(f"杠杆效应分析失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"杠杆分析失败: {str(e)}")
+
+
+@router.get("/risk-analysis/safety-margin")
+async def calculate_safety_margin_advanced(
+    current_price: float,
+    knock_out_price: float,
+    warrant_type: str,
+    volatility: float
+):
+    """
+    计算安全边际（高级版）
+    使用波动率调整的安全边际计算
+    
+    Args:
+        current_price: 当前正股价格
+        knock_out_price: 回收价
+        warrant_type: 牛熊证类型
+        volatility: 波动率
+        
+    Returns:
+        Dict: 安全边际分析结果
+    """
+    try:
+        margin_analysis = warrants_risk_analysis_service.calculate_safety_margin(
+            current_price, knock_out_price, warrant_type, volatility
+        )
+        return margin_analysis
+    except Exception as e:
+        logger.error(f"安全边际计算失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"安全边际计算失败: {str(e)}")
+
+
+def _get_probability_interpretation(probability: float) -> str:
+    """获取概率解释"""
+    if probability >= 0.8:
+        return "极高风险 - 随时可能触发回收"
+    elif probability >= 0.6:
+        return "高风险 - 很可能触发回收"
+    elif probability >= 0.4:
+        return "中等风险 - 可能触发回收"
+    elif probability >= 0.2:
+        return "低风险 - 不太可能触发回收"
+    else:
+        return "极低风险 - 几乎不可能触发回收"
 
 
 # 示例数据端点

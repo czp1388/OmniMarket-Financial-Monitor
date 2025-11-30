@@ -28,6 +28,8 @@ class WarrantData(BaseModel):
     leverage: float = Field(..., description="有效杠杆")
     time_to_maturity: float = Field(..., description="剩余到期时间（天）")
     status: WarrantStatus = Field(..., description="状态")
+    volume: Optional[float] = Field(None, description="当日成交量")
+    average_volume: Optional[float] = Field(None, description="平均成交量")
     last_updated: datetime = Field(default_factory=datetime.now, description="最后更新时间")
 
 
@@ -40,6 +42,8 @@ class WarrantMonitoringAlert(BaseModel):
     trigger_price: float = Field(..., description="触发价格")
     created_at: datetime = Field(default_factory=datetime.now, description="创建时间")
     is_active: bool = Field(default=True, description="是否活跃")
+    triggered: bool = Field(default=False, description="是否已触发")
+    triggered_at: Optional[datetime] = Field(None, description="触发时间")
 
 
 class WarrantAnalysisResult(BaseModel):
@@ -49,22 +53,22 @@ class WarrantAnalysisResult(BaseModel):
     warrant_type: WarrantType = Field(..., description="牛熊证类型")
     
     # 风险分析
-    knock_out_probability: float = Field(..., description="触回收概率")
-    time_value_decay: float = Field(..., description="时间价值衰减率")
-    safety_margin: float = Field(..., description="安全边际")
+    knock_out_probability: float = Field(default=0.0, description="触回收概率")
+    time_value_decay: float = Field(default=0.0, description="时间价值衰减率")
+    safety_margin: float = Field(default=0.0, description="安全边际")
     
     # 技术分析
-    underlying_trend: str = Field(..., description="正股趋势")
-    price_divergence: float = Field(..., description="价格背离度")
+    underlying_trend: str = Field(default="neutral", description="正股趋势")
+    price_divergence: float = Field(default=0.0, description="价格背离度")
     
     # 风险评估
-    max_loss_estimate: float = Field(..., description="最大损失估算")
-    reward_risk_ratio: float = Field(..., description="收益风险比")
+    max_loss_estimate: float = Field(default=0.0, description="最大损失估算")
+    reward_risk_ratio: float = Field(default=0.0, description="收益风险比")
     
     # 监控数据
     distance_to_knock_out: float = Field(..., description="距回收价距离")
-    leverage_ratio: float = Field(..., description="杠杆比率")
-    volume_anomaly: bool = Field(..., description="成交量异常")
+    leverage_ratio: float = Field(default=0.0, description="杠杆比率")
+    volume_anomaly: bool = Field(default=False, description="成交量异常")
     
     analysis_time: datetime = Field(default_factory=datetime.now, description="分析时间")
 

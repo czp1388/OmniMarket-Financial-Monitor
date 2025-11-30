@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, timedelta
 
-from database import get_db
-from models.market_data import Kline, KlineCreate, TickerData, MarketType, Timeframe
-from services.data_service import DataService
+from backend.database import get_db
+from backend.models.market_data import Kline, KlineCreate, TickerData, MarketType, Timeframe
+from backend.services.data_service import DataService
 
 router = APIRouter()
 

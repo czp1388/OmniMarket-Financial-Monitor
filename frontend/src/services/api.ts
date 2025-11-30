@@ -180,9 +180,15 @@ export class ApiService {
     // 获取风险指标
     getRiskMetrics: () => apiClient.get('/auto-trading/risk-metrics'),
     
+    // 获取交易日志
+    getTradeLogs: () => apiClient.get('/auto-trading/trade-logs'),
+    
+    // 获取交易历史
+    getTradingHistory: () => apiClient.get('/auto-trading/trading-history'),
+    
     // 启动交易
-    start: (strategyId: string, config?: any) => 
-      apiClient.post('/auto-trading/start', { strategy_id: strategyId, config }),
+    start: (strategies: string[], config?: any) => 
+      apiClient.post('/auto-trading/start', { strategies, config }),
     
     // 停止交易
     stop: () => apiClient.post('/auto-trading/stop'),
@@ -201,6 +207,92 @@ export class ApiService {
     
     // 配置交易参数
     configure: (config: any) => apiClient.post('/auto-trading/configure', config),
+  };
+
+  // 牛熊证监控API
+  static warrants = {
+    // 获取所有牛熊证
+    getAllWarrants: () => apiClient.get('/warrants-monitoring/warrants'),
+    
+    // 获取指定牛熊证
+    getWarrant: (warrantCode: string) => apiClient.get(`/warrants-monitoring/warrants/${warrantCode}`),
+    
+    // 获取活跃预警
+    getActiveAlerts: () => apiClient.get('/warrants-monitoring/alerts'),
+    
+    // 确认预警
+    acknowledgeAlert: (warrantCode: string) => apiClient.post(`/warrants-monitoring/alerts/${warrantCode}/acknowledge`),
+    
+    // 获取牛熊证指标
+    getWarrantMetrics: (warrantCode: string) => apiClient.get(`/warrants-monitoring/metrics/${warrantCode}`),
+    
+    // 启动监控
+    startMonitoring: () => apiClient.post('/warrants-monitoring/monitoring/start'),
+    
+    // 停止监控
+    stopMonitoring: () => apiClient.post('/warrants-monitoring/monitoring/stop'),
+    
+    // 获取监控状态
+    getMonitoringStatus: () => apiClient.get('/warrants-monitoring/status'),
+    
+    // 获取示例数据
+    getSampleWarrants: () => apiClient.get('/warrants-monitoring/sample-warrants'),
+  };
+
+  // 牛熊证分析API
+  static warrantsAnalysis = {
+    // 分析单只牛熊证
+    analyzeSingle: (warrantData: any, underlyingData: any[], marketConditions?: any) =>
+      apiClient.post('/warrants-analysis/analyze-single', {
+        warrant_data: warrantData,
+        underlying_data: underlyingData,
+        market_conditions: marketConditions
+      }),
+    
+    // 批量分析牛熊证
+    analyzeBatch: (warrantsData: any[], underlyingDataDict: any) =>
+      apiClient.post('/warrants-analysis/analyze-batch', {
+        warrants_data: warrantsData,
+        underlying_data_dict: underlyingDataDict
+      }),
+    
+    // 策略回测
+    backtestStrategy: (strategyType: string, historicalData: any, initialCapital?: number) =>
+      apiClient.post('/warrants-analysis/backtest', {
+        strategy_type: strategyType,
+        historical_data: historicalData,
+        initial_capital: initialCapital
+      }),
+    
+    // 风险评估
+    assessRisk: (distanceToKnockOut: number, probabilityKnockOut: number, effectiveLeverage: number) =>
+      apiClient.get('/warrants-analysis/risk-assessment', {
+        params: {
+          distance_to_knock_out: distanceToKnockOut,
+          probability_knock_out: probabilityKnockOut,
+          effective_leverage: effectiveLeverage
+        }
+      }),
+    
+    // 计算安全边际
+    calculateSafetyMargin: (distanceToKnockOut: number, probabilityKnockOut: number, effectiveLeverage: number) =>
+      apiClient.get('/warrants-analysis/safety-margin', {
+        params: {
+          distance_to_knock_out: distanceToKnockOut,
+          probability_knock_out: probabilityKnockOut,
+          effective_leverage: effectiveLeverage
+        }
+      }),
+    
+    // 生成交易信号
+    generateTradingSignal: (warrantData: any, underlyingData: any[]) =>
+      apiClient.post('/warrants-analysis/trading-signal', {
+        warrant_data: warrantData,
+        underlying_data: underlyingData
+      }),
+    
+    // 获取示例数据
+    getSampleData: () => apiClient.get('/warrants-analysis/sample-data'),
   };
 }
 
