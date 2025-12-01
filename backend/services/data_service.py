@@ -8,6 +8,10 @@ from backend.models.market_data import KlineData, MarketType, Timeframe
 from backend.database import get_influxdb
 from .websocket_manager import websocket_manager
 from .yfinance_data_service import yfinance_data_service
+from .alpha_vantage_service import alpha_vantage_service
+from .coingecko_service import coingecko_service
+from .akshare_service import akshare_service
+from .data_cache_service import data_cache_service
 
 logger = logging.getLogger(__name__)
 
@@ -41,61 +45,114 @@ class DataService:
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None
     ) -> List[KlineData]:
-        """获取K线数据"""
+        """获取K线数据 - 集成多个免费数据源"""
         try:
+            # 生成缓存键
+            cache_key = f"klines_{symbol}_{market_type.value}_{timeframe.value}_{limit}"
+            
+            # 尝试从缓存获取
+            cached_data = await data_cache_service.get(cache_key)
+            if cached_data:
+                logger.debug(f"从缓存获取K线数据: {symbol}")
+                return cached_data
+            
+            klines = []
+            
             if market_type == MarketType.CRYPTO:
-                exchange = self.exchanges.get('binance')
-                if not exchange:
-                    raise ValueError("加密货币交易所未初始化")
-                
-                # 转换时间框架到ccxt格式
-                tf_mapping = {
-                    Timeframe.MINUTE_1: '1m',
-                    Timeframe.MINUTE_5: '5m',
-                    Timeframe.MINUTE_15: '15m',
-                    Timeframe.HOUR_1: '1h',
-                    Timeframe.HOUR_4: '4h',
-                    Timeframe.DAILY: '1d',
-                    Timeframe.WEEKLY: '1w',
-                    Timeframe.MONTHLY: '1M'
-                }
-                
-                ccxt_tf = tf_mapping.get(timeframe, '1h')
-                
-                # 获取OHLCV数据
-                ohlcv = exchange.fetch_ohlcv(symbol, ccxt_tf, limit=limit)
-                
-                klines = []
-                for data in ohlcv:
-                    kline = KlineData(
-                        symbol=symbol,
-                        timeframe=timeframe,
-                        market_type=market_type,
-                        timestamp=datetime.fromtimestamp(data[0] / 1000),
-                        open=data[1],
-                        high=data[2],
-                        low=data[3],
-                        close=data[4],
-                        volume=data[5]
-                    )
-                    klines.append(kline)
-                
-                # 保存到InfluxDB
-                await self._save_to_influxdb(klines)
-                
-                return klines
+                # 优先使用CoinGecko，其次是Alpha Vantage，最后是交易所
+                try:
+                    klines = await coingecko_service.get_crypto_klines(symbol, timeframe, limit)
+                    if klines:
+                        logger.info(f"使用CoinGecko获取加密货币K线数据: {symbol}")
+                except Exception as e1:
+                    logger.warning(f"CoinGecko获取失败，尝试Alpha Vantage: {e1}")
+                    try:
+                        klines = await alpha_vantage_service.get_crypto_klines(symbol, timeframe, limit)
+                        if klines:
+                            logger.info(f"使用Alpha Vantage获取加密货币K线数据: {symbol}")
+                    except Exception as e2:
+                        logger.warning(f"Alpha Vantage获取失败，尝试交易所: {e2}")
+                        try:
+                            exchange_instance = self.exchanges.get('binance')
+                            if exchange_instance:
+                                # 转换时间框架到ccxt格式
+                                tf_mapping = {
+                                    Timeframe.MINUTE_1: '1m',
+                                    Timeframe.MINUTE_5: '5m',
+                                    Timeframe.MINUTE_15: '15m',
+                                    Timeframe.HOUR_1: '1h',
+                                    Timeframe.HOUR_4: '4h',
+                                    Timeframe.DAILY: '1d',
+                                    Timeframe.WEEKLY: '1w',
+                                    Timeframe.MONTHLY: '1M'
+                                }
+                                ccxt_tf = tf_mapping.get(timeframe, '1h')
+                                
+                                ohlcv = exchange_instance.fetch_ohlcv(symbol, ccxt_tf, limit=limit)
+                                klines = []
+                                for data in ohlcv:
+                                    kline = KlineData(
+                                        symbol=symbol,
+                                        timeframe=timeframe,
+                                        market_type=market_type,
+                                        timestamp=datetime.fromtimestamp(data[0] / 1000),
+                                        open=data[1],
+                                        high=data[2],
+                                        low=data[3],
+                                        close=data[4],
+                                        volume=data[5]
+                                    )
+                                    klines.append(kline)
+                                logger.info(f"使用交易所获取加密货币K线数据: {symbol}")
+                        except Exception as e3:
+                            logger.error(f"所有加密货币数据源都失败: {e3}")
                 
             elif market_type == MarketType.STOCK:
-                # 使用Yahoo Finance获取股票数据
-                return await yfinance_data_service.get_stock_klines(symbol, timeframe, limit, start_time, end_time)
-                
+                # 优先使用Alpha Vantage，其次是Yahoo Finance，最后是AkShare
+                try:
+                    klines = await alpha_vantage_service.get_stock_klines(symbol, timeframe, limit, start_time, end_time)
+                    if klines:
+                        logger.info(f"使用Alpha Vantage获取股票K线数据: {symbol}")
+                except Exception as e1:
+                    logger.warning(f"Alpha Vantage获取失败，尝试Yahoo Finance: {e1}")
+                    try:
+                        klines = await yfinance_data_service.get_stock_klines(symbol, timeframe, limit, start_time, end_time)
+                        if klines:
+                            logger.info(f"使用Yahoo Finance获取股票K线数据: {symbol}")
+                    except Exception as e2:
+                        logger.warning(f"Yahoo Finance获取失败，尝试AkShare: {e2}")
+                        try:
+                            klines = await akshare_service.get_stock_klines(symbol, timeframe, limit, start_time, end_time)
+                            if klines:
+                                logger.info(f"使用AkShare获取股票K线数据: {symbol}")
+                        except Exception as e3:
+                            logger.error(f"所有股票数据源都失败: {e3}")
+            
+            elif market_type == MarketType.FOREX:
+                # 使用Alpha Vantage获取外汇数据
+                try:
+                    klines = await alpha_vantage_service.get_forex_klines(symbol, timeframe, limit)
+                    if klines:
+                        logger.info(f"使用Alpha Vantage获取外汇K线数据: {symbol}")
+                except Exception as e:
+                    logger.error(f"外汇数据获取失败: {e}")
+            
             else:
-                # 其他市场类型的实现（外汇等）
-                return await self._get_mock_data(symbol, timeframe, market_type, limit)
+                # 其他市场类型使用模拟数据
+                klines = await self._get_mock_data(symbol, timeframe, market_type, limit)
+                logger.info(f"使用模拟数据: {symbol}")
+            
+            # 如果获取到数据，保存到缓存
+            if klines:
+                await data_cache_service.set(cache_key, klines, ttl=300)  # 缓存5分钟
+                # 保存到InfluxDB
+                await self._save_to_influxdb(klines)
+            
+            return klines
                 
         except Exception as e:
             logger.error(f"获取K线数据失败: {e}")
-            return []
+            return await self._get_mock_data(symbol, timeframe, market_type, limit)
     
     async def _save_to_influxdb(self, klines: List[KlineData]):
         """保存数据到InfluxDB"""

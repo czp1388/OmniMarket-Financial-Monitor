@@ -154,6 +154,56 @@ interface StrategyComparison {
   risk_adjusted_return: number;
 }
 
+// LEAN回测相关类型
+interface LeanBacktestRequest {
+  strategy_id: string;
+  symbol: string;
+  exchange: string;
+  timeframe: string;
+  start_date: string;
+  end_date: string;
+  capital: number;
+  parameters?: Record<string, any>;
+  data_source?: string;
+}
+
+interface LeanBacktestResult {
+  backtest_id: string;
+  status: string;
+  progress: number;
+  statistics?: {
+    total_return: number;
+    sharpe_ratio: number;
+    max_drawdown: number;
+    total_trades: number;
+    win_rate: number;
+    profit_factor: number;
+    alpha: number;
+    beta: number;
+  };
+  equity_curve?: Array<{ timestamp: string; equity: number }>;
+  trades?: Array<{
+    timestamp: string;
+    symbol: string;
+    action: string;
+    quantity: number;
+    price: number;
+    profit_loss: number;
+  }>;
+  error?: string;
+  started_at: string;
+  completed_at?: string;
+}
+
+interface LeanStrategyTemplate {
+  id: string;
+  name: string;
+  description: string;
+  default_parameters: Record<string, any>;
+  supported_markets: string[];
+  risk_level: string;
+}
+
 // API响应类型定义
 interface ApiResponse<T> {
   success: boolean;
@@ -206,6 +256,47 @@ const AutoTradingPage: React.FC = () => {
     volatility_threshold: 0.3
   });
 
+  // LEAN回测相关状态
+  const [leanBacktestRequest, setLeanBacktestRequest] = useState<LeanBacktestRequest>({
+    strategy_id: 'moving_average_crossover',
+    symbol: 'AAPL',
+    exchange: 'NASDAQ',
+    timeframe: 'daily',
+    start_date: '2024-01-01',
+    end_date: '2024-12-31',
+    capital: 10000,
+    data_source: 'yfinance'
+  });
+  const [leanBacktestResults, setLeanBacktestResults] = useState<LeanBacktestResult[]>([]);
+  const [leanStrategies, setLeanStrategies] = useState<LeanStrategyTemplate[]>([
+    {
+      id: 'moving_average_crossover',
+      name: '移动平均线交叉',
+      description: '基于短期和长期移动平均线交叉的交易策略',
+      default_parameters: { fast_period: 10, slow_period: 30 },
+      supported_markets: ['US', 'HK'],
+      risk_level: '中等风险'
+    },
+    {
+      id: 'rsi_overbought_oversold',
+      name: 'RSI超买超卖',
+      description: '基于RSI指标的超买超卖信号进行交易',
+      default_parameters: { rsi_period: 14, overbought: 70, oversold: 30 },
+      supported_markets: ['US', 'HK', 'CN'],
+      risk_level: '中等风险'
+    },
+    {
+      id: 'mean_reversion',
+      name: '均值回归',
+      description: '基于价格偏离均值的回归交易策略',
+      default_parameters: { lookback_period: 20, std_dev: 2 },
+      supported_markets: ['US', 'HK'],
+      risk_level: '高风险'
+    }
+  ]);
+  const [activeLeanBacktests, setActiveLeanBacktests] = useState<LeanBacktestResult[]>([]);
+  const [leanBacktestLoading, setLeanBacktestLoading] = useState(false);
+
   // 从本地存储加载配置
   useEffect(() => {
     const savedConfig = localStorage.getItem('auto_trading_config');
@@ -235,38 +326,38 @@ const AutoTradingPage: React.FC = () => {
       
       // 加载交易状态
       const statusResponse = await ApiService.autoTrading.getStatus();
-      if (statusResponse && statusResponse.success && statusResponse.status) {
-        setTradingStatus(statusResponse.status);
+      if (statusResponse.data?.success && statusResponse.data.status) {
+        setTradingStatus(statusResponse.data.status);
       }
 
       // 加载策略列表
       const strategiesResponse = await ApiService.autoTrading.getStrategies();
-      if (strategiesResponse && strategiesResponse.success && strategiesResponse.strategies) {
-        setStrategies(strategiesResponse.strategies);
+      if (strategiesResponse.data?.success && strategiesResponse.data.strategies) {
+        setStrategies(strategiesResponse.data.strategies);
       }
 
       // 加载绩效数据
       const performanceResponse = await ApiService.autoTrading.getPerformance();
-      if (performanceResponse && performanceResponse.success && performanceResponse.performance) {
-        setPerformance(performanceResponse.performance);
+      if (performanceResponse.data?.success && performanceResponse.data.performance) {
+        setPerformance(performanceResponse.data.performance);
       }
 
       // 加载风险指标
       const riskResponse = await ApiService.autoTrading.getRiskMetrics();
-      if (riskResponse && riskResponse.success && riskResponse.risk_assessment) {
-        setRiskMetrics(riskResponse.risk_assessment);
+      if (riskResponse.data?.success && riskResponse.data.risk_assessment) {
+        setRiskMetrics(riskResponse.data.risk_assessment);
       }
 
       // 加载交易日志
       const logsResponse = await ApiService.autoTrading.getTradeLogs();
-      if (logsResponse && logsResponse.success && logsResponse.logs) {
-        setTradeLogs(logsResponse.logs);
+      if (logsResponse.data?.success && logsResponse.data.data?.logs) {
+        setTradeLogs(logsResponse.data.data.logs);
       }
 
       // 加载交易历史
       const historyResponse = await ApiService.autoTrading.getTradingHistory();
-      if (historyResponse && historyResponse.success && historyResponse.history) {
-        setTradingHistory(historyResponse.history);
+      if (historyResponse.data?.success && historyResponse.data.data?.history) {
+        setTradingHistory(historyResponse.data.data.history);
       }
 
     } catch (err) {
@@ -477,6 +568,101 @@ const AutoTradingPage: React.FC = () => {
   const formatPercent = (num: number) => {
     return `${num >= 0 ? '+' : ''}${formatNumber(num * 100)}%`;
   };
+
+  // LEAN回测相关函数
+  const startLeanBacktest = async () => {
+    setLeanBacktestLoading(true);
+    try {
+      const response = await ApiService.lean.startBacktest(leanBacktestRequest);
+      if (response.data?.success) {
+        const backtestId = response.data.data?.backtest_id;
+        if (backtestId) {
+          // 添加到活跃回测列表
+          const newBacktest: LeanBacktestResult = {
+            backtest_id: backtestId,
+            status: 'running',
+            progress: 0,
+            started_at: new Date().toISOString(),
+            statistics: undefined,
+            equity_curve: undefined,
+            trades: undefined
+          };
+          setActiveLeanBacktests(prev => [...prev, newBacktest]);
+          // 开始轮询状态
+          pollLeanBacktestStatus(backtestId);
+        }
+      }
+    } catch (err) {
+      console.error('启动LEAN回测失败:', err);
+    } finally {
+      setLeanBacktestLoading(false);
+    }
+  };
+
+  const pollLeanBacktestStatus = async (backtestId: string) => {
+    const interval = setInterval(async () => {
+      try {
+        const response = await ApiService.lean.getBacktestStatus(backtestId);
+        if (response.data?.success) {
+          const result = response.data.data;
+          if (result) {
+            // 更新活跃回测列表
+            setActiveLeanBacktests(prev => 
+              prev.map(bt => 
+                bt.backtest_id === backtestId 
+                  ? { ...bt, ...result } 
+                  : bt
+              )
+            );
+            
+            // 如果回测完成，移动到结果列表
+            if (result.status === 'completed' || result.status === 'failed' || result.status === 'cancelled') {
+              clearInterval(interval);
+              setLeanBacktestResults(prev => [...prev, result]);
+              setActiveLeanBacktests(prev => prev.filter(bt => bt.backtest_id !== backtestId));
+            }
+          }
+        }
+      } catch (err) {
+        console.error('获取回测状态失败:', err);
+        clearInterval(interval);
+      }
+    }, 2000); // 每2秒轮询一次
+  };
+
+  const loadLeanStrategyTemplates = async () => {
+    try {
+      const response = await ApiService.lean.getStrategyTemplates();
+      if (response.data?.success) {
+        // 这里可以处理模板数据，但目前使用硬编码
+      }
+    } catch (err) {
+      console.error('加载策略模板失败:', err);
+    }
+  };
+
+  const loadLeanBacktestHistory = async () => {
+    try {
+      const response = await ApiService.lean.listBacktests();
+      if (response.data?.success) {
+        const results = response.data.data || [];
+        setLeanBacktestResults(results.filter((r: LeanBacktestResult) => 
+          r.status === 'completed' || r.status === 'failed' || r.status === 'cancelled'
+        ));
+        setActiveLeanBacktests(results.filter((r: LeanBacktestResult) => 
+          r.status === 'running'
+        ));
+      }
+    } catch (err) {
+      console.error('加载回测历史失败:', err);
+    }
+  };
+
+  // 加载LEAN数据
+  useEffect(() => {
+    loadLeanStrategyTemplates();
+    loadLeanBacktestHistory();
+  }, []);
 
   return (
     <div className="auto-trading-container">
@@ -892,6 +1078,207 @@ const AutoTradingPage: React.FC = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          </div>
+
+          {/* LEAN回测 */}
+          <div className="data-section">
+            <h3 className="section-title">LEAN策略回测</h3>
+            <div className="lean-backtest-section">
+              {/* 策略选择和参数配置 */}
+              <div className="lean-config">
+                <div className="config-row">
+                  <label className="config-label">策略模板</label>
+                  <select
+                    className="config-select"
+                    value={leanBacktestRequest.strategy_id}
+                    onChange={(e) => setLeanBacktestRequest(prev => ({
+                      ...prev,
+                      strategy_id: e.target.value
+                    }))}
+                  >
+                    {leanStrategies.map(strategy => (
+                      <option key={strategy.id} value={strategy.id}>
+                        {strategy.name} - {strategy.description}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="config-row">
+                  <label className="config-label">代码</label>
+                  <input
+                    type="text"
+                    className="config-input"
+                    value={leanBacktestRequest.symbol}
+                    onChange={(e) => setLeanBacktestRequest(prev => ({
+                      ...prev,
+                      symbol: e.target.value
+                    }))}
+                  />
+                </div>
+                <div className="config-row">
+                  <label className="config-label">交易所</label>
+                  <input
+                    type="text"
+                    className="config-input"
+                    value={leanBacktestRequest.exchange}
+                    onChange={(e) => setLeanBacktestRequest(prev => ({
+                      ...prev,
+                      exchange: e.target.value
+                    }))}
+                  />
+                </div>
+                <div className="config-row">
+                  <label className="config-label">时间范围</label>
+                  <select
+                    className="config-select"
+                    value={leanBacktestRequest.timeframe}
+                    onChange={(e) => setLeanBacktestRequest(prev => ({
+                      ...prev,
+                      timeframe: e.target.value
+                    }))}
+                  >
+                    <option value="daily">日线</option>
+                    <option value="hourly">小时线</option>
+                    <option value="minute">分钟线</option>
+                  </select>
+                </div>
+                <div className="config-row">
+                  <label className="config-label">开始日期</label>
+                  <input
+                    type="date"
+                    className="config-input"
+                    value={leanBacktestRequest.start_date}
+                    onChange={(e) => setLeanBacktestRequest(prev => ({
+                      ...prev,
+                      start_date: e.target.value
+                    }))}
+                  />
+                </div>
+                <div className="config-row">
+                  <label className="config-label">结束日期</label>
+                  <input
+                    type="date"
+                    className="config-input"
+                    value={leanBacktestRequest.end_date}
+                    onChange={(e) => setLeanBacktestRequest(prev => ({
+                      ...prev,
+                      end_date: e.target.value
+                    }))}
+                  />
+                </div>
+                <div className="config-row">
+                  <label className="config-label">初始资金</label>
+                  <input
+                    type="number"
+                    className="config-input"
+                    value={leanBacktestRequest.capital}
+                    onChange={(e) => setLeanBacktestRequest(prev => ({
+                      ...prev,
+                      capital: parseFloat(e.target.value) || 10000
+                    }))}
+                  />
+                </div>
+                <div className="config-row">
+                  <label className="config-label">数据源</label>
+                  <select
+                    className="config-select"
+                    value={leanBacktestRequest.data_source || 'yfinance'}
+                    onChange={(e) => setLeanBacktestRequest(prev => ({
+                      ...prev,
+                      data_source: e.target.value
+                    }))}
+                  >
+                    <option value="yfinance">Yahoo Finance</option>
+                    <option value="simulated">模拟数据</option>
+                  </select>
+                </div>
+                <button
+                  className="lean-start-btn"
+                  onClick={startLeanBacktest}
+                  disabled={leanBacktestLoading}
+                >
+                  {leanBacktestLoading ? '启动中...' : '启动回测'}
+                </button>
+              </div>
+
+              {/* 活跃回测列表 */}
+              {activeLeanBacktests.length > 0 && (
+                <div className="active-backtests">
+                  <h4>活跃回测</h4>
+                  {activeLeanBacktests.map(backtest => (
+                    <div key={backtest.backtest_id} className="backtest-item">
+                      <div className="backtest-info">
+                        <span className="backtest-id">ID: {backtest.backtest_id.substring(0, 8)}...</span>
+                        <span className="backtest-status">状态: {backtest.status}</span>
+                        <span className="backtest-progress">进度: {backtest.progress}%</span>
+                      </div>
+                      <div className="backtest-progress-bar">
+                        <div 
+                          className="progress-fill"
+                          style={{ width: `${backtest.progress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* 历史回测结果 */}
+              {leanBacktestResults.length > 0 && (
+                <div className="backtest-results">
+                  <h4>历史回测结果</h4>
+                  <div className="results-table">
+                    <div className="results-header">
+                      <span>策略</span>
+                      <span>代码</span>
+                      <span>总收益</span>
+                      <span>夏普比率</span>
+                      <span>最大回撤</span>
+                      <span>交易次数</span>
+                      <span>胜率</span>
+                      <span>状态</span>
+                    </div>
+                    <div className="results-body">
+                      {leanBacktestResults.map(result => (
+                        <div key={result.backtest_id} className="result-row">
+                          <span className="result-strategy">
+                            {leanStrategies.find(s => s.id === leanBacktestRequest.strategy_id)?.name || '未知'}
+                          </span>
+                          <span className="result-symbol">{leanBacktestRequest.symbol}</span>
+                          <span className="result-return" style={{ 
+                            color: result.statistics?.total_return && result.statistics.total_return >= 0 ? '#00ff88' : '#ff4444'
+                          }}>
+                            {result.statistics ? formatPercent(result.statistics.total_return) : '--'}
+                          </span>
+                          <span className="result-sharpe">
+                            {result.statistics ? formatNumber(result.statistics.sharpe_ratio, 3) : '--'}
+                          </span>
+                          <span className="result-drawdown" style={{ 
+                            color: result.statistics?.max_drawdown && result.statistics.max_drawdown >= 0 ? '#00ff88' : '#ff4444'
+                          }}>
+                            {result.statistics ? formatPercent(result.statistics.max_drawdown) : '--'}
+                          </span>
+                          <span className="result-trades">
+                            {result.statistics?.total_trades || '--'}
+                          </span>
+                          <span className="result-winrate">
+                            {result.statistics?.win_rate ? formatNumber(result.statistics.win_rate * 100, 1) + '%' : '--'}
+                          </span>
+                          <span className="result-status" style={{ 
+                            color: result.status === 'completed' ? '#00ff88' : 
+                                   result.status === 'failed' ? '#ff4444' : '#ffaa00'
+                          }}>
+                            {result.status === 'completed' ? '完成' : 
+                             result.status === 'failed' ? '失败' : 
+                             result.status === 'cancelled' ? '取消' : result.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

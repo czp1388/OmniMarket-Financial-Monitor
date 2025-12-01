@@ -23,6 +23,7 @@ from backend.services.data_service import DataService
 from backend.services.alert_service import alert_service
 from backend.services.websocket_manager import websocket_manager
 from backend.services.warrants_monitoring_service import warrants_monitoring_service
+from backend.services.data_quality_monitor import data_quality_monitor
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -50,6 +51,10 @@ async def lifespan(app: FastAPI):
     # 启动牛熊证监控服务
     logger.info("启动牛熊证监控服务...")
     await warrants_monitoring_service.initialize_monitoring()
+    
+    # 启动数据质量监控服务
+    logger.info("启动数据质量监控服务...")
+    asyncio.create_task(data_quality_monitor.start_monitoring())
     
     yield  # 应用运行期间
     

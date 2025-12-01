@@ -294,6 +294,45 @@ export class ApiService {
     // 获取示例数据
     getSampleData: () => apiClient.get('/warrants-analysis/sample-data'),
   };
+
+  // LEAN引擎API
+  static lean = {
+    // 健康检查
+    health: () => apiClient.get('/lean/health'),
+    
+    // 启动回测
+    startBacktest: (request: any) => apiClient.post('/lean/backtest/start', request),
+    
+    // 获取回测状态
+    getBacktestStatus: (backtestId: string) => apiClient.get(`/lean/backtest/status/${backtestId}`),
+    
+    // 获取回测列表
+    listBacktests: (strategyId?: string) => 
+      apiClient.get('/lean/backtest/list', { params: { strategy_id: strategyId } }),
+    
+    // 取消回测
+    cancelBacktest: (backtestId: string) => apiClient.post(`/lean/backtest/cancel/${backtestId}`),
+    
+    // 获取策略模板
+    getStrategyTemplates: () => apiClient.get('/lean/strategies/templates'),
+    
+    // 从模板生成策略代码
+    generateStrategyFromTemplate: (
+      templateId: string,
+      symbol: string,
+      startDate: string,
+      endDate: string,
+      initialCapital: number = 10000.0,
+      parameters?: any
+    ) => apiClient.post('/lean/strategies/generate', {
+      template_id: templateId,
+      symbol,
+      start_date: startDate,
+      end_date: endDate,
+      initial_capital: initialCapital,
+      parameters
+    }),
+  };
 }
 
 // 导出默认实例

@@ -409,6 +409,9 @@ const KlineStyleDashboard: React.FC = () => {
             <button className="control-btn" onClick={resetChart}>
               重置图表
             </button>
+            <button className="control-btn" onClick={() => navigate('/auto-trading')}>
+              LEAN回测
+            </button>
           </div>
         </div>
 

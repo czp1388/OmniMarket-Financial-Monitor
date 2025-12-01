@@ -11,3 +11,25 @@ passlib[bcrypt]==1.7.4
 python-dotenv==1.0.0
 aiofiles==23.2.1
 pydantic-settings==2.1.0
+akshare==1.17.90
+yfinance==0.2.18
+pandas==2.0.3
+numpy==1.24.3
+scipy==1.10.1
+alpha_vantage==2.3.1
+coingecko==1.4.0
+sqlalchemy==2.0.23
+alembic==1.12.1
+pymysql==1.1.0
+cryptography==41.0.7
+httpx==0.25.2
+aiohttp==3.9.1
+backtesting==0.3.3
+vectorbt==0.25.6
+backtrader==1.9.78.123
+# LEAN引擎相关依赖
+quantconnect-stubs==0.1.0
+quantconnect==0.1.0
+# 注意：pythonnet在Windows上可能需要额外配置，暂时注释
+# pythonnet==3.0.2
+# clr-loader==0.2.5

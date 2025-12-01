@@ -14,7 +14,7 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 0;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   background: rgba(0, 0, 0, 0.98);
   border-radius: 0px;
   padding: 0;
@@ -25,7 +25,7 @@
     0 0 0 0.3px rgba(0, 0, 0, 0.9),
     inset 0 0 4px rgba(0, 0, 0, 0.95);
   overflow: hidden;
-  min-height: 14px;
+  min-height: 16px;
   backdrop-filter: blur(50px);
   position: relative;
 }
@@ -47,14 +47,14 @@
 }
 
 .alerts-nav-btn {
-  padding: 6px 8px;
+  padding: 8px 10px;
   border: none;
   border-radius: 0;
   background: linear-gradient(135deg, 
     rgba(255, 255, 255, 0.006) 0%, 
     rgba(255, 255, 255, 0.001) 100%);
   color: rgba(255, 255, 255, 0.98);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 900;
   cursor: pointer;
   transition: all 0.03s cubic-bezier(0.4, 0, 0.2, 1);
@@ -67,11 +67,11 @@
   letter-spacing: 0.4px;
   text-transform: uppercase;
   font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
-  min-height: 18px;
+  min-height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  line-height: 0.7;
+  line-height: 0.8;
   position: relative;
   text-shadow: 0 0.2px 0.4px rgba(0, 0, 0, 0.98);
   box-shadow: 
@@ -196,8 +196,8 @@
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
-  padding: 15px 20px;
-  margin-bottom: 20px;
+  padding: 18px 24px;
+  margin-bottom: 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -210,7 +210,7 @@
 }
 
 .alerts-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   color: #ffffff;
   margin: 0;
@@ -218,9 +218,9 @@
 }
 
 .alerts-subtitle {
-  font-size: 12px;
+  font-size: 14px;
   color: #b0c4de;
-  margin: 2px 0 0 0;
+  margin: 4px 0 0 0;
   font-weight: 400;
 }
 
@@ -234,24 +234,24 @@
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 4px;
-  padding: 6px 12px;
+  padding: 8px 14px;
   font-family: 'Courier New', monospace;
   font-weight: bold;
   color: #ffffff;
-  font-size: 14px;
-  min-width: 180px;
+  font-size: 16px;
+  min-width: 200px;
   text-align: center;
 }
 
 /* Main Layout */
 .alerts-main {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 20px;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border-radius: 15px;
-  padding: 20px;
+  padding: 24px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
@@ -265,28 +265,28 @@
 
 .panel-header {
   background: linear-gradient(135deg, #1a1f2e 0%, #151a26 100%);
-  padding: 12px 16px;
+  padding: 14px 18px;
   border-bottom: 1px solid #2a2f3d;
 }
 
 .panel-title {
   margin: 0;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: bold;
   color: #e0e0e0;
 }
 
 /* Symbols List - Professional Style */
 .symbols-list {
-  padding: 12px;
+  padding: 14px;
 }
 
 .symbol-card {
   background: #151a26;
   border: 1px solid #2a2f3d;
   border-radius: 4px;
-  padding: 8px;
-  margin-bottom: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
@@ -307,13 +307,13 @@
 }
 
 .symbol-name {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: bold;
   color: #00ff88;
 }
 
 .symbol-price {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: bold;
   font-family: 'Courier New', monospace;
 }
@@ -330,7 +330,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .symbol-change {
@@ -348,14 +348,14 @@
 
 .symbol-volume {
   color: #8a94a6;
-  font-size: 9px;
+  font-size: 11px;
 }
 
 /* Right Content Area - Professional Trading Terminal */
 .alerts-content {
-  padding: 16px;
+  padding: 18px;
   display: grid;
-  gap: 12px;
+  gap: 16px;
   grid-template-columns: 1fr;
   overflow-y: auto;
   background: #0a0e14;
@@ -372,12 +372,12 @@
 }
 
 .create-alert-title {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: #00ff88;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
   border-bottom: 1px solid #2a2f3d;
-  padding-bottom: 8px;
+  padding-bottom: 10px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
@@ -395,9 +395,9 @@
 }
 
 .form-label {
-  font-size: 11px;
+  font-size: 13px;
   color: #8a94a6;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
@@ -407,13 +407,13 @@
 .form-input {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
   border: 1px solid #2a2f3d;
-  border-radius: 3px;
+  border-radius: 4px;
   color: #e0e0e0;
-  padding: 8px 10px;
+  padding: 10px 12px;
   font-family: 'Courier New', monospace;
-  font-size: 12px;
+  font-size: 14px;
   transition: all 0.2s ease;
-  height: 32px;
+  height: 36px;
 }
 
 .form-select:focus,
@@ -451,7 +451,7 @@
 }
 
 .alerts-list-title {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   color: #00ff88;
   letter-spacing: 0.5px;
@@ -470,10 +470,10 @@
 .tab-button {
   background: transparent;
   border: none;
-  border-radius: 2px;
+  border-radius: 3px;
   color: #8a94a6;
-  padding: 6px 12px;
-  font-size: 10px;
+  padding: 8px 14px;
+  font-size: 12px;
   font-family: 'Courier New', monospace;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -506,19 +506,19 @@
 .alerts-table th {
   background: linear-gradient(135deg, #1a1f2e 0%, #151a26 100%);
   color: #8a94a6;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 10px 12px;
+  padding: 12px 14px;
   text-align: left;
   border-bottom: 1px solid #2a2f3d;
   white-space: nowrap;
 }
 
 .alerts-table td {
-  padding: 10px 12px;
-  font-size: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
   border-bottom: 1px solid #1a1f2d;
   transition: background-color 0.2s ease;
   white-space: nowrap;
@@ -537,9 +537,9 @@
 .type-badge,
 .priority-badge,
 .status-badge {
-  padding: 3px 8px;
-  border-radius: 10px;
-  font-size: 9px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -602,14 +602,14 @@
 .action-button {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid #2a2f3d;
-  border-radius: 3px;
+  border-radius: 4px;
   color: #e0e0e0;
-  padding: 5px 10px;
-  font-size: 10px;
+  padding: 7px 12px;
+  font-size: 12px;
   font-family: 'Courier New', monospace;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-right: 6px;
+  margin-right: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
@@ -658,10 +658,10 @@
 .create-button {
   background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
   border: none;
-  border-radius: 3px;
+  border-radius: 4px;
   color: #000000;
-  padding: 7px 14px;
-  font-size: 11px;
+  padding: 9px 16px;
+  font-size: 13px;
   font-weight: 700;
   font-family: 'Courier New', monospace;
   cursor: pointer;
@@ -702,11 +702,11 @@
 .status-bar {
   background: rgba(0, 0, 0, 0.9);
   border-bottom: 1px solid #2a2f3d;
-  padding: 6px 15px;
+  padding: 8px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
+  font-size: 13px;
   font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
   color: #e0e0e0;
   backdrop-filter: blur(10px);
@@ -730,9 +730,9 @@
 }
 
 .status-indicator {
-  padding: 2px 6px;
-  border-radius: 10px;
-  font-size: 9px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -759,7 +759,7 @@
 .system-name {
   font-weight: 700;
   color: #00ff88;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .delay-info,
@@ -773,7 +773,7 @@
 .total-alerts,
 .data-update-status {
   color: #8a94a6;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 /* Loading Spinner */
@@ -799,7 +799,7 @@
 }
 
 .loading-text {
-  margin-left: 10px;
-  color: #888;
-  font-size: 14px;
+  margin-left: 12px;
+  color: #a0a0a0;
+  font-size: 16px;
 }

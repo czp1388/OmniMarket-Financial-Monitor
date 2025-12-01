@@ -12,6 +12,7 @@ class MarketType(enum.Enum):
     FOREX = "forex"
     FUTURES = "futures"
     INDEX = "index"
+    FUND = "fund"
 
 class Timeframe(enum.Enum):
     M1 = "1m"

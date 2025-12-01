@@ -107,7 +107,7 @@ class WebSocketManager:
         except Exception as e:
             logger.error(f"处理WebSocket消息时出错: {e}")
             
-    async def start_websocket_server(self, host: str = "localhost", port: int = 8777):
+    async def start_websocket_server(self, host: str = "localhost", port: int = 8774):
         """启动WebSocket服务器"""
         self.is_running = True
         logger.info(f"启动WebSocket服务器在 {host}:{port}")

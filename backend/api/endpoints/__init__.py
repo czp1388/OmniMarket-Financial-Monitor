@@ -7,3 +7,6 @@ from . import virtual_trading
 from . import warrants_analysis
 from . import semi_auto_trading
 from . import auto_trading
+from . import warrants_monitoring
+from . import trading_analytics
+from . import lean_backtest
