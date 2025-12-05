@@ -1,0 +1,76 @@
+.navigation {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  color: var(--text-secondary);
+  background-color: transparent;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+  width: 100%;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.nav-item:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-hover);
+}
+
+.nav-item.active {
+  color: var(--color-accent);
+  background-color: rgba(0, 204, 255, 0.1);
+  border-left: 3px solid var(--color-accent);
+}
+
+.nav-icon {
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+}
+
+.nav-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 水平导航样式 */
+.navigation.horizontal {
+  flex-direction: row;
+  gap: var(--spacing-sm);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.navigation.horizontal .nav-item {
+  flex-shrink: 0;
+}
+
+.navigation.horizontal .nav-item.active {
+  border-left: none;
+  border-bottom: 2px solid var(--color-accent);
+}
+
+@media (max-width: 768px) {
+  .nav-item {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .nav-label {
+    font-size: 0.8125rem;
+  }
+}

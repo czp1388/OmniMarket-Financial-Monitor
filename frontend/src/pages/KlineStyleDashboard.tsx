@@ -30,11 +30,14 @@ const KlineStyleDashboard: React.FC = () => {
   const chartRef = useRef<any>(null);
   const candleSeriesRef = useRef<any>(null);
   const smaSeriesRef = useRef<any>(null);
+  const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   const [selectedMarket, setSelectedMarket] = useState<string>('crypto');
   const [timeframe, setTimeframe] = useState<string>('1h');
   const [selectedIndicator, setSelectedIndicator] = useState<string>('none');
   const [marketSymbols, setMarketSymbols] = useState<MarketSymbol[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [lastUpdate, setLastUpdate] = useState<string>('刚刚');
@@ -251,6 +254,31 @@ const KlineStyleDashboard: React.FC = () => {
     setLastUpdate('刚刚');
   };
 
+  // 获取市场数据（带缓存优化）
+  const fetchMarketData = async () => {
+    try {
+      const symbols = ['BTC/USDT', 'ETH/USDT', 'AAPL', 'USD/CNY', 'TSLA', 'EUR/USD', 'XAU/USD', 'SPY'];
+      const response = await fetch(`http://localhost:8000/api/v1/market/tickers?${symbols.map(s => `symbols[]=${s}`).join('&')}`);
+      
+      if (!response.ok) throw new Error('获取市场数据失败');
+      
+      const data = await response.json();
+      if (data.data && Array.isArray(data.data)) {
+        setMarketSymbols(data.data);
+        setLastUpdate(new Date().toLocaleTimeString('zh-CN', { hour12: false }));
+      }
+    } catch (err) {
+      console.error('市场数据获取失败:', err);
+    }
+  };
+
+  // 设置定时更新（每10秒更新一次，避免过度请求）
+  useEffect(() => {
+    fetchMarketData();
+    const interval = setInterval(fetchMarketData, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   const formatPrice = (price: number, type: string) => {
     if (type === 'forex') return price.toFixed(4);
     if (type === 'crypto') return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -394,11 +422,14 @@ const KlineStyleDashboard: React.FC = () => {
               className="control-select"
             >
               <option value="none">无指标</option>
-              <option value="sma">简单移动平均线</option>
-              <option value="ema">指数移动平均线</option>
-              <option value="macd">MACD</option>
-              <option value="rsi">RSI</option>
-              <option value="bollinger">布林带</option>
+              <option value="sma">SMA - 简单移动平均</option>
+              <option value="ema">EMA - 指数移动平均</option>
+              <option value="macd">MACD - 趋势指标</option>
+              <option value="rsi">RSI - 相对强弱指数</option>
+              <option value="bollinger">布林带 - 波动率</option>
+              <option value="kdj">KDJ - 随机指标</option>
+              <option value="atr">ATR - 真实波幅</option>
+              <option value="obv">OBV - 能量潮</option>
             </select>
           </div>
           <div className="control-group">

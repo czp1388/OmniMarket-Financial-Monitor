@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     BYBIT_API_KEY: str = ""
     BYBIT_SECRET_KEY: str = ""
     TUSHARE_TOKEN: str = ""
+    ALPHA_VANTAGE_API_KEY: str = ""  # Alpha Vantage API密钥
     
     # 数据配置
     DATA_UPDATE_INTERVAL: int = 60  # 数据更新间隔（秒）

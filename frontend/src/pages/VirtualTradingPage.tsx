@@ -309,6 +309,17 @@ const VirtualTradingPage: React.FC = () => {
 
   return (
     <div className="virtual-trading-container">
+      {/* 风险提示横幅 - 合规性要求 */}
+      <div className="risk-warning-banner">
+        <div className="warning-icon">⚠️</div>
+        <div className="warning-content">
+          <div className="warning-title">【模拟交易 - 仅供学习和测试使用】</div>
+          <div className="warning-text">
+            本页面为虚拟交易环境，所有交易均使用模拟资金，不涉及真实资金交易。交易数据仅供学习和策略测试使用，不构成任何投资建议。
+          </div>
+        </div>
+      </div>
+
       <div className="virtual-trading-header">
         <h1>寰宇虚拟交易系统</h1>
         <p>专业级模拟交易平台 - 实时市场数据与高级分析</p>

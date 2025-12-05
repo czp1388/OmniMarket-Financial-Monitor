@@ -102,14 +102,14 @@ class DataService:
                             if exchange_instance:
                                 # 转换时间框架到ccxt格式
                                 tf_mapping = {
-                                    Timeframe.MINUTE_1: '1m',
-                                    Timeframe.MINUTE_5: '5m',
-                                    Timeframe.MINUTE_15: '15m',
-                                    Timeframe.HOUR_1: '1h',
-                                    Timeframe.HOUR_4: '4h',
-                                    Timeframe.DAILY: '1d',
-                                    Timeframe.WEEKLY: '1w',
-                                    Timeframe.MONTHLY: '1M'
+                                    Timeframe.M1: '1m',
+                                    Timeframe.M5: '5m',
+                                    Timeframe.M15: '15m',
+                                    Timeframe.H1: '1h',
+                                    Timeframe.H4: '4h',
+                                    Timeframe.D1: '1d',
+                                    Timeframe.W1: '1w',
+                                    Timeframe.MN1: '1M'
                                 }
                                 ccxt_tf = tf_mapping.get(timeframe, '1h')
                                 
@@ -120,6 +120,7 @@ class DataService:
                                         symbol=symbol,
                                         timeframe=timeframe,
                                         market_type=market_type,
+                                        exchange='binance',
                                         timestamp=datetime.fromtimestamp(data[0] / 1000),
                                         open=data[1],
                                         high=data[2],
@@ -259,6 +260,17 @@ class DataService:
         base_price = 100.0
         current_time = datetime.now()
         
+        # 根据市场类型确定交易所
+        exchange_mapping = {
+            MarketType.CRYPTO: "binance",
+            MarketType.STOCK: "mock_exchange",
+            MarketType.FOREX: "mock_forex",
+            MarketType.FUTURES: "mock_futures",
+            MarketType.INDEX: "mock_index",
+            MarketType.FUND: "mock_fund"
+        }
+        exchange = exchange_mapping.get(market_type, "mock_exchange")
+        
         for i in range(limit):
             timestamp = current_time - timedelta(minutes=i * self._get_timeframe_minutes(timeframe))
             
@@ -275,6 +287,7 @@ class DataService:
                 symbol=symbol,
                 timeframe=timeframe,
                 market_type=market_type,
+                exchange=exchange,
                 timestamp=timestamp,
                 open=open_price,
                 high=high,
@@ -289,14 +302,14 @@ class DataService:
     def _get_timeframe_minutes(self, timeframe: Timeframe) -> int:
         """获取时间框架对应的分钟数"""
         timeframe_minutes = {
-            Timeframe.MINUTE_1: 1,
-            Timeframe.MINUTE_5: 5,
-            Timeframe.MINUTE_15: 15,
-            Timeframe.HOUR_1: 60,
-            Timeframe.HOUR_4: 240,
-            Timeframe.DAILY: 1440,
-            Timeframe.WEEKLY: 10080,
-            Timeframe.MONTHLY: 43200
+            Timeframe.M1: 1,
+            Timeframe.M5: 5,
+            Timeframe.M15: 15,
+            Timeframe.H1: 60,
+            Timeframe.H4: 240,
+            Timeframe.D1: 1440,
+            Timeframe.W1: 10080,
+            Timeframe.MN1: 43200
         }
         return timeframe_minutes.get(timeframe, 60)
     

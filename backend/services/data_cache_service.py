@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+import threading
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 import json
@@ -8,15 +9,27 @@ import json
 logger = logging.getLogger(__name__)
 
 class DataCacheService:
-    """数据缓存服务 - 由于Redis连接失败，使用内存缓存作为临时方案"""
+    """数据缓存服务 - 由于Redis连接失败，使用内存缓存作为临时方案
+    
+    性能优化：
+    - 缓存命中率监控
+    - TTL调整为180秒（更新鲜的市场数据）
+    - 线程安全的统计计数器
+    """
     
     def __init__(self):
         self.cache: Dict[str, Dict[str, Any]] = {}
         self.cache_ttl: Dict[str, float] = {}  # TTL时间戳
-        self.default_ttl = 300  # 默认缓存时间5分钟
+        self.default_ttl = 180  # 默认缓存时间3分钟（优化：从300s降低到180s以获取更新鲜数据）
         self.cleanup_interval = 60  # 清理间隔60秒
         self.is_running = False
         self.cleanup_task = None
+        
+        # 性能监控统计（线程安全）
+        self._stats_lock = threading.Lock()
+        self._cache_hits = 0
+        self._cache_misses = 0
+        self._total_requests = 0
     
     async def start(self):
         """启动缓存服务"""
@@ -52,16 +65,31 @@ class DataCacheService:
     async def get(self, key: str) -> Optional[Any]:
         """获取缓存"""
         try:
+            with self._stats_lock:
+                self._total_requests += 1
+            
             # 检查是否过期
             if key in self.cache_ttl and time.time() > self.cache_ttl[key]:
                 self._delete_key(key)
+                with self._stats_lock:
+                    self._cache_misses += 1
+                logger.debug(f"缓存过期: {key}")
                 return None
             
             if key in self.cache:
+                with self._stats_lock:
+                    self._cache_hits += 1
+                logger.debug(f"缓存命中: {key}")
                 return self.cache[key]['value']
+            
+            with self._stats_lock:
+                self._cache_misses += 1
+            logger.debug(f"缓存未命中: {key}")
             return None
         except Exception as e:
             logger.error(f"获取缓存失败: {e}")
+            with self._stats_lock:
+                self._cache_misses += 1
             return None
     
     async def delete(self, key: str) -> bool:
@@ -171,7 +199,7 @@ class DataCacheService:
             logger.error(f"清理过期缓存失败: {e}")
     
     def get_stats(self) -> Dict[str, Any]:
-        """获取缓存统计信息"""
+        """获取缓存统计信息（包括命中率监控）"""
         current_time = time.time()
         valid_keys = 0
         expired_keys = 0
@@ -182,13 +210,35 @@ class DataCacheService:
             else:
                 valid_keys += 1
         
+        with self._stats_lock:
+            total_requests = self._total_requests
+            cache_hits = self._cache_hits
+            cache_misses = self._cache_misses
+            hit_rate = (cache_hits / total_requests * 100) if total_requests > 0 else 0.0
+        
         return {
             'total_keys': len(self.cache),
             'valid_keys': valid_keys,
             'expired_keys': expired_keys,
             'cache_size': len(self.cache),
-            'memory_usage': f"{len(str(self.cache))} bytes"
+            'memory_usage': f"{len(str(self.cache))} bytes",
+            # 性能监控指标
+            'performance': {
+                'total_requests': total_requests,
+                'cache_hits': cache_hits,
+                'cache_misses': cache_misses,
+                'hit_rate': f"{hit_rate:.2f}%",
+                'default_ttl': self.default_ttl
+            }
         }
+    
+    def reset_stats(self):
+        """重置性能统计（用于调试或定期重置）"""
+        with self._stats_lock:
+            self._cache_hits = 0
+            self._cache_misses = 0
+            self._total_requests = 0
+        logger.info("缓存性能统计已重置")
 
 
 # 全局数据缓存服务实例

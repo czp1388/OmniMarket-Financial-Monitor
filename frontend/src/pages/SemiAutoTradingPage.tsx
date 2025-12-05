@@ -124,6 +124,17 @@ const SemiAutoTradingPage: React.FC = () => {
 
   return (
     <div className="semi-auto-trading-page">
+      {/* 风险提示横幅 - 合规性要求 */}
+      <div className="risk-warning-banner">
+        <div className="warning-icon">⚠️</div>
+        <div className="warning-content">
+          <div className="warning-title">【模拟交易 - 仅供学习和测试使用】</div>
+          <div className="warning-text">
+            本页面为半自动交易测试环境，所有交易均使用模拟资金，不涉及真实资金交易。交易信号仅供参考，请谨慎决策，不构成任何投资建议。
+          </div>
+        </div>
+      </div>
+
       <div className="container">
         <div className="header">
           <h1>牛熊证半自动交易系统</h1>

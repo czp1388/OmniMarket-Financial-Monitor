@@ -1,4 +1,66 @@
 /* 牛熊证半自动交易系统 - 彭博终端风格样式 */
+
+/* 风险提示横幅 - 合规性要求 */
+.risk-warning-banner {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: linear-gradient(90deg, rgba(255, 68, 68, 0.1) 0%, rgba(255, 68, 68, 0.05) 100%);
+  border: 2px solid #ff4444;
+  border-radius: 6px;
+  padding: 12px 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 0 20px rgba(255, 68, 68, 0.2), inset 0 0 10px rgba(255, 68, 68, 0.05);
+  animation: pulse-warning 2s ease-in-out infinite;
+}
+
+.warning-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+  animation: shake 3s ease-in-out infinite;
+}
+
+.warning-content {
+  flex: 1;
+}
+
+.warning-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ff4444;
+  margin-bottom: 4px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.warning-text {
+  font-size: 12px;
+  color: #d1d4dc;
+  line-height: 1.4;
+  opacity: 0.9;
+}
+
+@keyframes pulse-warning {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 68, 68, 0.2), inset 0 0 10px rgba(255, 68, 68, 0.05);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(255, 68, 68, 0.4), inset 0 0 15px rgba(255, 68, 68, 0.1);
+  }
+}
+
+@keyframes shake {
+  0%, 90%, 100% {
+    transform: translateX(0);
+  }
+  92%, 96% {
+    transform: translateX(-2px);
+  }
+  94%, 98% {
+    transform: translateX(2px);
+  }
+}
+
 .semi-auto-trading-page {
   margin: 0;
   padding: 15px;

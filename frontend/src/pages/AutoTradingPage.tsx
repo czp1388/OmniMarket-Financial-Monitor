@@ -666,6 +666,17 @@ const AutoTradingPage: React.FC = () => {
 
   return (
     <div className="auto-trading-container">
+      {/* 风险提示横幅 - 合规性要求 */}
+      <div className="risk-warning-banner">
+        <div className="warning-icon">⚠️</div>
+        <div className="warning-content">
+          <div className="warning-title">【模拟交易 - 仅供学习和测试使用】</div>
+          <div className="warning-text">
+            本页面为自动交易测试环境，所有交易均使用模拟资金，不涉及真实资金交易。策略执行和回测结果仅供学习参考，不构成任何投资建议。
+          </div>
+        </div>
+      </div>
+
       {/* 顶部状态栏 */}
       <div className="status-bar">
         <div className="status-item">

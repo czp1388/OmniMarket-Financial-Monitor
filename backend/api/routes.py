@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from .endpoints import market_data, alerts, users, technical_indicators, virtual_trading, warrants_analysis, semi_auto_trading, auto_trading, warrants_monitoring, trading_analytics, lean_backtest
+from .endpoints import market_data, alerts, users, technical_indicators, virtual_trading, warrants_analysis, semi_auto_trading, auto_trading, warrants_monitoring, trading_analytics, lean_backtest, system_monitor
 
 # 创建主路由
 api_router = APIRouter()
@@ -16,3 +16,4 @@ api_router.include_router(auto_trading.router, prefix="/auto-trading", tags=["au
 api_router.include_router(warrants_monitoring.router, prefix="/warrants-monitoring", tags=["warrants-monitoring"])
 api_router.include_router(trading_analytics.router, prefix="/analytics", tags=["trading-analytics"])
 api_router.include_router(lean_backtest.router, prefix="/lean", tags=["lean-engine"])
+api_router.include_router(system_monitor.router, prefix="/system", tags=["system-monitor"])
