@@ -387,10 +387,10 @@ const AutoTradingPage: React.FC = () => {
     
     try {
       const response = await ApiService.autoTrading.start(selectedStrategies);
-      if (response.success) {
+      if (response.data?.success) {
         await loadData(); // 重新加载数据
       } else {
-        setError(response.message || '启动交易失败');
+        setError(response.data?.message || '启动交易失败');
       }
     } catch (err) {
       console.error('启动交易失败:', err);
@@ -407,10 +407,10 @@ const AutoTradingPage: React.FC = () => {
     
     try {
       const response = await ApiService.autoTrading.stop();
-      if (response.success) {
+      if (response.data?.success) {
         await loadData(); // 重新加载数据
       } else {
-        setError(response.message || '停止交易失败');
+        setError(response.data?.message || '停止交易失败');
       }
     } catch (err) {
       console.error('停止交易失败:', err);
@@ -427,10 +427,10 @@ const AutoTradingPage: React.FC = () => {
     
     try {
       const response = await ApiService.autoTrading.pause();
-      if (response.success) {
+      if (response.data?.success) {
         await loadData(); // 重新加载数据
       } else {
-        setError(response.message || '暂停交易失败');
+        setError(response.data?.message || '暂停交易失败');
       }
     } catch (err) {
       console.error('暂停交易失败:', err);
@@ -447,10 +447,10 @@ const AutoTradingPage: React.FC = () => {
     
     try {
       const response = await ApiService.autoTrading.resume();
-      if (response.success) {
+      if (response.data?.success) {
         await loadData(); // 重新加载数据
       } else {
-        setError(response.message || '恢复交易失败');
+        setError(response.data?.message || '恢复交易失败');
       }
     } catch (err) {
       console.error('恢复交易失败:', err);
@@ -471,10 +471,10 @@ const AutoTradingPage: React.FC = () => {
     
     try {
       const response = await ApiService.autoTrading.emergencyStop();
-      if (response.success) {
+      if (response.data?.success) {
         await loadData(); // 重新加载数据
       } else {
-        setError(response.message || '紧急停止失败');
+        setError(response.data?.message || '紧急停止失败');
       }
     } catch (err) {
       console.error('紧急停止失败:', err);
@@ -491,10 +491,10 @@ const AutoTradingPage: React.FC = () => {
     
     try {
       const response = await ApiService.autoTrading.resetBrakes();
-      if (response.success) {
+      if (response.data?.success) {
         await loadData(); // 重新加载数据
       } else {
-        setError(response.message || '重置熔断失败');
+        setError(response.data?.message || '重置熔断失败');
       }
     } catch (err) {
       console.error('重置熔断失败:', err);
@@ -510,12 +510,12 @@ const AutoTradingPage: React.FC = () => {
     setError(null);
     
     try {
-      const response = await ApiService.autoTrading.configure(configForm) as OperationResponse;
-      if (response.success) {
+      const response = await ApiService.autoTrading.configure(configForm);
+      if (response.data?.success) {
         saveConfigToStorage(configForm); // 保存配置到本地存储
         await loadData(); // 重新加载数据
       } else {
-        setError(response.message || '更新配置失败');
+        setError(response.data?.message || '更新配置失败');
       }
     } catch (err) {
       console.error('更新配置失败:', err);

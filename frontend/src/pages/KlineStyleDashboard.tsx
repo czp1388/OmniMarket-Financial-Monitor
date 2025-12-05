@@ -30,7 +30,7 @@ const KlineStyleDashboard: React.FC = () => {
   const chartRef = useRef<any>(null);
   const candleSeriesRef = useRef<any>(null);
   const smaSeriesRef = useRef<any>(null);
-  const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const updateIntervalRef = useRef<number | null>(null);
   
   const [selectedMarket, setSelectedMarket] = useState<string>('crypto');
   const [timeframe, setTimeframe] = useState<string>('1h');
