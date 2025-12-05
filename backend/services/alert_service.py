@@ -8,6 +8,7 @@ import json
 from backend.models.alerts import Alert, AlertTrigger, AlertConditionType, AlertStatus as ModelAlertStatus, NotificationType
 from backend.models.market_data import KlineData, MarketType
 from backend.services.data_service import data_service
+from backend.services.notification_service import notification_service
 
 logger = logging.getLogger(__name__)
 
@@ -229,7 +230,84 @@ class AlertService:
             except Exception as e:
                 logger.error(f"预警处理程序出错: {e}")
         
+        # 发送多渠道通知
+        await self._send_alert_notifications(alert, trigger, current_value)
+        
         logger.info(f"预警触发: {alert.name} - 当前值: {current_value}")
+    
+    async def _send_alert_notifications(self, alert: Alert, trigger: AlertTrigger, current_value: float):
+        """
+        发送预警通知到配置的渠道
+        """
+        try:
+            # 获取通知类型配置，默认为应用内通知
+            notification_types = alert.notification_types or ["in_app"]
+            
+            # 构建通知标题和内容
+            title = f"预警触发: {alert.name}"
+            message = f"""
+预警名称: {alert.name}
+交易对: {alert.symbol}
+市场类型: {alert.market_type.value}
+条件类型: {alert.condition_type.value}
+触发值: {current_value}
+触发时间: {trigger.triggered_at.strftime('%Y-%m-%d %H:%M:%S')}
+条件配置: {json.dumps(alert.condition_config, ensure_ascii=False)}
+            """.strip()
+            
+            # 额外数据
+            additional_data = {
+                "alert_id": alert.id,
+                "alert_name": alert.name,
+                "symbol": alert.symbol,
+                "market_type": alert.market_type.value,
+                "condition_type": alert.condition_type.value,
+                "current_value": current_value,
+                "triggered_at": trigger.triggered_at.isoformat(),
+                "condition_config": alert.condition_config
+            }
+            
+            # 合并通知配置
+            if alert.notification_config:
+                additional_data.update(alert.notification_config)
+            
+            # 发送每种类型的通知
+            for notification_type in notification_types:
+                # 将NotificationType枚举转换为字符串
+                if hasattr(notification_type, 'value'):
+                    notification_type_str = notification_type.value
+                else:
+                    notification_type_str = str(notification_type)
+                
+                # 映射到notification_service支持的类型
+                # notification_service支持: "email", "telegram", "webhook", "in_app", "all"
+                if notification_type_str == "sms":
+                    # 暂不支持SMS，跳过
+                    logger.warning("SMS通知暂不支持，跳过")
+                    continue
+                
+                try:
+                    # 对于email类型，可以从notification_config中获取收件人
+                    recipients = None
+                    if notification_type_str == "email" and alert.notification_config:
+                        recipients = alert.notification_config.get("email_recipients")
+                    
+                    # 发送通知
+                    results = await notification_service.send_notification(
+                        notification_type=notification_type_str,
+                        title=title,
+                        message=message,
+                        recipients=recipients,
+                        additional_data=additional_data
+                    )
+                    
+                    logger.info(f"通知发送结果 ({notification_type_str}): {results}")
+                    
+                except Exception as e:
+                    logger.error(f"发送{notification_type_str}通知失败: {e}")
+        
+        except Exception as e:
+            logger.error(f"发送预警通知时出错: {e}")
     
     def add_alert(self, alert: Alert) -> str:
         """添加预警"""

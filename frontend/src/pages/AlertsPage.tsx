@@ -511,6 +511,196 @@ const AlertsPage: React.FC = () => {
             </div>
           </div>
 
+          {/* 图形化预警策略配置界面 */}
+          <div className="graphic-config-card">
+            <div className="graphic-config-header">
+              <h2 className="graphic-config-title">图形化策略配置</h2>
+              <div className="graphic-config-tabs">
+                <button className="graphic-tab-button graphic-tab-active">价格图表</button>
+                <button className="graphic-tab-button">技术指标</button>
+                <button className="graphic-tab-button">模式识别</button>
+              </div>
+            </div>
+            <div className="graphic-config-body">
+              <div className="chart-container">
+                <div className="chart-header">
+                  <span className="chart-symbol">{newAlert.symbol}</span>
+                  <span className="chart-timeframe">1小时图</span>
+                  <span className="chart-price">当前价格: {symbolsData.find(s => s.symbol === newAlert.symbol)?.price.toLocaleString() || '0'}</span>
+                </div>
+                <div className="chart-wrapper">
+                  <div className="price-chart">
+                    {/* 模拟价格曲线 */}
+                    <svg className="chart-svg" width="100%" height="200">
+                      <defs>
+                        <linearGradient id="priceGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor="rgba(0, 255, 136, 0.2)" />
+                          <stop offset="100%" stopColor="rgba(0, 255, 136, 0.01)" />
+                        </linearGradient>
+                      </defs>
+                      {/* 价格曲线 */}
+                      <path
+                        className="price-line"
+                        d="M 0,180 L 40,160 L 80,140 L 120,150 L 160,130 L 200,110 L 240,120 L 280,100 L 320,90 L 360,80"
+                        fill="none"
+                        stroke="#00ff88"
+                        strokeWidth="2"
+                      />
+                      {/* 填充区域 */}
+                      <path
+                        className="price-area"
+                        d="M 0,180 L 40,160 L 80,140 L 120,150 L 160,130 L 200,110 L 240,120 L 280,100 L 320,90 L 360,80 L 360,200 L 0,200 Z"
+                        fill="url(#priceGradient)"
+                      />
+                      {/* 阈值线 - 可拖拽 */}
+                      <line
+                        className="threshold-line"
+                        x1="0"
+                        y1={180 - (newAlert.value / 50000 * 100)}
+                        x2="360"
+                        y2={180 - (newAlert.value / 50000 * 100)}
+                        stroke={newAlert.condition === 'price_above' ? "#ff4444" : "#00ccff"}
+                        strokeWidth="2"
+                        strokeDasharray="5,5"
+                      />
+                      {/* 阈值线手柄 */}
+                      <circle
+                        className="threshold-handle"
+                        cx="360"
+                        cy={180 - (newAlert.value / 50000 * 100)}
+                        r="8"
+                        fill={newAlert.condition === 'price_above' ? "#ff4444" : "#00ccff"}
+                        cursor="ns-resize"
+                      />
+                      {/* 价格点标记 */}
+                      <circle cx="0" cy="180" r="3" fill="#00ff88" />
+                      <circle cx="40" cy="160" r="3" fill="#00ff88" />
+                      <circle cx="80" cy="140" r="3" fill="#00ff88" />
+                      <circle cx="120" cy="150" r="3" fill="#00ff88" />
+                      <circle cx="160" cy="130" r="3" fill="#00ff88" />
+                      <circle cx="200" cy="110" r="3" fill="#00ff88" />
+                      <circle cx="240" cy="120" r="3" fill="#00ff88" />
+                      <circle cx="280" cy="100" r="3" fill="#00ff88" />
+                      <circle cx="320" cy="90" r="3" fill="#00ff88" />
+                      <circle cx="360" cy="80" r="3" fill="#00ff88" />
+                    </svg>
+                    <div className="chart-controls">
+                      <div className="threshold-control">
+                        <span className="threshold-label">
+                          阈值: <strong>{newAlert.value}</strong>
+                        </span>
+                        <input
+                          type="range"
+                          min="0"
+                          max="50000"
+                          step="100"
+                          value={newAlert.value}
+                          onChange={(e) => setNewAlert({...newAlert, value: parseFloat(e.target.value)})}
+                          className="threshold-slider"
+                        />
+                        <div className="threshold-actions">
+                          <button
+                            className={`threshold-type-btn ${newAlert.condition === 'price_above' ? 'active' : ''}`}
+                            onClick={() => setNewAlert({...newAlert, condition: 'price_above'})}
+                          >
+                            价格高于
+                          </button>
+                          <button
+                            className={`threshold-type-btn ${newAlert.condition === 'price_below' ? 'active' : ''}`}
+                            onClick={() => setNewAlert({...newAlert, condition: 'price_below'})}
+                          >
+                            价格低于
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="chart-footer">
+                  <div className="chart-stats">
+                    <div className="stat-item">
+                      <span className="stat-label">最高</span>
+                      <span className="stat-value">42567</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">最低</span>
+                      <span className="stat-value">42100</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">波动</span>
+                      <span className="stat-value">+2.34%</span>
+                    </div>
+                  </div>
+                  <div className="chart-hint">
+                    <span className="hint-text">提示: 拖拽阈值线或使用滑块调整预警阈值</span>
+                  </div>
+                </div>
+              </div>
+              <div className="config-sidebar">
+                <h3 className="sidebar-title">条件预览</h3>
+                <div className="condition-preview">
+                  <div className="preview-item">
+                    <span className="preview-label">交易对:</span>
+                    <span className="preview-value">{newAlert.symbol}</span>
+                  </div>
+                  <div className="preview-item">
+                    <span className="preview-label">预警类型:</span>
+                    <span className="preview-value">
+                      {newAlert.alertType === 'price' ? '价格预警' : 
+                       newAlert.alertType === 'technical' ? '技术指标' : '成交量预警'}
+                    </span>
+                  </div>
+                  <div className="preview-item">
+                    <span className="preview-label">预警条件:</span>
+                    <span className="preview-value">
+                      {newAlert.condition === 'price_above' ? '价格高于' :
+                       newAlert.condition === 'price_below' ? '价格低于' :
+                       newAlert.condition === 'rsi_above' ? 'RSI高于' :
+                       newAlert.condition === 'rsi_below' ? 'RSI低于' :
+                       newAlert.condition === 'volume_above' ? '成交量高于' :
+                       newAlert.condition === 'volume_below' ? '成交量低于' :
+                       newAlert.condition === 'macd_cross' ? 'MACD金叉' : 'MACD死叉'}
+                    </span>
+                  </div>
+                  <div className="preview-item">
+                    <span className="preview-label">阈值:</span>
+                    <span className="preview-value highlight">{newAlert.value}</span>
+                  </div>
+                  <div className="preview-item">
+                    <span className="preview-label">优先级:</span>
+                    <span className={`preview-value priority-${newAlert.priority}`}>
+                      {newAlert.priority === 'low' ? '低' :
+                       newAlert.priority === 'medium' ? '中' : '高'}
+                    </span>
+                  </div>
+                </div>
+                <div className="condition-logic">
+                  <h4 className="logic-title">条件逻辑</h4>
+                  <div className="logic-item">
+                    <input type="checkbox" id="logic1" defaultChecked />
+                    <label htmlFor="logic1">发送电子邮件通知</label>
+                  </div>
+                  <div className="logic-item">
+                    <input type="checkbox" id="logic2" defaultChecked />
+                    <label htmlFor="logic2">发送推送通知</label>
+                  </div>
+                  <div className="logic-item">
+                    <input type="checkbox" id="logic3" />
+                    <label htmlFor="logic3">声音提醒</label>
+                  </div>
+                  <div className="logic-item">
+                    <input type="checkbox" id="logic4" />
+                    <label htmlFor="logic4">重复触发</label>
+                  </div>
+                </div>
+                <div className="condition-actions">
+                  <button className="action-btn save-btn">保存策略模板</button>
+                  <button className="action-btn apply-btn" onClick={handleCreateAlert}>应用配置并创建</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* 预警列表 */}
           <div className="alerts-list-card">
             <div className="alerts-list-header">

@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from backend.database import get_db
 from backend.models.market_data import Kline, KlineCreate, TickerData, MarketType, Timeframe
 from backend.services.data_service import DataService
+from backend.services.data_quality_monitor import data_quality_monitor
 
 router = APIRouter()
 
@@ -163,3 +164,35 @@ async def health_check():
         "service": "market-data",
         "timestamp": datetime.now().isoformat()
     }
+
+@router.get("/data-quality/overview")
+async def get_data_quality_overview():
+    """
+    获取数据质量监控概览
+    """
+    try:
+        overview = data_quality_monitor.get_overview()
+        return overview
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取数据质量监控概览失败: {str(e)}")
+
+@router.get("/data-quality/sources/{source_name}")
+async def get_data_source_status(source_name: str):
+    """
+    获取特定数据源的详细状态
+    """
+    try:
+        if source_name not in data_quality_monitor.sources:
+            raise HTTPException(status_code=404, detail=f"数据源 {source_name} 未找到")
+        
+        source = data_quality_monitor.sources[source_name]
+        return {
+            "source_name": source.source_name,
+            "status": source.status.value,
+            "status_since": source.status_since.isoformat(),
+            "metrics": source.metrics.get_metrics()
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取数据源状态失败: {str(e)}")

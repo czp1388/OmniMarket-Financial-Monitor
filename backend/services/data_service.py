@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 import pandas as pd
@@ -12,6 +13,7 @@ from .alpha_vantage_service import alpha_vantage_service
 from .coingecko_service import coingecko_service
 from .akshare_service import akshare_service
 from .data_cache_service import data_cache_service
+from .data_quality_monitor import data_quality_monitor
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +21,20 @@ class DataService:
     def __init__(self):
         self.exchanges = {}
         self.setup_exchanges()
+        self._register_data_sources()
+        
+    def _register_data_sources(self):
+        """注册数据源到质量监控器"""
+        sources = [
+            "coingecko",
+            "alpha_vantage", 
+            "yfinance",
+            "akshare",
+            "ccxt_binance",
+            "mock"
+        ]
+        for source in sources:
+            data_quality_monitor.register_source(source)
     
     def setup_exchanges(self):
         """初始化交易所连接"""
@@ -60,18 +76,27 @@ class DataService:
             
             if market_type == MarketType.CRYPTO:
                 # 优先使用CoinGecko，其次是Alpha Vantage，最后是交易所
+                start_time = time.time()
                 try:
                     klines = await coingecko_service.get_crypto_klines(symbol, timeframe, limit)
                     if klines:
+                        response_time = time.time() - start_time
+                        data_quality_monitor.record_success("coingecko", response_time)
                         logger.info(f"使用CoinGecko获取加密货币K线数据: {symbol}")
                 except Exception as e1:
+                    data_quality_monitor.record_error("coingecko")
                     logger.warning(f"CoinGecko获取失败，尝试Alpha Vantage: {e1}")
+                    start_time_av = time.time()
                     try:
                         klines = await alpha_vantage_service.get_crypto_klines(symbol, timeframe, limit)
                         if klines:
+                            response_time = time.time() - start_time_av
+                            data_quality_monitor.record_success("alpha_vantage", response_time)
                             logger.info(f"使用Alpha Vantage获取加密货币K线数据: {symbol}")
                     except Exception as e2:
+                        data_quality_monitor.record_error("alpha_vantage")
                         logger.warning(f"Alpha Vantage获取失败，尝试交易所: {e2}")
+                        start_time_ex = time.time()
                         try:
                             exchange_instance = self.exchanges.get('binance')
                             if exchange_instance:
@@ -103,43 +128,65 @@ class DataService:
                                         volume=data[5]
                                     )
                                     klines.append(kline)
+                                response_time = time.time() - start_time_ex
+                                data_quality_monitor.record_success("ccxt_binance", response_time)
                                 logger.info(f"使用交易所获取加密货币K线数据: {symbol}")
                         except Exception as e3:
+                            data_quality_monitor.record_error("ccxt_binance")
                             logger.error(f"所有加密货币数据源都失败: {e3}")
                 
             elif market_type == MarketType.STOCK:
                 # 优先使用Alpha Vantage，其次是Yahoo Finance，最后是AkShare
+                start_time_av = time.time()
                 try:
                     klines = await alpha_vantage_service.get_stock_klines(symbol, timeframe, limit, start_time, end_time)
                     if klines:
+                        response_time = time.time() - start_time_av
+                        data_quality_monitor.record_success("alpha_vantage", response_time)
                         logger.info(f"使用Alpha Vantage获取股票K线数据: {symbol}")
                 except Exception as e1:
+                    data_quality_monitor.record_error("alpha_vantage")
                     logger.warning(f"Alpha Vantage获取失败，尝试Yahoo Finance: {e1}")
+                    start_time_yf = time.time()
                     try:
                         klines = await yfinance_data_service.get_stock_klines(symbol, timeframe, limit, start_time, end_time)
                         if klines:
+                            response_time = time.time() - start_time_yf
+                            data_quality_monitor.record_success("yfinance", response_time)
                             logger.info(f"使用Yahoo Finance获取股票K线数据: {symbol}")
                     except Exception as e2:
+                        data_quality_monitor.record_error("yfinance")
                         logger.warning(f"Yahoo Finance获取失败，尝试AkShare: {e2}")
+                        start_time_ak = time.time()
                         try:
                             klines = await akshare_service.get_stock_klines(symbol, timeframe, limit, start_time, end_time)
                             if klines:
+                                response_time = time.time() - start_time_ak
+                                data_quality_monitor.record_success("akshare", response_time)
                                 logger.info(f"使用AkShare获取股票K线数据: {symbol}")
                         except Exception as e3:
+                            data_quality_monitor.record_error("akshare")
                             logger.error(f"所有股票数据源都失败: {e3}")
             
             elif market_type == MarketType.FOREX:
                 # 使用Alpha Vantage获取外汇数据
+                start_time_av = time.time()
                 try:
                     klines = await alpha_vantage_service.get_forex_klines(symbol, timeframe, limit)
                     if klines:
+                        response_time = time.time() - start_time_av
+                        data_quality_monitor.record_success("alpha_vantage", response_time)
                         logger.info(f"使用Alpha Vantage获取外汇K线数据: {symbol}")
                 except Exception as e:
+                    data_quality_monitor.record_error("alpha_vantage")
                     logger.error(f"外汇数据获取失败: {e}")
             
             else:
                 # 其他市场类型使用模拟数据
+                start_time_mock = time.time()
                 klines = await self._get_mock_data(symbol, timeframe, market_type, limit)
+                response_time = time.time() - start_time_mock
+                data_quality_monitor.record_success("mock", response_time)
                 logger.info(f"使用模拟数据: {symbol}")
             
             # 如果获取到数据，保存到缓存
@@ -148,11 +195,23 @@ class DataService:
                 # 保存到InfluxDB
                 await self._save_to_influxdb(klines)
             
+            if not klines:
+                # 如果所有数据源都失败，使用模拟数据作为后备
+                start_time_mock = time.time()
+                klines = await self._get_mock_data(symbol, timeframe, market_type, limit)
+                response_time = time.time() - start_time_mock
+                data_quality_monitor.record_success("mock", response_time)
+                logger.info(f"所有数据源失败，使用模拟数据: {symbol}")
+                
             return klines
                 
         except Exception as e:
             logger.error(f"获取K线数据失败: {e}")
-            return await self._get_mock_data(symbol, timeframe, market_type, limit)
+            start_time_mock = time.time()
+            mock_data = await self._get_mock_data(symbol, timeframe, market_type, limit)
+            response_time = time.time() - start_time_mock
+            data_quality_monitor.record_success("mock", response_time)
+            return mock_data
     
     async def _save_to_influxdb(self, klines: List[KlineData]):
         """保存数据到InfluxDB"""
