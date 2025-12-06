@@ -1,10 +1,11 @@
 from fastapi import APIRouter
-from .endpoints import market_data, alerts, users, technical_indicators, virtual_trading, warrants_analysis, semi_auto_trading, auto_trading, warrants_monitoring, trading_analytics, lean_backtest, system_monitor
+from .endpoints import market_data, alerts, users, technical_indicators, virtual_trading, warrants_analysis, semi_auto_trading, auto_trading, warrants_monitoring, trading_analytics, lean_backtest, system_monitor, health
 
 # 创建主路由
 api_router = APIRouter()
 
 # 包含各个模块的路由
+api_router.include_router(health.router, tags=["health"])  # 健康检查端点
 api_router.include_router(market_data.router, prefix="/market", tags=["market-data"])
 api_router.include_router(alerts.router, prefix="/alerts", tags=["alerts"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
