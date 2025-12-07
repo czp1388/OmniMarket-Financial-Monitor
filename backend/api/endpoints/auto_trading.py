@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Any
 import logging
 from datetime import datetime, timedelta
 
-from backend.services.auto_trading_service import (
+from services.auto_trading_service import (
     auto_trading_service,
     AutoTradingStrategy,
     TradingStatus

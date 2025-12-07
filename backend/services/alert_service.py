@@ -5,10 +5,10 @@ from typing import List, Dict, Optional, Callable, Any
 from enum import Enum
 import json
 
-from backend.models.alerts import Alert, AlertTrigger, AlertConditionType, AlertStatus as ModelAlertStatus, NotificationType
-from backend.models.market_data import KlineData, MarketType
-from backend.services.data_service import data_service
-from backend.services.notification_service import notification_service
+from models.alerts import Alert, AlertTrigger, AlertConditionType, AlertStatus as ModelAlertStatus, NotificationType
+from models.market_data import KlineData, MarketType
+from services.data_service import data_service
+from services.notification_service import notification_service
 
 logger = logging.getLogger(__name__)
 

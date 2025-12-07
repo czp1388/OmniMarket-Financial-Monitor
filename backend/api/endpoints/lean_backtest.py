@@ -7,7 +7,7 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 
-from backend.services.lean_backtest_service import (
+from services.lean_backtest_service import (
     lean_service, BacktestRequest, BacktestResult, StrategyPerformance
 )
 

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, Text, Enum, JSON
 from sqlalchemy.sql import func
-from backend.database import Base
+from database import Base
 import enum
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel

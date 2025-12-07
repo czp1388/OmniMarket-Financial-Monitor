@@ -4,8 +4,8 @@ import json
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 import aiohttp
-from backend.models.warrants import WarrantData, WarrantType, WarrantStatus
-from backend.services.futu_data_service import futu_data_service
+from models.warrants import WarrantData, WarrantType, WarrantStatus
+from services.futu_data_service import futu_data_service
 
 logger = logging.getLogger(__name__)
 

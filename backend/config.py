@@ -21,7 +21,8 @@ class Settings(BaseSettings):
     ]
     
     # 数据库配置
-    DATABASE_URL: str = "postgresql://user:password@localhost:5432/omnimarket"
+    # 开发环境使用SQLite，生产环境使用PostgreSQL
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./omnimarket.db")
     INFLUXDB_URL: str = "http://localhost:8086"
     INFLUXDB_TOKEN: str = "your-influxdb-token"
     INFLUXDB_ORG: str = "omnimarket"
@@ -60,6 +61,14 @@ class Settings(BaseSettings):
     
     # Webhook配置
     WEBHOOK_URL: str = ""
+    
+    # 钉钉通知配置
+    DINGTALK_WEBHOOK: str = ""  # 钉钉群机器人Webhook地址
+    DINGTALK_SECRET: str = ""   # 钉钉机器人签名密钥(可选,增强安全性)
+    
+    # 飞书通知配置
+    FEISHU_WEBHOOK: str = ""    # 飞书群机器人Webhook地址
+    FEISHU_SECRET: str = ""     # 飞书机器人签名密钥(可选,增强安全性)
     
     class Config:
         env_file = ".env"

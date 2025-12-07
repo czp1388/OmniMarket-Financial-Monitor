@@ -4,7 +4,7 @@ import akshare as ak
 import pandas as pd
 from datetime import datetime, timedelta
 from typing import List, Optional
-from backend.models.market_data import KlineData, MarketType, Timeframe
+from models.market_data import KlineData, MarketType, Timeframe
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ from email.mime.multipart import MIMEMultipart
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
-from backend.config import settings
+from config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +18,11 @@ class NotificationService:
         self.smtp_enabled = bool(settings.SMTP_USERNAME and settings.SMTP_PASSWORD)
         self.telegram_enabled = bool(settings.TELEGRAM_BOT_TOKEN and settings.TELEGRAM_CHAT_ID)
         self.webhook_enabled = bool(settings.WEBHOOK_URL)
+        self.dingtalk_enabled = bool(getattr(settings, 'DINGTALK_WEBHOOK', None))
+        self.feishu_enabled = bool(getattr(settings, 'FEISHU_WEBHOOK', None))
         
-        logger.info(f"通知服务初始化: SMTP={self.smtp_enabled}, Telegram={self.telegram_enabled}, Webhook={self.webhook_enabled}")
+        logger.info(f"通知服务初始化: SMTP={self.smtp_enabled}, Telegram={self.telegram_enabled}, "
+                   f"Webhook={self.webhook_enabled}, DingTalk={self.dingtalk_enabled}, Feishu={self.feishu_enabled}")
     
     async def send_notification(self, 
                                 notification_type: str, 
@@ -80,6 +83,32 @@ class NotificationService:
             else:
                 results["webhook"] = False
                 logger.warning("Webhook通知未配置，跳过发送")
+        
+        if notification_type == "dingtalk" or notification_type == "all":
+            if self.dingtalk_enabled:
+                try:
+                    await self._send_dingtalk(title, message)
+                    results["dingtalk"] = True
+                    logger.info(f"钉钉通知发送成功: {title}")
+                except Exception as e:
+                    results["dingtalk"] = False
+                    logger.error(f"钉钉通知发送失败: {e}")
+            else:
+                results["dingtalk"] = False
+                logger.warning("钉钉通知未配置，跳过发送")
+        
+        if notification_type == "feishu" or notification_type == "all":
+            if self.feishu_enabled:
+                try:
+                    await self._send_feishu(title, message)
+                    results["feishu"] = True
+                    logger.info(f"飞书通知发送成功: {title}")
+                except Exception as e:
+                    results["feishu"] = False
+                    logger.error(f"飞书通知发送失败: {e}")
+            else:
+                results["feishu"] = False
+                logger.warning("飞书通知未配置，跳过发送")
         
         if notification_type == "in_app":
             # 应用内通知 - 记录日志即可
@@ -175,12 +204,161 @@ class NotificationService:
         response = requests.post(settings.WEBHOOK_URL, json=payload, headers=headers, timeout=10)
         response.raise_for_status()
     
+    async def _send_dingtalk(self, title: str, message: str):
+        """
+        发送钉钉群机器人通知
+        
+        文档: https://open.dingtalk.com/document/robots/custom-robot-access
+        """
+        webhook_url = getattr(settings, 'DINGTALK_WEBHOOK', None)
+        if not webhook_url:
+            raise ValueError("钉钉Webhook URL未配置")
+        
+        # 构造Markdown格式消息
+        markdown_text = f"""### 🚨 {title}
+        
+{message}
+
+---
+
+**发送时间**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}  
+**系统**: OmniMarket Financial Monitor v{settings.VERSION}
+"""
+        
+        payload = {
+            "msgtype": "markdown",
+            "markdown": {
+                "title": title,
+                "text": markdown_text
+            },
+            "at": {
+                "isAtAll": False  # 是否@所有人
+            }
+        }
+        
+        # 如果配置了签名密钥,计算签名
+        secret = getattr(settings, 'DINGTALK_SECRET', None)
+        if secret:
+            import time
+            import hmac
+            import hashlib
+            import base64
+            import urllib.parse
+            
+            timestamp = str(round(time.time() * 1000))
+            secret_enc = secret.encode('utf-8')
+            string_to_sign = f'{timestamp}\n{secret}'.encode('utf-8')
+            hmac_code = hmac.new(secret_enc, string_to_sign, digestmod=hashlib.sha256).digest()
+            sign = urllib.parse.quote_plus(base64.b64encode(hmac_code))
+            webhook_url = f"{webhook_url}&timestamp={timestamp}&sign={sign}"
+        
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
+        response = requests.post(webhook_url, json=payload, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        result = response.json()
+        if result.get("errcode") != 0:
+            raise Exception(f"钉钉通知发送失败: {result.get('errmsg')}")
+    
+    async def _send_feishu(self, title: str, message: str):
+        """
+        发送飞书群机器人通知
+        
+        文档: https://open.feishu.cn/document/client-docs/bot-v3/add-custom-bot
+        """
+        webhook_url = getattr(settings, 'FEISHU_WEBHOOK', None)
+        if not webhook_url:
+            raise ValueError("飞书Webhook URL未配置")
+        
+        # 构造富文本消息
+        payload = {
+            "msg_type": "interactive",
+            "card": {
+                "config": {
+                    "wide_screen_mode": True
+                },
+                "header": {
+                    "title": {
+                        "tag": "plain_text",
+                        "content": f"🚨 {title}"
+                    },
+                    "template": "red"  # 红色模板
+                },
+                "elements": [
+                    {
+                        "tag": "div",
+                        "text": {
+                            "tag": "lark_md",
+                            "content": message
+                        }
+                    },
+                    {
+                        "tag": "hr"
+                    },
+                    {
+                        "tag": "div",
+                        "fields": [
+                            {
+                                "is_short": True,
+                                "text": {
+                                    "tag": "lark_md",
+                                    "content": f"**发送时间**\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                                }
+                            },
+                            {
+                                "is_short": True,
+                                "text": {
+                                    "tag": "lark_md",
+                                    "content": f"**系统版本**\nv{settings.VERSION}"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+        
+        # 如果配置了签名密钥,计算签名
+        secret = getattr(settings, 'FEISHU_SECRET', None)
+        if secret:
+            import time
+            import hmac
+            import hashlib
+            import base64
+            
+            timestamp = str(int(time.time()))
+            string_to_sign = f"{timestamp}\n{secret}"
+            hmac_code = hmac.new(
+                string_to_sign.encode("utf-8"), 
+                digestmod=hashlib.sha256
+            ).digest()
+            sign = base64.b64encode(hmac_code).decode('utf-8')
+            
+            payload["timestamp"] = timestamp
+            payload["sign"] = sign
+        
+        headers = {
+            "Content-Type": "application/json"
+        }
+        
+        response = requests.post(webhook_url, json=payload, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        result = response.json()
+        if result.get("code") != 0:
+            raise Exception(f"飞书通知发送失败: {result.get('msg')}")
+    
     def get_notification_status(self) -> Dict[str, bool]:
         """获取通知服务状态"""
         return {
             "smtp": self.smtp_enabled,
             "telegram": self.telegram_enabled,
-            "webhook": self.webhook_enabled
+            "webhook": self.webhook_enabled,
+            "dingtalk": self.dingtalk_enabled,
+            "feishu": self.feishu_enabled
         }
 
 

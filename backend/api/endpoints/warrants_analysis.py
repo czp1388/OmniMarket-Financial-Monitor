@@ -8,13 +8,13 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, List, Optional
 import logging
 
-from backend.services.warrants_analysis_service import (
+from services.warrants_analysis_service import (
     warrants_analysis_service,
     WarrantAnalysis,
     RiskLevel,
     WarrantType
 )
-from backend.services.warrants_risk_analysis import (
+from services.warrants_risk_analysis import (
     warrants_risk_analysis_service,
     WarrantsRiskAnalysisService
 )

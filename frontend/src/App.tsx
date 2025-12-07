@@ -13,17 +13,29 @@ import VirtualTradingPage from './pages/VirtualTradingPage';
 import WarrantsMonitoringPage from './pages/WarrantsMonitoringPage';
 import AutoTradingPage from './pages/AutoTradingPage';
 import SemiAutoTradingPage from './pages/SemiAutoTradingPage';
+import AssistantDashboard from './pages/AssistantDashboard';
+import StrategyActivationFlow from './pages/StrategyActivationFlow';
+import StrategyRunningStatus from './pages/StrategyRunningStatus';
+import SimpleProgressReport from './pages/SimpleProgressReport';
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* 助手模式路由 - 为零基础用户设计 */}
+        <Route path="/assistant" element={<AssistantDashboard />} />
+        <Route path="/assistant/strategies/activate/:packageId" element={<StrategyActivationFlow />} />
+        <Route path="/assistant/strategies/running/:instanceId" element={<StrategyRunningStatus />} />
+        <Route path="/assistant/strategies/report/:instanceId" element={<SimpleProgressReport />} />
+        
+        {/* 专家模式路由 - 原有的专业界面 */}
         <Route path="/" element={<KlineStyleDashboard />} />
         <Route path="/dashboard" element={<KlineStyleDashboard />} />
         <Route path="/kline" element={<KlineStyleDashboard />} />
         <Route path="/financial-monitoring" element={<FinancialMonitoringSystem />} />
         <Route path="/professional" element={<ProfessionalTradingDashboard />} />
         <Route path="/bloomberg" element={<BloombergStyleDashboard />} />
+        <Route path="/expert" element={<BloombergStyleDashboard />} />
         <Route path="/chart" element={<ChartPage />} />
         <Route path="/alerts" element={<AlertsPage />} />
         <Route path="/portfolio" element={<PortfolioPage />} />

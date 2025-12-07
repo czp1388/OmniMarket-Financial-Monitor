@@ -5,13 +5,14 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 import pandas as pd
 import ccxt
-from backend.models.market_data import KlineData, MarketType, Timeframe
-from backend.database import get_influxdb
+from models.market_data import KlineData, MarketType, Timeframe
+from database import get_influxdb
 from .websocket_manager import websocket_manager
 from .yfinance_data_service import yfinance_data_service
 from .alpha_vantage_service import alpha_vantage_service
 from .coingecko_service import coingecko_service
 from .akshare_service import akshare_service
+from .commodity_data_service import commodity_data_service
 from .data_cache_service import data_cache_service
 from .data_quality_monitor import data_quality_monitor
 
@@ -31,6 +32,7 @@ class DataService:
             "yfinance",
             "akshare",
             "ccxt_binance",
+            "commodity",
             "mock"
         ]
         for source in sources:
@@ -181,6 +183,19 @@ class DataService:
                 except Exception as e:
                     data_quality_monitor.record_error("alpha_vantage")
                     logger.error(f"外汇数据获取失败: {e}")
+            
+            elif market_type == MarketType.COMMODITY:
+                # 商品期货数据
+                start_time_commodity = time.time()
+                try:
+                    klines = await commodity_data_service.get_commodity_klines(symbol, timeframe, limit)
+                    if klines:
+                        response_time = time.time() - start_time_commodity
+                        data_quality_monitor.record_success("commodity", response_time)
+                        logger.info(f"获取商品期货K线数据: {symbol}")
+                except Exception as e:
+                    data_quality_monitor.record_error("commodity")
+                    logger.error(f"商品期货数据获取失败: {e}")
             
             else:
                 # 其他市场类型使用模拟数据

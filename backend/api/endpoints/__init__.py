@@ -8,5 +8,6 @@ from . import warrants_analysis
 from . import semi_auto_trading
 from . import auto_trading
 from . import warrants_monitoring
+from . import assistant_api
 from . import trading_analytics
 from . import lean_backtest

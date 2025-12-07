@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from datetime import datetime, timedelta
 from typing import Optional
-from ...services.trading_analytics_service import trading_analytics_service
+from services.trading_analytics_service import trading_analytics_service
 
 router = APIRouter()
 

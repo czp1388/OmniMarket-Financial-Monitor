@@ -2,15 +2,15 @@ import asyncio
 import logging
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
-from backend.models.warrants import (
+from models.warrants import (
     WarrantData, WarrantMonitoringAlert, WarrantAnalysisResult, 
     WarrantType, WarrantStatus, WarrantTradingSignal, WarrantPortfolio
 )
-from backend.services.data_service import data_service
-from backend.services.technical_analysis_service import technical_analysis_service
-from backend.services.auto_trading_service import AutoTradingStrategy
-from backend.services.warrants_data_service import warrants_data_service
-from backend.services.trading_analytics_service import trading_analytics_service
+from services.data_service import data_service
+from services.technical_analysis_service import technical_analysis_service
+from services.auto_trading_service import AutoTradingStrategy
+from services.warrants_data_service import warrants_data_service
+from services.trading_analytics_service import trading_analytics_service
 
 
 class WarrantsMonitoringService:

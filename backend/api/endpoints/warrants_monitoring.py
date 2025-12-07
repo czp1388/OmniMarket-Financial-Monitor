@@ -9,13 +9,13 @@ import logging
 import asyncio
 import json
 
-from backend.services.warrants_monitoring_service import (
+from services.warrants_monitoring_service import (
     warrants_monitoring_service
 )
-from backend.services.warrants_data_service import (
+from services.warrants_data_service import (
     warrants_data_service
 )
-from backend.models.warrants import (
+from models.warrants import (
     WarrantData,
     WarrantMonitoringAlert,
     WarrantType,

@@ -3,7 +3,7 @@
  * 处理绘图逻辑、存储、快捷键等
  */
 import { useEffect, useCallback, useRef } from 'react';
-import { DrawingTool, Drawing } from './DrawingToolbar';
+import { DrawingTool, Drawing } from '../components/DrawingToolbar';
 
 // 斐波那契回调比例
 const FIBONACCI_LEVELS = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];

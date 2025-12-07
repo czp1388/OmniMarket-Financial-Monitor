@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ReactECharts from 'echarts-for-react';
+import DrawingToolbar from '../components/DrawingToolbar';
+import { useDrawingManager } from '../hooks/useDrawingManager';
 import './BloombergStyleDashboard.css';
 
 interface MarketSymbol {
@@ -24,6 +26,19 @@ interface ChartData {
 const BloombergStyleDashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // 绘图工具集成
+  const {
+    drawings,
+    currentTool,
+    setCurrentTool,
+    addDrawing,
+    removeDrawing,
+    clearAllDrawings,
+    loadDrawings,
+    saveDrawings
+  } = useDrawingManager();
+  
   const [selectedMarket, setSelectedMarket] = useState<string>('AAPL');
   const [timeframe, setTimeframe] = useState<string>('1h');
   const [selectedIndicator, setSelectedIndicator] = useState<string>('none');
@@ -390,6 +405,12 @@ const BloombergStyleDashboard: React.FC = () => {
             </div>
             
             <div className="chart-container">
+              {/* 绘图工具栏 */}
+              <DrawingToolbar
+                currentTool={currentTool}
+                onToolChange={setCurrentTool}
+                onClear={clearAllDrawings}
+              />
               <ReactECharts 
                 option={getChartOption()} 
                 style={{ height: '500px', width: '100%' }}

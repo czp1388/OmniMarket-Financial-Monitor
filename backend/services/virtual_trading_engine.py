@@ -7,7 +7,7 @@ import uuid
 import json
 from decimal import Decimal, ROUND_HALF_UP
 from dataclasses import dataclass
-from backend.models.market_data import KlineData, MarketType
+from models.market_data import KlineData, MarketType
 from .futu_data_service import futu_data_service
 
 logger = logging.getLogger(__name__)

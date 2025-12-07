@@ -5,7 +5,7 @@ from jose import jwt, JWTError, ExpiredSignatureError
 from fastapi import HTTPException
 
 from .user_service import user_service
-from backend.config import settings
+from config import settings
 
 logger = logging.getLogger(__name__)
 

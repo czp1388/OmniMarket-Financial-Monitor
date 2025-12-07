@@ -6,8 +6,8 @@ from fastapi import APIRouter, HTTPException
 from typing import Dict, Any
 import logging
 
-from backend.services.data_cache_service import data_cache_service
-from backend.services.data_quality_monitor import data_quality_monitor
+from services.data_cache_service import data_cache_service
+from services.data_quality_monitor import data_quality_monitor
 
 router = APIRouter()
 logger = logging.getLogger(__name__)

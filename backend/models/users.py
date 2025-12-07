@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, Text, Enum, JSON
 from sqlalchemy.sql import func
-from backend.database import Base
+from sqlalchemy.orm import relationship
+from database import Base
 import enum
 from typing import Optional
 from pydantic import BaseModel, EmailStr
@@ -34,6 +35,9 @@ class User(Base):
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     last_login = Column(DateTime, nullable=True)
+    
+    # 关系
+    strategy_instances = relationship("StrategyInstance", back_populates="user")
 
     def __repr__(self):
         return f"<User(username={self.username}, email={self.email}, role={self.role})>"

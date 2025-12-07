@@ -4,14 +4,14 @@ from decimal import Decimal
 import logging
 from pydantic import BaseModel
 
-from backend.services.virtual_trading_engine import (
+from services.virtual_trading_engine import (
     virtual_trading_engine, 
     OrderType, 
     OrderSide,
     OrderStatus
 )
-from backend.services.data_service import data_service
-from backend.models.market_data import MarketType
+from services.data_service import data_service
+from models.market_data import MarketType
 
 # Pydantic模型用于请求体
 class CreateAccountRequest(BaseModel):

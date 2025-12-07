@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createChart, ColorType, CrosshairMode, CandlestickData, LineData } from 'lightweight-charts';
 import { realTimeDataService, MarketData } from '../services/realTimeDataService';
+import DrawingToolbar from '../components/DrawingToolbar';
+import { useDrawingManager } from '../hooks/useDrawingManager';
 import './KlineStyleDashboard.css';
 
 interface MarketSymbol {
@@ -31,6 +33,18 @@ const KlineStyleDashboard: React.FC = () => {
   const candleSeriesRef = useRef<any>(null);
   const smaSeriesRef = useRef<any>(null);
   const updateIntervalRef = useRef<number | null>(null);
+  
+  // 绘图工具集成
+  const {
+    drawings,
+    currentTool,
+    setCurrentTool,
+    addDrawing,
+    removeDrawing,
+    clearAllDrawings,
+    loadDrawings,
+    saveDrawings
+  } = useDrawingManager();
   
   const [selectedMarket, setSelectedMarket] = useState<string>('crypto');
   const [timeframe, setTimeframe] = useState<string>('1h');
@@ -448,6 +462,12 @@ const KlineStyleDashboard: React.FC = () => {
 
         {/* 图表区域 - 使用Lightweight Charts */}
         <div className="chart-container">
+          {/* 绘图工具栏 */}
+          <DrawingToolbar
+            currentTool={currentTool}
+            onToolChange={setCurrentTool}
+            onClear={clearAllDrawings}
+          />
           <div ref={chartContainerRef} style={{ width: '100%', height: '100%' }} />
         </div>
 

@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 from typing import List, Dict, Optional
 import pandas as pd
-from backend.models.market_data import KlineData, MarketType, Timeframe
+from models.market_data import KlineData, MarketType, Timeframe
 
 logger = logging.getLogger(__name__)
 

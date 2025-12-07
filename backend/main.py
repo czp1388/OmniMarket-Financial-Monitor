@@ -35,9 +35,9 @@ async def lifespan(app: FastAPI):
     logger.info("初始化数据库连接...")
     await init_db()
     
-    # 启动数据服务
+    # 启动数据服务（使用全局实例）
     logger.info("启动数据服务...")
-    data_service = DataService()
+    from backend.services.data_service import data_service
     asyncio.create_task(data_service.start())
     
     # 启动预警服务
@@ -60,9 +60,16 @@ async def lifespan(app: FastAPI):
     
     # 关闭时清理
     logger.info("关闭数据服务...")
-    await data_service.stop()
+    try:
+        await data_service.stop()
+    except Exception as e:
+        logger.warning(f"关闭数据服务时出错: {e}")
+    
     logger.info("关闭WebSocket管理器...")
-    await websocket_manager.stop()
+    try:
+        await websocket_manager.stop()
+    except Exception as e:
+        logger.warning(f"关闭WebSocket管理器时出错: {e}")
 
 # 创建FastAPI应用
 app = FastAPI(

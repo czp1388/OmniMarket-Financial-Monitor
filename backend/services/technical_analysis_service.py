@@ -1,7 +1,7 @@
 import logging
 from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
-from backend.models.market_data import KlineData
+from models.market_data import KlineData
 
 logger = logging.getLogger(__name__)
 
