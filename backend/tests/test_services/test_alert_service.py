@@ -10,6 +10,19 @@ from services.alert_service import AlertService, AlertStatus
 from models.alerts import Alert, AlertConditionType, NotificationType
 from models.market_data import MarketType
 
+# 为扩展测试添加必要的枚举类型
+class AlertType:
+    """预警类型枚举（测试用）"""
+    PRICE = "price"
+    VOLUME = "volume"
+    TECHNICAL = "technical"
+
+class AlertCondition:
+    """预警条件枚举（测试用）"""
+    ABOVE = "above"
+    BELOW = "below"
+    PERCENTAGE_CHANGE = "percentage_change"
+
 
 class TestAlertService:
     """AlertService 测试类"""

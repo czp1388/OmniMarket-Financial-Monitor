@@ -364,7 +364,8 @@ class TestDataServiceExtended:
         """测试获取支持的交易所列表"""
         service = DataService()
         
-        exchanges = service.get_supported_exchanges(MarketType.CRYPTO)
+        # 修复：get_supported_exchanges() 不接受参数
+        exchanges = service.get_supported_exchanges()
         
         assert exchanges is not None
         assert isinstance(exchanges, list)

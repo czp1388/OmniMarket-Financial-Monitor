@@ -60,7 +60,7 @@ class AuthService:
         except jwt.ExpiredSignatureError:
             logger.warning("令牌已过期")
             return None
-        except jwt.InvalidTokenError:
+        except jwt.JWTError:  # 修复：使用 JWTError 替代 InvalidTokenError
             logger.warning("无效令牌")
             return None
     
