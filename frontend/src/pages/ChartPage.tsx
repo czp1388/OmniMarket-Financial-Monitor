@@ -686,53 +686,70 @@ const ChartPage: React.FC = () => {
   };
 
   return (
-    <div className="chart-container">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0d1219] to-[#0a0e17] text-white p-6 space-y-4">
       {/* 顶部标题栏 */}
-      <div className="chart-header">
-        <h1 className="chart-title">专业图表分析</h1>
-        <div className="chart-controls">
-          <div className="control-group">
-            <span className="control-label">交易对</span>
-            <select
-              value={selectedSymbol}
-              onChange={(e) => setSelectedSymbol(e.target.value)}
-              className="control-select"
-            >
-              {symbols.map(symbol => (
-                <option key={symbol} value={symbol}>{symbol}</option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="control-group">
-            <span className="control-label">时间周期</span>
-            <select
-              value={timeframe}
-              onChange={(e) => setTimeframe(e.target.value)}
-              className="control-select"
-            >
-              {timeframes.map(tf => (
-                <option key={tf} value={tf}>{tf}</option>
-              ))}
-            </select>
+      <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
+        <div className="flex items-center justify-between">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-3">
+            <span className="text-5xl">📊</span>
+            <span>专业图表分析</span>
+          </h1>
+          <div className="flex items-center gap-4">
+            <div>
+              <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                <span>💱</span><span>交易对</span>
+              </label>
+              <select
+                value={selectedSymbol}
+                onChange={(e) => setSelectedSymbol(e.target.value)}
+                className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-2 text-white focus:border-[#00ccff] focus:outline-none"
+              >
+                {symbols.map(symbol => (
+                  <option key={symbol} value={symbol}>{symbol}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                <span>⏱️</span><span>时间周期</span>
+              </label>
+              <select
+                value={timeframe}
+                onChange={(e) => setTimeframe(e.target.value)}
+                className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-2 text-white focus:border-[#00ccff] focus:outline-none"
+              >
+                {timeframes.map(tf => (
+                  <option key={tf} value={tf}>{tf}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
       </div>
 
       {/* 主内容区域 */}
-      <div className="chart-main">
+      <div className="flex gap-4">
         {/* 左侧品种列表 */}
-        <div className="chart-sidebar">
-          <div className="symbol-list">
+        <div className="w-full md:w-[25%] bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-4 shadow-2xl">
+          <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
+            <span className="text-2xl">📈</span>
+            <span>品种列表</span>
+          </h3>
+          <div className="space-y-2">
             {symbolsData.map((symbol) => (
               <div
                 key={symbol.symbol}
-                className={`symbol-card ${selectedSymbol === symbol.symbol ? 'active' : ''}`}
+                className={`p-3 rounded-xl cursor-pointer transition-all duration-300 ${
+                  selectedSymbol === symbol.symbol
+                    ? 'bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black font-semibold scale-[1.02]'
+                    : 'bg-[#1a2332] hover:bg-[#222b3d] text-white'
+                }`}
                 onClick={() => setSelectedSymbol(symbol.symbol)}
               >
-                <div className="symbol-name">{symbol.symbol}</div>
-                <div className="symbol-price">{formatPrice(symbol.price)}</div>
-                <div className={`symbol-change ${symbol.change >= 0 ? 'positive' : 'negative'}`}>
+                <div className="font-bold">{symbol.symbol}</div>
+                <div className="text-lg font-mono">{formatPrice(symbol.price)}</div>
+                <div className={selectedSymbol === symbol.symbol ? '' : (symbol.change >= 0 ? 'text-[#00ff88]' : 'text-[#ff4444]')}>
                   {formatChange(symbol.change, symbol.changePercent)}
                 </div>
               </div>
@@ -741,34 +758,38 @@ const ChartPage: React.FC = () => {
         </div>
 
         {/* 右侧图表区域 */}
-        <div className="chart-content">
+        <div className="w-full md:w-[75%] space-y-4">
           {/* 图表工具栏 */}
-          <div className="chart-toolbar">
-            <div className="toolbar-controls">
-              <div className="indicator-selector">
-                <span className="control-label">技术指标:</span>
-                {indicators.map(indicator => (
-                  <div
-                    key={indicator}
-                    className={`indicator-badge ${activeIndicator === indicator ? 'active' : ''}`}
-                    onClick={() => setActiveIndicator(indicator)}
-                  >
-                    {indicator === 'none' ? '无指标' : 
-                     indicator === 'ma' ? '移动平均线' :
-                     indicator === 'macd' ? 'MACD' :
-                     indicator === 'rsi' ? 'RSI' : '布林带'}
-                  </div>
-                ))}
-              </div>
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-4 shadow-2xl">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-400 text-sm flex items-center gap-2">
+                <span>📈</span><span>技术指标:</span>
+              </span>
+              {indicators.map(indicator => (
+                <div
+                  key={indicator}
+                  className={`px-4 py-2 rounded-lg cursor-pointer transition-all duration-300 text-sm font-semibold ${
+                    activeIndicator === indicator
+                      ? 'bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black'
+                      : 'bg-[#1a2332] text-gray-400 hover:bg-[#222b3d] hover:text-white'
+                  }`}
+                  onClick={() => setActiveIndicator(indicator)}
+                >
+                  {indicator === 'none' ? '无指标' : 
+                   indicator === 'ma' ? '移动平均线' :
+                   indicator === 'macd' ? 'MACD' :
+                   indicator === 'rsi' ? 'RSI' : '布林带'}
+                </div>
+              ))}
             </div>
           </div>
 
           {/* 图表区域 */}
-          <div className="chart-area">
-            <div className="chart-wrapper">
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-6 shadow-2xl">
+            <div className="relative" style={{ height: '500px' }}>
               {loading && (
-                <div className="loading-overlay">
-                  <div className="loading-spinner"></div>
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl z-10">
+                  <div className="w-12 h-12 border-4 border-[#00ccff] border-t-transparent rounded-full animate-spin"></div>
                 </div>
               )}
               <ReactECharts
@@ -780,28 +801,29 @@ const ChartPage: React.FC = () => {
           </div>
 
           {/* 底部状态栏 */}
-          <div className="chart-status">
-            <div className="status-info">
-              <div className="status-item">
-                <span>当前品种:</span>
-                <span className="status-value">{selectedSymbol}</span>
+          <div className="bg-gradient-to-r from-[#141a2a] via-[#1a2332] to-[#141a2a] border border-[#2a3a5a] rounded-xl p-4 shadow-2xl">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400 text-sm">当前品种:</span>
+                <span className="text-[#00ccff] font-semibold">{selectedSymbol}</span>
               </div>
-              <div className="status-item">
-                <span>时间周期:</span>
-                <span className="status-value">{timeframe}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400 text-sm">时间周期:</span>
+                <span className="text-white font-semibold">{timeframe}</span>
               </div>
-              <div className="status-item">
-                <span>技术指标:</span>
-                <span className="status-value">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400 text-sm">技术指标:</span>
+                <span className="text-white font-semibold">
                   {activeIndicator === 'none' ? '无' : 
                    activeIndicator === 'ma' ? '移动平均线' :
                    activeIndicator === 'macd' ? 'MACD' :
                    activeIndicator === 'rsi' ? 'RSI' : '布林带'}
                 </span>
               </div>
-              <div className="status-item">
-                <span>数据状态:</span>
-                <span className="status-value positive">实时</span>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[#00ff88] animate-pulse shadow-lg shadow-[#00ff88]/50"></div>
+                <span className="text-gray-400 text-sm">数据状态:</span>
+                <span className="text-[#00ff88] font-semibold">实时</span>
               </div>
             </div>
           </div>
