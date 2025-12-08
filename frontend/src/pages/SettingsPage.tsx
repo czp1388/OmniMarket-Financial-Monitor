@@ -216,34 +216,41 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="settings-main">
-      {/* 左侧实时监控面板 */}
-        <div className="symbols-sidebar">
-          <div className="sidebar-header">
-            <h3>实时监控</h3>
-            <span className="update-indicator">实时数据</span>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0d1219] to-[#0a0e17] text-white p-6">
+      <div className="flex gap-4">
+        {/* 左侧实时监控面板 */}
+        <div className="w-full md:w-[25%] bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-4 shadow-2xl">
+          <div className="mb-4">
+            <h3 className="text-xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
+              <span className="text-2xl">📊</span>
+              <span>实时监控</span>
+            </h3>
+            <div className="flex items-center gap-2 mt-2">
+              <div className="w-3 h-3 rounded-full bg-[#00ff88] animate-pulse shadow-lg shadow-[#00ff88]/50"></div>
+              <span className="text-[#00ff88] text-sm font-semibold">实时数据</span>
+            </div>
           </div>
-          <div className="symbols-list">
+          <div className="space-y-2 max-h-[600px] overflow-y-auto">
             {symbolsData.map((symbol) => (
-              <div key={symbol.symbol} className="symbol-card">
-                <div className="symbol-header">
-                  <span className="symbol-name">{symbol.symbol}</span>
-                  <span className={`symbol-change ${symbol.changePercent >= 0 ? 'positive' : 'negative'}`}>
+              <div key={symbol.symbol} className="bg-[#1a2332] border border-[#2a3a5a] rounded-xl p-3 hover:scale-[1.02] transition-all">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-white font-bold">{symbol.symbol}</span>
+                  <span className={`font-semibold text-sm ${symbol.changePercent >= 0 ? 'text-[#00ff88]' : 'text-[#ff4444]'}`}>
                     {formatPercent(symbol.changePercent)}
                   </span>
                 </div>
-                <div className="symbol-details">
-                  <span className="symbol-price">
+                <div className="flex items-center justify-between">
+                  <span className="text-lg font-mono text-white">
                     {symbol.symbol.includes('/') ? '$' : ''}{formatNumber(symbol.price)}
                   </span>
-                  <span className={`symbol-absolute ${symbol.change >= 0 ? 'positive' : 'negative'}`}>
-                    {symbol.change >= 0 ? '+' : ''}{formatNumber(symbol.change)}
+                  <span className={`text-sm ${symbol.change >= 0 ? 'text-[#00ff88]' : 'text-[#ff4444]'}`}>
+                    {symbol.change >= 0 ? '↗ +' : '↘ '}{formatNumber(symbol.change)}
                   </span>
                 </div>
-                <div className="symbol-volume">
+                <div className="text-xs text-gray-400 mt-1">
                   成交量: {symbol.volume.toLocaleString()}
                 </div>
-                <div className="symbol-range">
+                <div className="text-xs text-gray-400">
                   H: {formatNumber(symbol.high)} L: {formatNumber(symbol.low)}
                 </div>
               </div>
@@ -251,203 +258,140 @@ const SettingsPage: React.FC = () => {
           </div>
         </div>
 
-      {/* 右侧设置内容 */}
-      <div className="settings-content">
-        {/* 功能导航栏 - 彭博终端风格 */}
-        <div className="settings-nav-bar">
-          <button 
-            className={`settings-nav-btn ${activeNav === '常规设置' ? 'active' : ''}`}
-            onClick={() => setActiveNav('常规设置')}
-          >
-            常规设置
-          </button>
-          <button 
-            className={`settings-nav-btn ${activeNav === '数据源' ? 'active' : ''}`}
-            onClick={() => setActiveNav('数据源')}
-          >
-            数据源
-          </button>
-          <button 
-            className={`settings-nav-btn ${activeNav === '通知' ? 'active' : ''}`}
-            onClick={() => setActiveNav('通知')}
-          >
-            通知
-          </button>
-          <button 
-            className={`settings-nav-btn ${activeNav === '图表' ? 'active' : ''}`}
-            onClick={() => setActiveNav('图表')}
-          >
-            图表
-          </button>
-          <button 
-            className={`settings-nav-btn ${activeNav === '风险' ? 'active' : ''}`}
-            onClick={() => setActiveNav('风险')}
-          >
-            风险
-          </button>
-          <button 
-            className={`settings-nav-btn ${activeNav === '数据质量' ? 'active' : ''}`}
-            onClick={() => setActiveNav('数据质量')}
-          >
-            数据质量
-          </button>
-          <button 
-            className={`settings-nav-btn ${activeNav === '预警策略' ? 'active' : ''}`}
-            onClick={() => setActiveNav('预警策略')}
-          >
-            预警策略
-          </button>
-        </div>
-
-        <div className="settings-header">
-          <h1>系统设置</h1>
-          <p>配置您的监控系统偏好</p>
-        </div>
-
-        <div className="settings-grid">
-          {/* 数据源设置 */}
-          <div className="settings-card">
-            <h2>数据源设置</h2>
-            <div className="checkbox-grid">
-              <div className="checkbox-item">
-                <input
-                  type="checkbox"
-                  id="crypto"
-                  checked={settings.dataSources.crypto}
-                  onChange={(e) => handleDataSourceChange('crypto', e.target.checked)}
-                />
-                <label htmlFor="crypto">
-                  <span className={`status-indicator ${settings.dataSources.crypto ? 'status-active' : 'status-inactive'}`}></span>
-                  加密货币数据
-                </label>
-              </div>
-              <div className="checkbox-item">
-                <input
-                  type="checkbox"
-                  id="stocks"
-                  checked={settings.dataSources.stocks}
-                  onChange={(e) => handleDataSourceChange('stocks', e.target.checked)}
-                />
-                <label htmlFor="stocks">
-                  <span className={`status-indicator ${settings.dataSources.stocks ? 'status-active' : 'status-inactive'}`}></span>
-                  股票数据
-                </label>
-              </div>
-              <div className="checkbox-item">
-                <input
-                  type="checkbox"
-                  id="forex"
-                  checked={settings.dataSources.forex}
-                  onChange={(e) => handleDataSourceChange('forex', e.target.checked)}
-                />
-                <label htmlFor="forex">
-                  <span className={`status-indicator ${settings.dataSources.forex ? 'status-active' : 'status-inactive'}`}></span>
-                  外汇数据
-                </label>
-              </div>
-              <div className="checkbox-item">
-                <input
-                  type="checkbox"
-                  id="futures"
-                  checked={settings.dataSources.futures}
-                  onChange={(e) => handleDataSourceChange('futures', e.target.checked)}
-                />
-                <label htmlFor="futures">
-                  <span className={`status-indicator ${settings.dataSources.futures ? 'status-active' : 'status-inactive'}`}></span>
-                  期货数据
-                </label>
-              </div>
+        {/* 右侧设置内容 */}
+        <div className="w-full md:w-[75%] space-y-4">
+          {/* 功能导航栏 */}
+          <div className="bg-gradient-to-r from-[#141a2a] via-[#1a2332] to-[#141a2a] border border-[#2a3a5a] rounded-2xl p-3 shadow-2xl">
+            <div className="flex items-center gap-2 overflow-x-auto">
+              {['常规设置', '数据源', '通知', '图表', '风险', '数据质量', '预警策略'].map((nav) => (
+                <button
+                  key={nav}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
+                    activeNav === nav
+                      ? 'bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black'
+                      : 'bg-[#1a2332] text-gray-400 hover:bg-[#222b3d] hover:text-white'
+                  }`}
+                  onClick={() => setActiveNav(nav)}
+                >
+                  {nav}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* 通知设置 */}
-          <div className="settings-card">
-            <h2>通知设置</h2>
-            <div className="checkbox-grid">
-              <div className="checkbox-item">
-                <input
-                  type="checkbox"
-                  id="email"
-                  checked={settings.notifications.email}
-                  onChange={(e) => handleNotificationChange('email', e.target.checked)}
-                />
-                <label htmlFor="email">
-                  <span className={`status-indicator ${settings.notifications.email ? 'status-active' : 'status-inactive'}`}></span>
-                  邮件通知
-                </label>
-              </div>
-              <div className="checkbox-item">
-                <input
-                  type="checkbox"
-                  id="push"
-                  checked={settings.notifications.push}
-                  onChange={(e) => handleNotificationChange('push', e.target.checked)}
-                />
-                <label htmlFor="push">
-                  <span className={`status-indicator ${settings.notifications.push ? 'status-active' : 'status-inactive'}`}></span>
-                  推送通知
-                </label>
-              </div>
-              <div className="checkbox-item">
-                <input
-                  type="checkbox"
-                  id="sound"
-                  checked={settings.notifications.sound}
-                  onChange={(e) => handleNotificationChange('sound', e.target.checked)}
-                />
-                <label htmlFor="sound">
-                  <span className={`status-indicator ${settings.notifications.sound ? 'status-active' : 'status-inactive'}`}></span>
-                  声音提示
-                </label>
-              </div>
-              <div className="checkbox-item">
-                <input
-                  type="checkbox"
-                  id="telegram"
-                  checked={settings.notifications.telegram}
-                  onChange={(e) => handleNotificationChange('telegram', e.target.checked)}
-                />
-                <label htmlFor="telegram">
-                  <span className={`status-indicator ${settings.notifications.telegram ? 'status-active' : 'status-inactive'}`}></span>
-                  Telegram通知
-                </label>
-              </div>
-            </div>
+          {/* 标题区 */}
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-3">
+              <span className="text-5xl">⚙️</span>
+              <span>系统设置</span>
+            </h1>
+            <p className="text-gray-400 mt-2">配置您的监控系统偏好</p>
           </div>
 
-          {/* 图表设置 */}
-          <div className="settings-card">
-            <h2>图表设置</h2>
-            <div className="form-grid">
-              <div className="form-group">
-                <label htmlFor="theme">主题</label>
-                <select
-                  id="theme"
-                  value={settings.chart.theme}
-                  onChange={(e) => handleChartSettingChange('theme', e.target.value)}
-                  className="form-control"
-                >
-                  <option value="light">浅色</option>
-                  <option value="dark">深色</option>
-                </select>
+          {/* 设置卡片网格 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* 数据源设置 */}
+            <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
+              <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
+                <span className="text-3xl">🌐</span>
+                <span>数据源设置</span>
+              </h2>
+              <div className="space-y-3">
+                {[
+                  { id: 'crypto', label: '加密货币数据', value: settings.dataSources.crypto },
+                  { id: 'stocks', label: '股票数据', value: settings.dataSources.stocks },
+                  { id: 'forex', label: '外汇数据', value: settings.dataSources.forex },
+                  { id: 'futures', label: '期货数据', value: settings.dataSources.futures }
+                ].map((item) => (
+                  <div key={item.id} className="flex items-center gap-3 p-3 bg-[#1a2332] rounded-lg">
+                    <input
+                      type="checkbox"
+                      id={item.id}
+                      checked={item.value}
+                      onChange={(e) => handleDataSourceChange(item.id, e.target.checked)}
+                      className="w-5 h-5 accent-[#00ccff]"
+                    />
+                    <label htmlFor={item.id} className="flex items-center gap-2 cursor-pointer flex-1">
+                      <div className={`w-3 h-3 rounded-full ${item.value ? 'bg-[#00ff88] animate-pulse shadow-lg shadow-[#00ff88]/50' : 'bg-gray-500'}`}></div>
+                      <span className="text-white">{item.label}</span>
+                    </label>
+                  </div>
+                ))}
               </div>
-              <div className="form-group">
-                <label htmlFor="timezone">时区</label>
-                <select
-                  id="timezone"
-                  value={settings.chart.timezone}
-                  onChange={(e) => handleChartSettingChange('timezone', e.target.value)}
-                  className="form-control"
-                >
-                  <option value="Asia/Shanghai">北京时间</option>
-                  <option value="America/New_York">纽约时间</option>
-                  <option value="Europe/London">伦敦时间</option>
-                  <option value="UTC">UTC</option>
-                </select>
+            </div>
+
+            {/* 通知设置 */}
+            <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
+              <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
+                <span className="text-3xl">🔔</span>
+                <span>通知设置</span>
+              </h2>
+              <div className="space-y-3">
+                {[
+                  { id: 'email', label: '邮件通知', value: settings.notifications.email },
+                  { id: 'push', label: '推送通知', value: settings.notifications.push },
+                  { id: 'sound', label: '声音提示', value: settings.notifications.sound },
+                  { id: 'telegram', label: 'Telegram通知', value: settings.notifications.telegram }
+                ].map((item) => (
+                  <div key={item.id} className="flex items-center gap-3 p-3 bg-[#1a2332] rounded-lg">
+                    <input
+                      type="checkbox"
+                      id={item.id}
+                      checked={item.value}
+                      onChange={(e) => handleNotificationChange(item.id, e.target.checked)}
+                      className="w-5 h-5 accent-[#00ccff]"
+                    />
+                    <label htmlFor={item.id} className="flex items-center gap-2 cursor-pointer flex-1">
+                      <div className={`w-3 h-3 rounded-full ${item.value ? 'bg-[#00ff88] animate-pulse shadow-lg shadow-[#00ff88]/50' : 'bg-gray-500'}`}></div>
+                      <span className="text-white">{item.label}</span>
+                    </label>
+                  </div>
+                ))}
               </div>
-              <div className="form-group">
-                <label htmlFor="timeframe">默认时间周期</label>
-                <select
+            </div>
+
+            {/* 图表设置 */}
+            <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
+              <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
+                <span className="text-3xl">📈</span>
+                <span>图表设置</span>
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="theme" className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                    <span>🎨</span><span>主题</span>
+                  </label>
+                  <select
+                    id="theme"
+                    value={settings.chart.theme}
+                    onChange={(e) => handleChartSettingChange('theme', e.target.value)}
+                    className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none"
+                  >
+                    <option value="light">浅色</option>
+                    <option value="dark">深色</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="timezone" className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                    <span>🌍</span><span>时区</span>
+                  </label>
+                  <select
+                    id="timezone"
+                    value={settings.chart.timezone}
+                    onChange={(e) => handleChartSettingChange('timezone', e.target.value)}
+                    className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none"
+                  >
+                    <option value="Asia/Shanghai">北京时间</option>
+                    <option value="America/New_York">纽约时间</option>
+                    <option value="Europe/London">伦敦时间</option>
+                    <option value="UTC">UTC</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="timeframe" className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                    <span>⏱️</span><span>默认时间周期</span>
+                  </label>
+                  <select
                   id="timeframe"
                   value={settings.chart.defaultTimeframe}
                   onChange={(e) => handleChartSettingChange('defaultTimeframe', e.target.value)}
@@ -733,32 +677,66 @@ const SettingsPage: React.FC = () => {
             <div className="api-config">
               <label htmlFor="binanceApi">Binance API Key</label>
               <input
-                type="password"
-                id="binanceApi"
-                placeholder="输入您的Binance API Key"
-                className="form-control"
-              />
+                  <select
+                    id="timeframe"
+                    value={settings.chart.defaultTimeframe}
+                    onChange={(e) => handleChartSettingChange('defaultTimeframe', e.target.value)}
+                    className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none"
+                  >
+                    <option value="1m">1分钟</option>
+                    <option value="5m">5分钟</option>
+                    <option value="15m">15分钟</option>
+                    <option value="1h">1小时</option>
+                    <option value="4h">4小时</option>
+                    <option value="1d">1天</option>
+                  </select>
+                </div>
+              </div>
             </div>
-            <div className="api-config">
-              <label htmlFor="telegramBot">Telegram Bot Token</label>
-              <input
-                type="password"
-                id="telegramBot"
-                placeholder="输入您的Telegram Bot Token"
-                className="form-control"
-              />
+
+            {/* API 配置 */}
+            <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
+              <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
+                <span className="text-3xl">🔑</span>
+                <span>API 配置</span>
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="binanceApi" className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                    <span>🪙</span><span>Binance API Key</span>
+                  </label>
+                  <input
+                    type="password"
+                    id="binanceApi"
+                    placeholder="输入您的Binance API Key"
+                    className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="telegramBot" className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                    <span>✈️</span><span>Telegram Bot Token</span>
+                  </label>
+                  <input
+                    type="password"
+                    id="telegramBot"
+                    placeholder="输入您的Telegram Bot Token"
+                    className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none"
+                  />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* 保存按钮 */}
-        <div className="save-section">
-          <button
-            onClick={saveSettings}
-            className="save-button"
-          >
-            保存设置
-          </button>
+          {/* 保存按钮 */}
+          <div className="mt-6">
+            <button
+              onClick={saveSettings}
+              className="w-full bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black font-bold text-lg px-8 py-4 rounded-xl hover:scale-[1.02] transition-all duration-300 shadow-2xl flex items-center justify-center gap-3"
+            >
+              <span className="text-2xl">💾</span>
+              <span>保存设置</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
