@@ -239,9 +239,11 @@ const PortfolioPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <span className="loading-text">加载投资组合数据...</span>
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0d1219] to-[#0a0e17] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#2a3a5a] border-t-[#00ccff] mx-auto shadow-lg shadow-[#00ccff]/20"></div>
+          <span className="text-[#00ccff] text-lg animate-pulse">加载投资组合数据...</span>
+        </div>
       </div>
     );
   }
@@ -261,126 +263,126 @@ const PortfolioPage: React.FC = () => {
   };
 
   return (
-    <div className="portfolio-container">
-      {/* 顶部状态栏 */}
-      <div className="status-bar top-status-bar">
-        <div className="status-left">
-          <span className="system-name">OmniMarket</span>
-          <span className={`status-indicator ${systemStatus === '正常' ? 'status-normal' : systemStatus === '连接异常' ? 'status-warning' : 'status-closed'}`}>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0d1219] to-[#0a0e17] text-white">
+      {/* 顶部状态栏 - 增强版 */}
+      <div className="bg-gradient-to-r from-[#141a2a] to-[#1a2332] border-b border-[#2a3a5a] px-6 py-3 flex items-center justify-between shadow-lg">
+        <div className="flex items-center gap-6">
+          <span className="text-xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent">OmniMarket</span>
+          <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${
+            systemStatus === '正常' ? 'bg-[#00ff88]/20 text-[#00ff88]' :
+            systemStatus === '连接异常' ? 'bg-yellow-500/20 text-yellow-500' :
+            'bg-gray-500/20 text-gray-400'
+          }`}>
             {systemStatus}
           </span>
-          <span className="delay-info">延迟: {connectionDelay}ms</span>
+          <span className="text-sm text-gray-400">延迟: <span className="text-[#00ccff] font-semibold">{connectionDelay}ms</span></span>
         </div>
-        <div className="status-center">
-          <span className="market-status">市场状态: {systemStatus === '市场关闭' ? '休市' : '开市'}</span>
-          <span className="active-alerts-count">活跃预警: {activeAlertsCount}</span>
+        <div className="flex items-center gap-6">
+          <span className="text-sm text-gray-400">市场状态: <span className="text-white font-semibold">{systemStatus === '市场关闭' ? '休市' : '开市'}</span></span>
+          <span className="text-sm text-gray-400">活跃预警: <span className="text-[#ff4444] font-semibold">{activeAlertsCount}</span></span>
         </div>
-        <div className="status-right">
-          <span className="current-time">{currentTime}</span>
-          <span className="data-source">数据源: 模拟数据</span>
+        <div className="flex items-center gap-6">
+          <span className="text-sm text-[#00ccff] font-mono">{currentTime}</span>
+          <span className="text-sm text-gray-500">数据源: 模拟数据</span>
         </div>
       </div>
 
-      {/* 功能导航栏 - 彭博终端风格 */}
-      <div className="portfolio-nav-bar">
-        <button 
-          className={`portfolio-nav-btn ${activeNav === '投资组合' ? 'active' : ''}`}
-          onClick={() => setActiveNav('投资组合')}
-        >
-          投资组合
-        </button>
-        <button 
-          className={`portfolio-nav-btn ${activeNav === '资产分配' ? 'active' : ''}`}
-          onClick={() => setActiveNav('资产分配')}
-        >
-          资产分配
-        </button>
-        <button 
-          className={`portfolio-nav-btn ${activeNav === '风险分析' ? 'active' : ''}`}
-          onClick={() => setActiveNav('风险分析')}
-        >
-          风险分析
-        </button>
-        <button 
-          className={`portfolio-nav-btn ${activeNav === '持仓明细' ? 'active' : ''}`}
-          onClick={() => setActiveNav('持仓明细')}
-        >
-          持仓明细
-        </button>
-        <button 
-          className={`portfolio-nav-btn ${activeNav === '交易历史' ? 'active' : ''}`}
-          onClick={() => setActiveNav('交易历史')}
-        >
-          交易历史
-        </button>
-        <button 
-          className={`portfolio-nav-btn ${activeNav === '绩效报告' ? 'active' : ''}`}
-          onClick={() => setActiveNav('绩效报告')}
-        >
-          绩效报告
-        </button>
-        <button 
-          className={`portfolio-nav-btn ${activeNav === '设置' ? 'active' : ''}`}
-          onClick={() => setActiveNav('设置')}
-        >
-          设置
-        </button>
+      {/* 功能导航栏 - 增强版 */}
+      <div className="bg-[#0a0e17] border-b border-[#2a3a5a] px-6 py-3 flex items-center gap-2 overflow-x-auto">
+        {[
+          { key: '投资组合', icon: '💼' },
+          { key: '资产分配', icon: '📊' },
+          { key: '风险分析', icon: '⚠️' },
+          { key: '持仓明细', icon: '📦' },
+          { key: '交易历史', icon: '📋' },
+          { key: '绩效报告', icon: '📈' },
+          { key: '设置', icon: '⚙️' }
+        ].map(nav => (
+          <button 
+            key={nav.key}
+            className={`px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${
+              activeNav === nav.key
+                ? 'bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black font-semibold shadow-lg shadow-[#00ccff]/30'
+                : 'bg-[#141a2a] text-gray-400 hover:bg-[#1a2332] hover:text-white'
+            }`}
+            onClick={() => setActiveNav(nav.key)}
+          >
+            <span className="text-lg">{nav.icon}</span>
+            <span>{nav.key}</span>
+          </button>
+        ))}
       </div>
 
-      <div className="portfolio-main">
-        {/* 实时价格监控侧边栏 */}
-        <div className="symbols-sidebar">
-          <div className="sidebar-header">
-            <h3 className="sidebar-title">实时监控</h3>
-            <div className="sidebar-subtitle">8个品种</div>
-          </div>
-          <div className="symbols-list">
-            {symbolsData.map((symbol, index) => (
-              <div key={index} className="symbol-card">
-                <div className="symbol-header">
-                  <div className="symbol-name">
-                    <span className={`symbol-icon ${getSymbolIcon(symbol.symbol)}`}>
-                      {getSymbolLabel(symbol.symbol)}
+      <div className="flex gap-6 p-6">
+        {/* 实时价格监控侧边栏 - 增强版 */}
+        <div className="flex-shrink-0 w-80">
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl sticky top-6">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
+                <span className="text-2xl">📊</span>
+                <span>实时监控</span>
+              </h3>
+              <div className="text-sm text-gray-400">{symbolsData.length}个品种</div>
+            </div>
+            <div className="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto pr-2 scrollbar-thin">
+              {symbolsData.map((symbol, index) => (
+                <div key={index} className="bg-gradient-to-br from-[#1a2332] to-[#141a2a] border border-[#2a3a5a] rounded-xl p-3 hover:border-[#00ccff] transition-all duration-300 cursor-pointer group">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded bg-[#00ccff]/20 text-[#00ccff] text-xs font-bold">
+                        {getSymbolLabel(symbol.symbol)}
+                      </span>
+                      <span className="font-bold text-white group-hover:text-[#00ccff] transition-colors text-sm">{symbol.symbol}</span>
+                    </div>
+                    <span className={`text-sm font-semibold ${
+                      symbol.changePercent >= 0 ? 'text-[#00ff88]' : 'text-[#ff4444]'
+                    }`}>
+                      {symbol.changePercent >= 0 ? '↗ +' : '↘ '}{symbol.changePercent.toFixed(2)}%
                     </span>
-                    {symbol.symbol}
                   </div>
-                  <div className={`symbol-change ${symbol.changePercent >= 0 ? 'positive' : 'negative'}`}>
-                    {symbol.changePercent >= 0 ? '+' : ''}{symbol.changePercent.toFixed(2)}%
+                  <div className="text-xl font-bold text-white mb-1">${symbol.price.toLocaleString()}</div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className={`font-semibold ${
+                      symbol.change >= 0 ? 'text-[#00ff88]' : 'text-[#ff4444]'
+                    }`}>
+                      {symbol.change >= 0 ? '+' : ''}{symbol.change.toLocaleString()}
+                    </span>
+                    <span className="text-gray-400">量: {symbol.volume.toLocaleString()}</span>
                   </div>
                 </div>
-                <div className="symbol-price">${symbol.price.toLocaleString()}</div>
-                <div className="symbol-details">
-                  <div className="symbol-change-amount">
-                    {symbol.change >= 0 ? '+' : ''}{symbol.change.toLocaleString()}
-                  </div>
-                  <div className="symbol-volume">量: {symbol.volume.toLocaleString()}</div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+      {/* 投资组合主内容区 - 增强版 */}
+      <div className="flex-1 space-y-6">
+        <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-6 shadow-2xl">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent mb-2 flex items-center gap-2">
+                <span className="text-4xl">💼</span>
+                <span>投资组合</span>
+              </h1>
+              <p className="text-gray-400 ml-14">监控您的资产分布和盈亏情况</p>
+            </div>
+            <div className="grid grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="text-sm text-gray-400 mb-1">总市值</div>
+                <div className="text-2xl font-bold text-white">${totalValue.toLocaleString()}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm text-gray-400 mb-1">总盈亏</div>
+                <div className={`text-2xl font-bold ${
+                  totalPnl >= 0 ? 'text-[#00ff88]' : 'text-[#ff4444]'
+                }`}>
+                  {totalPnl >= 0 ? '+' : ''}${totalPnl.toLocaleString()}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-
-      {/* 投资组合主内容区 */}
-      <div className="portfolio-content">
-        <div className="portfolio-header">
-          <div>
-            <h1 className="portfolio-title">投资组合</h1>
-            <p className="portfolio-subtitle">监控您的资产分布和盈亏情况</p>
-          </div>
-          <div className="portfolio-stats">
-            <div className="stat-item">
-              <span className="stat-label">总市值</span>
-              <span className="stat-value">${totalValue.toLocaleString()}</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-label">总盈亏</span>
-              <span className={`stat-value ${totalPnl >= 0 ? 'positive' : 'negative'}`}>
-                ${totalPnl.toLocaleString()}
-              </span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-label">持仓数量</span>
-              <span className="stat-value">{portfolio.length}</span>
+              <div className="text-center">
+                <div className="text-sm text-gray-400 mb-1">持仓数量</div>
+                <div className="text-2xl font-bold text-[#00ccff]">{portfolio.length}</div>
+              </div>
             </div>
           </div>
         </div>
