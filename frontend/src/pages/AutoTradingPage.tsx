@@ -665,86 +665,117 @@ const AutoTradingPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="auto-trading-container">
-      {/* 风险提示横幅 - 合规性要求 */}
-      <div className="risk-warning-banner">
-        <div className="warning-icon">⚠️</div>
-        <div className="warning-content">
-          <div className="warning-title">【模拟交易 - 仅供学习和测试使用】</div>
-          <div className="warning-text">
-            本页面为自动交易测试环境，所有交易均使用模拟资金，不涉及真实资金交易。策略执行和回测结果仅供学习参考，不构成任何投资建议。
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0d1219] to-[#0a0e17] text-white p-6 space-y-4">
+      {/* 风险提示横幅 */}
+      <div className="bg-gradient-to-r from-[#ff4444]/20 via-[#ff8844]/20 to-[#ff4444]/20 border-2 border-[#ff4444] rounded-2xl p-5 shadow-2xl">
+        <div className="flex items-start gap-4">
+          <div className="text-5xl">⚠️</div>
+          <div className="flex-1">
+            <div className="text-2xl font-bold text-[#ff4444] mb-2">【模拟交易 - 仅供学习和测试使用】</div>
+            <div className="text-gray-300">
+              本页面为自动交易测试环境，所有交易均使用模拟资金，不涉及真实资金交易。策略执行和回测结果仅供学习参考，不构成任何投资建议。
+            </div>
           </div>
         </div>
       </div>
 
       {/* 顶部状态栏 */}
-      <div className="status-bar">
-        <div className="status-item">
-          <span className="status-label">系统状态:</span>
-          <span 
-            className="status-value" 
-            style={{ color: tradingStatus ? getStatusColor(tradingStatus.status) : '#8a94a6' }}
-          >
-            {tradingStatus ? tradingStatus.status.toUpperCase() : '加载中...'}
-          </span>
-        </div>
-        <div className="status-item">
-          <span className="status-label">运行时间:</span>
-          <span className="status-value">
-            {tradingStatus?.uptime ? `${Math.floor(tradingStatus.uptime / 60)}分钟` : '--'}
-          </span>
-        </div>
-        <div className="status-item">
-          <span className="status-label">最后交易:</span>
-          <span className="status-value">
-            {tradingStatus?.last_trade_time 
-              ? new Date(tradingStatus.last_trade_time).toLocaleTimeString()
-              : '--'
-            }
-          </span>
-        </div>
-        <div className="status-item">
-          <span className="status-label">风险等级:</span>
-          <span 
-            className="status-value"
-            style={{ color: riskMetrics ? getRiskColor(riskMetrics.risk_level) : '#8a94a6' }}
-          >
-            {riskMetrics?.risk_level || '--'}
-          </span>
+      <div className="bg-gradient-to-r from-[#141a2a] via-[#1a2332] to-[#141a2a] border border-[#2a3a5a] rounded-2xl p-4 shadow-2xl">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🔴</span>
+            <div>
+              <div className="text-xs text-gray-400">系统状态</div>
+              <div 
+                className="text-xl font-bold"
+                style={{ color: tradingStatus ? getStatusColor(tradingStatus.status) : '#8a94a6' }}
+              >
+                {tradingStatus ? tradingStatus.status.toUpperCase() : '加载中...'}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">⏱️</span>
+            <div>
+              <div className="text-xs text-gray-400">运行时间</div>
+              <div className="text-xl font-bold text-white">
+                {tradingStatus?.uptime ? `${Math.floor(tradingStatus.uptime / 60)}分钟` : '--'}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📝</span>
+            <div>
+              <div className="text-xs text-gray-400">最后交易</div>
+              <div className="text-xl font-bold text-[#00ccff]">
+                {tradingStatus?.last_trade_time 
+                  ? new Date(tradingStatus.last_trade_time).toLocaleTimeString()
+                  : '--'
+                }
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div>
+              <div className="text-xs text-gray-400">风险等级</div>
+              <div 
+                className="text-xl font-bold"
+                style={{ color: riskMetrics ? getRiskColor(riskMetrics.risk_level) : '#8a94a6' }}
+              >
+                {riskMetrics?.risk_level || '--'}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* 主内容区域 - 两栏布局 */}
-      <div className="main-content">
-        {/* 左侧面板 - 控制区 */}
-        <div className="left-panel">
+      {/* 主内容区域 */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* 左侧控制面板 */}
+        <div className="space-y-4">
           {/* 交易控制 */}
-          <div className="control-section">
-            <h3 className="section-title">交易控制</h3>
-            <div className="control-buttons">
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
+            <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
+              <span className="text-3xl">🎮</span>
+              <span>交易控制</span>
+            </h3>
+            <div className="space-y-3">
               <button 
-                className={`control-btn ${tradingStatus?.status === 'running' ? 'active' : ''}`}
+                className={`w-full py-3 rounded-lg font-semibold transition-all ${
+                  tradingStatus?.status === 'running' 
+                    ? 'bg-gradient-to-r from-[#00ff88] to-[#00ccff] text-black' 
+                    : 'bg-[#1a2332] text-gray-400 hover:bg-[#222b3d]'
+                }`}
                 onClick={handleStartTrading}
                 disabled={loading || tradingStatus?.status === 'running'}
               >
-                启动交易
+                ▶️ 启动交易
               </button>
               <button 
-                className={`control-btn ${tradingStatus?.status === 'stopped' ? 'active' : ''}`}
+                className={`w-full py-3 rounded-lg font-semibold transition-all ${
+                  tradingStatus?.status === 'stopped' 
+                    ? 'bg-gradient-to-r from-[#ff4444] to-[#ff8844] text-white' 
+                    : 'bg-[#1a2332] text-gray-400 hover:bg-[#222b3d]'
+                }`}
                 onClick={handleStopTrading}
                 disabled={loading || tradingStatus?.status === 'stopped'}
               >
-                停止交易
+                ⏹️ 停止交易
               </button>
               <button 
-                className={`control-btn ${tradingStatus?.status === 'paused' ? 'active' : ''}`}
+                className={`w-full py-3 rounded-lg font-semibold transition-all ${
+                  tradingStatus?.status === 'paused' 
+                    ? 'bg-gradient-to-r from-[#ffaa00] to-[#ffcc44] text-black' 
+                    : 'bg-[#1a2332] text-gray-400 hover:bg-[#222b3d]'
+                }`}
                 onClick={handlePauseTrading}
                 disabled={loading || tradingStatus?.status !== 'running'}
               >
-                暂停交易
+                ⏸️ 暂停交易
               </button>
               <button 
-                className={`control-btn ${tradingStatus?.status === 'running' ? 'active' : ''}`}
+                className={`w-full py-3 rounded-lg font-semibold transition-all bg-[#1a2332] text-gray-400 hover:bg-[#222b3d]`}
                 onClick={handleResumeTrading}
                 disabled={loading || tradingStatus?.status !== 'paused'}
               >
