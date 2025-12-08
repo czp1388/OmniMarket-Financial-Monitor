@@ -253,7 +253,7 @@ const BloombergStyleDashboard: React.FC = () => {
 
   return (
     <div className="bloomberg-terminal">
-      {/* 第1步：基础布局 - 导航栏 */}
+      {/* 第1步：基础布局 - 导航栏 - 增强版 */}
       <header className="terminal-navbar">
         <div className="navbar-left">
           <h1 className="terminal-title">寰宇多市场金融监控系统</h1>
@@ -262,69 +262,105 @@ const BloombergStyleDashboard: React.FC = () => {
               className={`nav-btn ${location.pathname === '/' ? 'active' : ''}`}
               onClick={() => navigate('/')}
             >
-              市场数据
+              <span className="nav-icon">📊</span>
+              <span>市场数据</span>
             </button>
             <button 
               className={`nav-btn ${location.pathname === '/chart' ? 'active' : ''}`}
               onClick={() => navigate('/chart')}
             >
-              分析工具
+              <span className="nav-icon">📈</span>
+              <span>分析工具</span>
             </button>
             <button 
               className={`nav-btn ${location.pathname === '/virtual-trading' ? 'active' : ''}`}
               onClick={() => navigate('/virtual-trading')}
             >
-              交易执行
+              <span className="nav-icon">💱</span>
+              <span>交易执行</span>
             </button>
             <button 
               className={`nav-btn ${location.pathname === '/portfolio' ? 'active' : ''}`}
               onClick={() => navigate('/portfolio')}
             >
-              投资组合
+              <span className="nav-icon">💼</span>
+              <span>投资组合</span>
             </button>
             <button 
               className={`nav-btn ${location.pathname === '/alerts' ? 'active' : ''}`}
               onClick={() => navigate('/alerts')}
             >
-              预警管理
+              <span className="nav-icon">🔔</span>
+              <span>预警管理</span>
             </button>
             <button 
               className={`nav-btn ${location.pathname === '/warrants' ? 'active' : ''}`}
               onClick={() => navigate('/warrants')}
             >
-              牛熊证监控
+              <span className="nav-icon">📜</span>
+              <span>牛熊证监控</span>
             </button>
             <button 
               className={`nav-btn ${location.pathname === '/settings' ? 'active' : ''}`}
               onClick={() => navigate('/settings')}
             >
-              系统设置
+              <span className="nav-icon">⚙️</span>
+              <span>系统设置</span>
             </button>
           </nav>
         </div>
         <div className="navbar-right">
           <div className="status-info">
-            <span className="status-item">延迟: <span className="status-value">12ms</span></span>
-            <span className="status-item">数据源: <span className="status-value positive">实时</span></span>
-            <span className="status-item">时间: <span className="status-value">{new Date().toLocaleTimeString('zh-CN', { hour12: false })}</span></span>
+            <span className="status-item">
+              <span className="status-label">延迟:</span>
+              <span className="status-value bg-gradient-to-r from-[#00ff88] to-[#00ccaa] bg-clip-text text-transparent font-bold">12ms</span>
+            </span>
+            <span className="status-item">
+              <span className="status-label">数据源:</span>
+              <span className="status-value positive flex items-center gap-1">
+                <span className="inline-block w-2 h-2 rounded-full bg-[#00ff88] animate-pulse"></span>
+                <span>实时</span>
+              </span>
+            </span>
+            <span className="status-item">
+              <span className="status-label">时间:</span>
+              <span className="status-value">{new Date().toLocaleTimeString('zh-CN', { hour12: false })}</span>
+            </span>
           </div>
         </div>
       </header>
 
       <div className="terminal-layout">
-        {/* 左侧品种监控区域 */}
+        {/* 左侧品种监控区域 - 增强版 */}
         <aside className="symbols-sidebar">
           <div className="sidebar-header">
-            <h3>监控列表</h3>
-            <span className="symbols-count">{marketSymbols.length} 个品种</span>
+            <h3 className="flex items-center gap-2">
+              <span className="text-xl">📋</span>
+              <span>监控列表</span>
+            </h3>
+            <span className="symbols-count flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#00ccff]"></span>
+              <span>{marketSymbols.length} 个品种</span>
+            </span>
           </div>
           <div className="symbols-grid">
             {marketSymbols.map((symbol, index) => (
-              <div key={index} className={`symbol-row ${symbol.changePercent >= 0 ? 'positive' : 'negative'}`}>
-                <div className="symbol-name">{symbol.symbol}</div>
-                <div className="symbol-price">{formatPrice(symbol.price, symbol.type)}</div>
-                <div className="symbol-change">{formatChange(symbol.change, symbol.type)}</div>
-                <div className={`symbol-percent ${symbol.changePercent >= 0 ? 'positive' : 'negative'}`}>
+              <div 
+                key={index} 
+                className={`symbol-row ${symbol.changePercent >= 0 ? 'positive' : 'negative'} group`}
+                onClick={() => setSelectedMarket(symbol.symbol)}
+              >
+                <div className="symbol-name flex items-center gap-2">
+                  <span className={`text-xs ${
+                    symbol.type === 'crypto' ? '🪙' : 
+                    symbol.type === 'stock' ? '📈' : 
+                    symbol.type === 'forex' ? '💱' : '🏆'
+                  }`}></span>
+                  <span className="font-bold">{symbol.symbol}</span>
+                </div>
+                <div className="symbol-price font-mono font-bold">{formatPrice(symbol.price, symbol.type)}</div>
+                <div className="symbol-change font-mono text-xs">{formatChange(symbol.change, symbol.type)}</div>
+                <div className={`symbol-percent ${symbol.changePercent >= 0 ? 'positive' : 'negative'} font-mono font-bold`}>
                   {symbol.changePercent >= 0 ? '+' : ''}{symbol.changePercent}%
                 </div>
               </div>
@@ -334,24 +370,30 @@ const BloombergStyleDashboard: React.FC = () => {
 
         {/* 右侧主内容区 */}
         <main className="main-content-area">
-          {/* 第2步：控制面板 */}
+          {/* 第2步：控制面板 - 增强版 */}
           <div className="control-panel">
             <div className="control-group">
-              <label className="control-label">市场</label>
+              <label className="control-label flex items-center gap-2">
+                <span className="text-[#00ccff]">🌐</span>
+                <span>市场</span>
+              </label>
               <select 
                 value={selectedMarket} 
                 onChange={(e) => setSelectedMarket(e.target.value)}
                 className="control-select"
               >
-                <option value="AAPL">股票</option>
-                <option value="BTC">加密货币</option>
-                <option value="EURUSD">外汇</option>
-                <option value="XAU">商品</option>
+                <option value="AAPL">📈 股票</option>
+                <option value="BTC">🪙 加密货币</option>
+                <option value="EURUSD">💱 外汇</option>
+                <option value="XAU">🏆 商品</option>
               </select>
             </div>
 
             <div className="control-group">
-              <label className="control-label">时间周期</label>
+              <label className="control-label flex items-center gap-2">
+                <span className="text-[#00ccff]">⏱️</span>
+                <span>时间周期</span>
+              </label>
               <select 
                 value={timeframe} 
                 onChange={(e) => setTimeframe(e.target.value)}
@@ -367,7 +409,10 @@ const BloombergStyleDashboard: React.FC = () => {
             </div>
 
             <div className="control-group">
-              <label className="control-label">技术指标</label>
+              <label className="control-label flex items-center gap-2">
+                <span className="text-[#00ccff]">📊</span>
+                <span>技术指标</span>
+              </label>
               <select 
                 value={selectedIndicator} 
                 onChange={(e) => setSelectedIndicator(e.target.value)}
@@ -382,39 +427,60 @@ const BloombergStyleDashboard: React.FC = () => {
             </div>
 
             <div className="control-group">
-              <label className="control-label">操作</label>
+              <label className="control-label flex items-center gap-2">
+                <span className="text-[#00ccff]">⚡</span>
+                <span>操作</span>
+              </label>
               <button 
-                className="control-btn primary"
+                className="control-btn primary flex items-center justify-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-[#00ff88]/30"
                 onClick={simulateNewData}
               >
-                模拟数据
+                <span>🔄</span>
+                <span>模拟数据</span>
               </button>
             </div>
           </div>
 
-          {/* 第3步：图表区域 */}
+          {/* 第3步：图表区域 - 增强版 */}
           <div className="chart-section">
             <div className="chart-header">
               <div className="chart-title">
-                <span className="symbol-display">{selectedMarket}</span>
-                <span className="timeframe-display">{timeframe.toUpperCase()} 图表</span>
+                <span className="symbol-display font-mono text-2xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent">{selectedMarket}</span>
+                <span className="timeframe-display text-sm px-3 py-1 bg-gradient-to-r from-[#2a3a5a] to-[#1a2332] rounded-full border border-[#2a3a5a]">{timeframe.toUpperCase()} 图表</span>
               </div>
-              <div className="chart-stats">
-                <span className="stat-item">开: 182.34</span>
-                <span className="stat-item">高: 185.67</span>
-                <span className="stat-item">低: 181.23</span>
-                <span className="stat-item">收: 184.56</span>
-                <span className="stat-item positive">+1.22%</span>
+              <div className="chart-stats flex items-center gap-4">
+                <span className="stat-item flex items-center gap-1">
+                  <span className="text-gray-500 text-xs">开:</span>
+                  <span className="font-mono font-bold">182.34</span>
+                </span>
+                <span className="stat-item flex items-center gap-1">
+                  <span className="text-gray-500 text-xs">高:</span>
+                  <span className="font-mono font-bold text-[#00ff88]">185.67</span>
+                </span>
+                <span className="stat-item flex items-center gap-1">
+                  <span className="text-gray-500 text-xs">低:</span>
+                  <span className="font-mono font-bold text-[#ff4444]">181.23</span>
+                </span>
+                <span className="stat-item flex items-center gap-1">
+                  <span className="text-gray-500 text-xs">收:</span>
+                  <span className="font-mono font-bold">184.56</span>
+                </span>
+                <span className="stat-item positive flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-[#00ff88]/20 to-[#00ccaa]/10 rounded-full">
+                  <span className="text-lg">▲</span>
+                  <span className="font-mono font-bold">+1.22%</span>
+                </span>
               </div>
             </div>
             
-            <div className="chart-container">
+            <div className="chart-container relative">
               {/* 绘图工具栏 */}
-              <DrawingToolbar
-                currentTool={currentTool}
-                onToolChange={setCurrentTool}
-                onClear={clearAllDrawings}
-              />
+              <div className="absolute top-4 left-4 z-10">
+                <DrawingToolbar
+                  currentTool={currentTool}
+                  onToolChange={setCurrentTool}
+                  onClear={clearAllDrawings}
+                />
+              </div>
               <ReactECharts 
                 ref={chartRef}
                 option={getChartOption()} 
@@ -424,18 +490,39 @@ const BloombergStyleDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* 底部状态栏 */}
+          {/* 底部状态栏 - 增强版 */}
           <div className="status-bar">
-            <div className="market-status">
-              <span className="status-tag positive">市场开放</span>
-              <span className="status-tag">成交量: 45.6M</span>
-              <span className="status-tag">上涨: 1,234</span>
-              <span className="status-tag">下跌: 876</span>
+            <div className="market-status flex items-center gap-3">
+              <span className="status-tag positive flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-[#00ff88]/20 to-[#00ccaa]/10 rounded-lg shadow-sm shadow-[#00ff88]/20">
+                <span className="inline-block w-2 h-2 rounded-full bg-[#00ff88] animate-pulse"></span>
+                <span className="font-semibold">市场开放</span>
+              </span>
+              <span className="status-tag flex items-center gap-2 px-3 py-1.5">
+                <span className="text-[#00ccff]">📊</span>
+                <span>成交量: <span className="font-mono font-bold text-[#00ccff]">45.6M</span></span>
+              </span>
+              <span className="status-tag flex items-center gap-2 px-3 py-1.5">
+                <span className="text-[#00ff88]">▲</span>
+                <span>上涨: <span className="font-mono font-bold text-[#00ff88]">1,234</span></span>
+              </span>
+              <span className="status-tag flex items-center gap-2 px-3 py-1.5">
+                <span className="text-[#ff4444]">▼</span>
+                <span>下跌: <span className="font-mono font-bold text-[#ff4444]">876</span></span>
+              </span>
             </div>
-            <div className="system-status">
-              <span className="system-tag positive">已连接</span>
-              <span className="system-tag">数据: 实时</span>
-              <span className="system-tag">预警: 12 个活跃</span>
+            <div className="system-status flex items-center gap-3">
+              <span className="system-tag positive flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-[#00ff88]/20 to-[#00ccaa]/10 rounded-lg shadow-sm shadow-[#00ff88]/20">
+                <span className="inline-block w-2 h-2 rounded-full bg-[#00ff88] animate-pulse"></span>
+                <span className="font-semibold">已连接</span>
+              </span>
+              <span className="system-tag flex items-center gap-2 px-3 py-1.5">
+                <span className="text-[#00ccff]">🔄</span>
+                <span>数据: <span className="font-semibold text-[#00ccff]">实时</span></span>
+              </span>
+              <span className="system-tag flex items-center gap-2 px-3 py-1.5">
+                <span className="text-[#00ccff]">🔔</span>
+                <span>预警: <span className="font-mono font-bold text-[#00ccff]">12</span> 个活跃</span>
+              </span>
             </div>
           </div>
         </main>
