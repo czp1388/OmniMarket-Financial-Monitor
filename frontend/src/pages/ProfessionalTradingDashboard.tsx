@@ -294,99 +294,131 @@ const ProfessionalTradingDashboard: React.FC = () => {
   };
 
   return (
-    <div className="professional-trading-dashboard">
-      <div className="container">
-        <div className="header">
-          <h1>寰宇多市场金融监控系统</h1>
-          <p>实时K线图表演示 - 支持多市场多周期监控</p>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0d1219] to-[#0a0e17] text-white">
+      <div className="max-w-[1800px] mx-auto px-6 py-6">
+        <div className="mb-6">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-3 mb-2">
+            <span className="text-5xl">📈</span>
+            <span>寰宇多市场金融监控系统</span>
+          </h1>
+          <p className="text-gray-400 text-lg ml-16">实时K线图表演示 - 支持多市场多周期监控</p>
         </div>
 
-        <div className="market-info">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {marketSymbols.map((symbol, index) => (
-            <div key={index} className="info-card">
-              <div>{symbol.symbol}</div>
-              <div className={`info-value ${symbol.changePercent >= 0 ? 'positive' : 'negative'}`}>
+            <div key={index} className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-xl p-4 shadow-lg hover:scale-[1.02] transition-all duration-300 hover:shadow-[#00ccff]/10">
+              <div className="text-sm text-gray-400 mb-2 font-semibold">{symbol.symbol}</div>
+              <div className={`text-2xl font-bold mb-1 ${
+                symbol.changePercent >= 0 ? 'text-[#00ff88]' : 'text-[#ff4444]'
+              }`}>
                 {formatPrice(symbol.price, symbol.type)}
               </div>
-              <div className={symbol.changePercent >= 0 ? 'positive' : 'negative'}>
-                {symbol.changePercent >= 0 ? '+' : ''}{symbol.changePercent}%
+              <div className={`text-sm font-semibold flex items-center gap-1 ${
+                symbol.changePercent >= 0 ? 'text-[#00ff88]' : 'text-[#ff4444]'
+              }`}>
+                <span>{symbol.changePercent >= 0 ? '↗' : '↘'}</span>
+                <span>{symbol.changePercent >= 0 ? '+' : ''}{symbol.changePercent.toFixed(2)}%</span>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="controls">
-          <div className="control-group">
-            <label>市场选择:</label>
-            <select 
-              value={selectedMarket} 
-              onChange={(e) => setSelectedMarket(e.target.value)}
-              className="control-select"
-            >
-              <option value="crypto">加密货币 (BTC/USDT)</option>
-              <option value="stock">股票 (AAPL)</option>
-              <option value="forex">外汇 (USD/CNY)</option>
-              <option value="futures">期货</option>
-            </select>
-          </div>
-          <div className="control-group">
-            <label>时间周期:</label>
-            <select 
-              value={timeframe} 
-              onChange={(e) => setTimeframe(e.target.value)}
-              className="control-select"
-            >
-              <option value="1m">1分钟</option>
-              <option value="5m">5分钟</option>
-              <option value="15m">15分钟</option>
-              <option value="1h">1小时</option>
-              <option value="4h">4小时</option>
-              <option value="1d">日线</option>
-            </select>
-          </div>
-          <div className="control-group">
-            <label>技术指标:</label>
-            <select 
-              value={selectedIndicator} 
-              onChange={(e) => setSelectedIndicator(e.target.value)}
-              className="control-select"
-            >
-              <option value="none">无指标</option>
-              <option value="sma">简单移动平均线</option>
-              <option value="ema">指数移动平均线</option>
-              <option value="macd">MACD</option>
-              <option value="rsi">RSI</option>
-              <option value="bollinger">布林带</option>
-            </select>
-          </div>
-          <div className="control-group">
-            <label>操作:</label>
-            <button className="control-button" onClick={addRandomData}>
-              模拟新数据
-            </button>
-            <button className="control-button" onClick={resetChart}>
-              重置图表
-            </button>
+        <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-xl p-5 mb-6 shadow-lg">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-400 mb-2 flex items-center gap-2">
+                <span>🌐</span>
+                <span>市场选择</span>
+              </label>
+              <select 
+                value={selectedMarket} 
+                onChange={(e) => setSelectedMarket(e.target.value)}
+                className="w-full bg-[#0a0e17] border border-[#2a3a5a] rounded-lg px-4 py-2.5 text-white focus:border-[#00ccff] focus:outline-none transition-colors"
+              >
+                <option value="crypto">🪙 加密货币 (BTC/USDT)</option>
+                <option value="stock">📈 股票 (AAPL)</option>
+                <option value="forex">💱 外汇 (USD/CNY)</option>
+                <option value="futures">📊 期货</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-400 mb-2 flex items-center gap-2">
+                <span>⏱️</span>
+                <span>时间周期</span>
+              </label>
+              <select 
+                value={timeframe} 
+                onChange={(e) => setTimeframe(e.target.value)}
+                className="w-full bg-[#0a0e17] border border-[#2a3a5a] rounded-lg px-4 py-2.5 text-white focus:border-[#00ccff] focus:outline-none transition-colors"
+              >
+                <option value="1m">1分钟</option>
+                <option value="5m">5分钟</option>
+                <option value="15m">15分钟</option>
+                <option value="1h">1小时</option>
+                <option value="4h">4小时</option>
+                <option value="1d">日线</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-400 mb-2 flex items-center gap-2">
+                <span>📊</span>
+                <span>技术指标</span>
+              </label>
+              <select 
+                value={selectedIndicator} 
+                onChange={(e) => setSelectedIndicator(e.target.value)}
+                className="w-full bg-[#0a0e17] border border-[#2a3a5a] rounded-lg px-4 py-2.5 text-white focus:border-[#00ccff] focus:outline-none transition-colors"
+              >
+                <option value="none">无指标</option>
+                <option value="sma">SMA - 简单移动平均线</option>
+                <option value="ema">EMA - 指数移动平均线</option>
+                <option value="macd">MACD</option>
+                <option value="rsi">RSI</option>
+                <option value="bollinger">布林带</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-400 mb-2 flex items-center gap-2">
+                <span>⚡</span>
+                <span>操作</span>
+              </label>
+              <div className="flex gap-2">
+                <button 
+                  className="flex-1 bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black rounded-lg px-3 py-2.5 font-bold hover:scale-[1.02] transition-all duration-300 shadow-md shadow-[#00ccff]/30 text-sm"
+                  onClick={addRandomData}
+                >
+                  🔄
+                </button>
+                <button 
+                  className="flex-1 bg-gradient-to-br from-[#2a3a5a] to-[#1a2332] rounded-lg px-3 py-2.5 font-bold hover:scale-[1.02] transition-all duration-300 shadow-md text-sm"
+                  onClick={resetChart}
+                >
+                  🔄 重置
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="chart-container">
+        <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-xl overflow-hidden shadow-2xl mb-6">
           {isChartLoading ? (
-            <div className="chart-loading">
-              <div className="loading-spinner"></div>
-              <div className="loading-text">加载图表数据中...</div>
+            <div className="flex flex-col items-center justify-center h-[450px]">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#2a3a5a] border-t-[#00ccff] mb-4 shadow-lg shadow-[#00ccff]/20"></div>
+              <div className="text-[#00ccff] text-lg animate-pulse">加载图表数据中...</div>
             </div>
           ) : (
-            <div ref={chartContainerRef} style={{ width: '100%', height: '100%' }} />
+            <div ref={chartContainerRef} style={{ width: '100%', height: '450px' }} />
           )}
         </div>
 
-        <div className="status-bar">
-          <div className="status">
-            <div className="status-dot"></div>
-            <span>实时数据连接正常</span>
+        <div className="bg-gradient-to-r from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-xl p-4 flex items-center justify-between shadow-lg">
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 rounded-full bg-[#00ff88] animate-pulse shadow-lg shadow-[#00ff88]/50"></div>
+            <span className="text-[#00ff88] font-semibold">实时数据连接正常</span>
           </div>
-          <div>最后更新: <span>{lastUpdate}</span></div>
+          <div className="text-gray-400">
+            最后更新: <span className="text-[#00ccff] font-semibold">{lastUpdate}</span>
+          </div>
         </div>
       </div>
     </div>
