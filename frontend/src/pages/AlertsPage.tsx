@@ -394,51 +394,61 @@ const AlertsPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="alerts-main">
+      <div className="flex gap-6 p-6">
         {/* 左侧实时价格卡片 */}
-        <div className="symbols-sidebar">
-          <div className="symbols-header">
-            <h3>实时监控</h3>
-            <span className="symbols-count">{symbolsData.length} 品种</span>
-          </div>
-          <div className="symbols-list">
-            {symbolsData.map((symbol) => (
-              <div key={symbol.symbol} className="symbol-card">
-                <div className="symbol-info">
-                  <div className="symbol-name">{symbol.symbol}</div>
-                  <div className={`symbol-price ${
-                    symbol.change >= 0 ? 'price-up' : 'price-down'
-                  }`}>
-                    {symbol.price.toLocaleString()}
+        <div className="flex-shrink-0 w-80">
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl sticky top-6">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
+                <span className="text-2xl">📊</span>
+                <span>实时监控</span>
+              </h3>
+              <div className="text-sm text-gray-400">{symbolsData.length}个品种</div>
+            </div>
+            <div className="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto pr-2 scrollbar-thin">
+              {symbolsData.map((symbol) => (
+                <div key={symbol.symbol} className="bg-gradient-to-br from-[#1a2332] to-[#141a2a] border border-[#2a3a5a] rounded-xl p-3 hover:border-[#00ccff] transition-all duration-300 cursor-pointer group">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-white group-hover:text-[#00ccff] transition-colors">{symbol.symbol}</span>
+                    <span className={`text-sm font-semibold ${
+                      symbol.changePercent >= 0 ? 'text-[#00ff88]' : 'text-[#ff4444]'
+                    }`}>
+                      {symbol.changePercent >= 0 ? '↗ +' : '↘ '}{symbol.changePercent.toFixed(2)}%
+                    </span>
+                  </div>
+                  <div className="text-xl font-bold text-white mb-1">${symbol.price.toLocaleString()}</div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className={`font-semibold ${
+                      symbol.change >= 0 ? 'text-[#00ff88]' : 'text-[#ff4444]'
+                    }`}>
+                      {symbol.change >= 0 ? '+' : ''}{symbol.change.toLocaleString()}
+                    </span>
+                    <span className="text-gray-400">成交量: {(symbol.volume / 1000000).toFixed(2)}M</span>
                   </div>
                 </div>
-                <div className="symbol-details">
-                  <div className={`symbol-change ${
-                    symbol.change >= 0 ? 'change-up' : 'change-down'
-                  }`}>
-                    {symbol.change >= 0 ? '+' : ''}{symbol.change.toFixed(2)} ({symbol.changePercent.toFixed(2)}%)
-                  </div>
-                  <div className="symbol-volume">
-                    成交量: {(symbol.volume / 1000000).toFixed(2)}M
-                  </div>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
         {/* 右侧预警管理内容 */}
-        <div className="alerts-content">
+        <div className="flex-1 space-y-6">
           {/* 创建新预警 */}
-          <div className="create-alert-card">
-            <h2 className="create-alert-title">创建新预警</h2>
-            <div className="create-alert-form">
-              <div className="form-group">
-                <label className="form-label">交易对</label>
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-6 shadow-2xl">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent mb-5 flex items-center gap-2">
+              <span className="text-3xl">⚡</span>
+              <span>创建新预警</span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                  <span>🎯</span>
+                  <span>交易对</span>
+                </label>
                 <select
                   value={newAlert.symbol}
                   onChange={(e) => setNewAlert({...newAlert, symbol: e.target.value})}
-                  className="form-select"
+                  className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none transition-colors"
                 >
                   <option value="BTC/USDT">BTC/USDT</option>
                   <option value="ETH/USDT">ETH/USDT</option>
@@ -451,12 +461,15 @@ const AlertsPage: React.FC = () => {
                 </select>
               </div>
               
-              <div className="form-group">
-                <label className="form-label">预警类型</label>
+              <div>
+                <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                  <span>📊</span>
+                  <span>预警类型</span>
+                </label>
                 <select
                   value={newAlert.alertType}
                   onChange={(e) => setNewAlert({...newAlert, alertType: e.target.value as 'price' | 'technical' | 'volume'})}
-                  className="form-select"
+                  className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none transition-colors"
                 >
                   <option value="price">价格预警</option>
                   <option value="technical">技术指标</option>
@@ -464,12 +477,15 @@ const AlertsPage: React.FC = () => {
                 </select>
               </div>
               
-              <div className="form-group">
-                <label className="form-label">预警条件</label>
+              <div>
+                <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                  <span>⚙️</span>
+                  <span>预警条件</span>
+                </label>
                 <select
                   value={newAlert.condition}
                   onChange={(e) => setNewAlert({...newAlert, condition: e.target.value})}
-                  className="form-select"
+                  className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none transition-colors"
                 >
                   <option value="price_above">价格高于</option>
                   <option value="price_below">价格低于</option>
@@ -482,23 +498,29 @@ const AlertsPage: React.FC = () => {
                 </select>
               </div>
               
-              <div className="form-group">
-                <label className="form-label">阈值</label>
+              <div>
+                <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                  <span>💰</span>
+                  <span>阈值</span>
+                </label>
                 <input
                   type="number"
                   value={newAlert.value}
                   onChange={(e) => setNewAlert({...newAlert, value: parseFloat(e.target.value)})}
-                  className="form-input"
+                  className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none transition-colors"
                   placeholder="输入阈值"
                 />
               </div>
               
-              <div className="form-group">
-                <label className="form-label">优先级</label>
+              <div>
+                <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                  <span>⚠️</span>
+                  <span>优先级</span>
+                </label>
                 <select
                   value={newAlert.priority}
                   onChange={(e) => setNewAlert({...newAlert, priority: e.target.value as 'low' | 'medium' | 'high'})}
-                  className="form-select"
+                  className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none transition-colors"
                 >
                   <option value="low">低</option>
                   <option value="medium">中</option>
@@ -506,12 +528,13 @@ const AlertsPage: React.FC = () => {
                 </select>
               </div>
               
-              <div className="form-group">
+              <div className="flex items-end">
                 <button
                   onClick={handleCreateAlert}
-                  className="create-button"
+                  className="w-full px-6 py-3 bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black font-bold rounded-xl hover:scale-105 transition-all duration-300 shadow-lg shadow-[#00ccff]/30 flex items-center justify-center gap-2"
                 >
-                  创建预警
+                  <span className="text-xl">✅</span>
+                  <span>创建预警</span>
                 </button>
               </div>
             </div>
@@ -708,52 +731,62 @@ const AlertsPage: React.FC = () => {
           </div>
 
           {/* 预警列表 */}
-          <div className="alerts-list-card">
-            <div className="alerts-list-header">
-              <h2 className="alerts-list-title">预警列表</h2>
-              <div className="alerts-tabs">
-                <button
-                  className={`tab-button ${activeTab === 'active' ? 'tab-active' : ''}`}
-                  onClick={() => setActiveTab('active')}
-                >
-                  活跃预警
-                </button>
-                <button
-                  className={`tab-button ${activeTab === 'triggered' ? 'tab-active' : ''}`}
-                  onClick={() => setActiveTab('triggered')}
-                >
-                  已触发
-                </button>
-                <button
-                  className={`tab-button ${activeTab === 'all' ? 'tab-active' : ''}`}
-                  onClick={() => setActiveTab('all')}
-                >
-                  全部
-                </button>
-              </div>
-              <div className="alerts-controls">
-                <div className="search-control">
-                  <input
-                    type="text"
-                    placeholder="搜索交易对、类型、条件..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="search-input"
-                  />
-                  {searchTerm && (
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-6 shadow-2xl">
+            <div className="space-y-5">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
+                  <span className="text-3xl">📋</span>
+                  <span>预警列表</span>
+                </h2>
+                <div className="flex items-center gap-2">
+                  {[
+                    { key: 'active', label: '活跃预警', icon: '⚡' },
+                    { key: 'triggered', label: '已触发', icon: '✅' },
+                    { key: 'all', label: '全部', icon: '📊' }
+                  ].map(tab => (
                     <button
-                      onClick={() => setSearchTerm('')}
-                      className="clear-search"
+                      key={tab.key}
+                      className={`px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 ${
+                        activeTab === tab.key
+                          ? 'bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black font-semibold shadow-lg shadow-[#00ccff]/30'
+                          : 'bg-[#1a2332] text-gray-400 hover:bg-[#2a3a5a] hover:text-white'
+                      }`}
+                      onClick={() => setActiveTab(tab.key as 'active' | 'triggered' | 'all')}
                     >
-                      ✕
+                      <span>{tab.icon}</span>
+                      <span>{tab.label}</span>
                     </button>
-                  )}
+                  ))}
                 </div>
-                <div className="sort-control">
+              </div>
+              
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex-1 min-w-[200px]">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="搜索交易对、类型、条件..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 pl-10 text-white placeholder-gray-500 focus:border-[#00ccff] focus:outline-none transition-colors"
+                    />
+                    <span className="absolute left-3 top-3.5 text-gray-500">🔍</span>
+                    {searchTerm && (
+                      <button
+                        onClick={() => setSearchTerm('')}
+                        className="absolute right-3 top-3 text-gray-400 hover:text-white transition-colors"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
                   <select
                     value={sortField}
                     onChange={(e) => setSortField(e.target.value as keyof Alert)}
-                    className="sort-select"
+                    className="bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none transition-colors"
                   >
                     <option value="createdAt">创建时间</option>
                     <option value="symbol">交易对</option>
@@ -762,89 +795,110 @@ const AlertsPage: React.FC = () => {
                   </select>
                   <button
                     onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
-                    className="sort-direction"
+                    className="px-4 py-3 bg-[#1a2332] border border-[#2a3a5a] rounded-lg text-white hover:bg-[#2a3a5a] transition-colors"
                   >
                     {sortDirection === 'asc' ? '↑' : '↓'}
                   </button>
                 </div>
-                <div className="notification-controls">
+                
+                <div className="flex items-center gap-3">
                   <button
                     onClick={simulateAlertTrigger}
-                    className="test-alert-button"
+                    className="px-5 py-3 bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black font-bold rounded-lg hover:scale-105 transition-all duration-300 shadow-lg shadow-[#00ccff]/30"
                     title="测试预警触发"
                   >
-                    测试预警
+                    🔔 测试预警
                   </button>
-                  <label className="sound-toggle">
+                  <label className="flex items-center gap-2 px-4 py-3 bg-[#1a2332] border border-[#2a3a5a] rounded-lg cursor-pointer hover:bg-[#2a3a5a] transition-colors">
                     <input
                       type="checkbox"
                       checked={soundEnabled}
                       onChange={(e) => setSoundEnabled(e.target.checked)}
+                      className="w-4 h-4"
                     />
-                    声音提醒
+                    <span className="text-white text-sm">🔊 声音提醒</span>
                   </label>
                 </div>
               </div>
-              <div className="alerts-stats">
-                <span className="active-alerts">活跃: {alerts.filter(a => a.isActive).length}</span>
-                <span className="triggered-alerts">已触发: {alerts.filter(a => !a.isActive).length}</span>
+              
+              <div className="flex items-center gap-6 text-sm">
+                <span className="text-gray-400">活跃: <span className="text-[#00ff88] font-bold text-lg">{alerts.filter(a => a.isActive).length}</span></span>
+                <span className="text-gray-400">已触发: <span className="text-[#ff4444] font-bold text-lg">{alerts.filter(a => !a.isActive).length}</span></span>
+                <span className="text-gray-400">总数: <span className="text-[#00ccff] font-bold text-lg">{alerts.length}</span></span>
               </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="alerts-table">
+            <div className="overflow-x-auto mt-5">
+              <table className="w-full">
                 <thead>
-                  <tr>
-                    <th>交易对</th>
-                    <th>类型</th>
-                    <th>优先级</th>
-                    <th>预警条件</th>
-                    <th>阈值</th>
-                    <th>当前值</th>
-                    <th>状态</th>
-                    <th>操作</th>
+                  <tr className="border-b border-[#2a3a5a]">
+                    <th className="text-left py-4 px-4 text-gray-400 font-semibold">交易对</th>
+                    <th className="text-left py-4 px-4 text-gray-400 font-semibold">类型</th>
+                    <th className="text-left py-4 px-4 text-gray-400 font-semibold">优先级</th>
+                    <th className="text-left py-4 px-4 text-gray-400 font-semibold">预警条件</th>
+                    <th className="text-right py-4 px-4 text-gray-400 font-semibold">阈值</th>
+                    <th className="text-right py-4 px-4 text-gray-400 font-semibold">当前值</th>
+                    <th className="text-center py-4 px-4 text-gray-400 font-semibold">状态</th>
+                    <th className="text-center py-4 px-4 text-gray-400 font-semibold">操作</th>
                   </tr>
                 </thead>
                 <tbody>
                   {getFilteredAlerts().map((alert) => (
-                    <tr key={alert.id}>
-                      <td className="symbol-cell">
-                        <div className="symbol-name">{alert.symbol}</div>
+                    <tr key={alert.id} className="border-b border-[#2a3a5a]/50 hover:bg-[#1a2332] transition-colors duration-200">
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded bg-[#00ccff]/20 text-[#00ccff] text-xs font-bold">
+                            {alert.symbol.includes('/') ? 'FX' : alert.symbol.length <= 4 ? 'STK' : 'CRY'}
+                          </span>
+                          <span className="text-white font-semibold">{alert.symbol}</span>
+                        </div>
                       </td>
-                      <td>
-                        <span className={`type-badge type-${alert.alertType}`}>
+                      <td className="py-4 px-4">
+                        <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${
+                          alert.alertType === 'price' ? 'bg-[#00ccff]/20 text-[#00ccff]' :
+                          alert.alertType === 'technical' ? 'bg-purple-500/20 text-purple-400' :
+                          'bg-orange-500/20 text-orange-400'
+                        }`}>
                           {getAlertTypeText(alert.alertType)}
                         </span>
                       </td>
-                      <td>
-                        <span className={`priority-badge priority-${alert.priority}`}>
+                      <td className="py-4 px-4">
+                        <span className={`px-3 py-1 rounded-lg text-sm font-bold ${
+                          alert.priority === 'high' ? 'bg-[#ff4444]/20 text-[#ff4444]' :
+                          alert.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-gray-500/20 text-gray-400'
+                        }`}>
                           {getPriorityText(alert.priority)}
                         </span>
                       </td>
-                      <td>{getConditionText(alert.condition)}</td>
-                      <td>{alert.value}</td>
-                      <td>{alert.currentValue}</td>
-                      <td>
-                        <span className={`status-badge ${
-                          alert.isActive ? 'status-active' : 'status-triggered'
+                      <td className="py-4 px-4 text-gray-300">{getConditionText(alert.condition)}</td>
+                      <td className="py-4 px-4 text-right text-white font-bold font-mono">{alert.value}</td>
+                      <td className="py-4 px-4 text-right text-white font-bold font-mono">{alert.currentValue}</td>
+                      <td className="py-4 px-4 text-center">
+                        <span className={`px-3 py-1 rounded-lg font-bold ${
+                          alert.isActive ? 'bg-[#00ff88]/20 text-[#00ff88]' : 'bg-gray-500/20 text-gray-400'
                         }`}>
-                          {alert.isActive ? '活跃' : '已触发'}
+                          {alert.isActive ? '⚡ 活跃' : '✅ 已触发'}
                         </span>
                       </td>
-                      <td>
-                        <button
-                          onClick={() => toggleAlert(alert.id)}
-                          className={`action-button ${
-                            alert.isActive ? 'button-disable' : 'button-enable'
-                          }`}
-                        >
-                          {alert.isActive ? '禁用' : '启用'}
-                        </button>
-                        <button
-                          onClick={() => deleteAlert(alert.id)}
-                          className="action-button button-delete"
-                        >
-                          删除
-                        </button>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => toggleAlert(alert.id)}
+                            className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
+                              alert.isActive 
+                                ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30' 
+                                : 'bg-[#00ff88]/20 text-[#00ff88] hover:bg-[#00ff88]/30'
+                            }`}
+                          >
+                            {alert.isActive ? '⏸️ 禁用' : '▶️ 启用'}
+                          </button>
+                          <button
+                            onClick={() => deleteAlert(alert.id)}
+                            className="px-4 py-2 bg-[#ff4444]/20 text-[#ff4444] rounded-lg font-semibold hover:bg-[#ff4444]/30 transition-all duration-300"
+                          >
+                            🗑️ 删除
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -856,17 +910,23 @@ const AlertsPage: React.FC = () => {
       </div>
 
       {/* 底部状态栏 - 专业金融终端标准 */}
-      <div className="status-bar bottom-status-bar">
-        <div className="status-left">
-          <span className="version-info">OmniMarket v1.0.0</span>
-          <span className="connection-status">连接状态: {systemStatus}</span>
+      <div className="mt-6 bg-gradient-to-r from-[#141a2a] via-[#1a2332] to-[#141a2a] border-t border-[#2a3a5a] px-6 py-4 flex items-center justify-between shadow-2xl">
+        <div className="flex items-center gap-6">
+          <span className="text-sm text-gray-400">版本: <span className="text-white font-semibold">OmniMarket v1.0.0</span></span>
+          <span className="text-gray-500">|</span>
+          <span className="text-sm text-gray-400">连接状态: <span className={`font-semibold ${
+            systemStatus === '正常' ? 'text-[#00ff88]' : 
+            systemStatus === '连接异常' ? 'text-yellow-400' : 
+            'text-gray-400'
+          }`}>{systemStatus}</span></span>
         </div>
-        <div className="status-center">
-          <span className="last-update">最后更新: {currentTime}</span>
+        <div className="flex items-center gap-6">
+          <span className="text-sm text-gray-400">最后更新: <span className="text-[#00ccff] font-mono">{currentTime}</span></span>
         </div>
-        <div className="status-right">
-          <span className="total-alerts">总预警数: {alerts.length}</span>
-          <span className="data-update-status">数据更新: 实时</span>
+        <div className="flex items-center gap-6">
+          <span className="text-sm text-gray-400">总预警数: <span className="text-2xl font-bold text-white">{alerts.length}</span></span>
+          <span className="text-gray-500">|</span>
+          <span className="text-sm text-gray-400">数据更新: <span className="text-[#00ff88] font-semibold">实时</span></span>
         </div>
       </div>
     </div>
