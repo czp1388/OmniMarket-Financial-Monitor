@@ -671,29 +671,6 @@ const SettingsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* API 配置 */}
-          <div className="settings-card">
-            <h2>API 配置</h2>
-            <div className="api-config">
-              <label htmlFor="binanceApi">Binance API Key</label>
-              <input
-                  <select
-                    id="timeframe"
-                    value={settings.chart.defaultTimeframe}
-                    onChange={(e) => handleChartSettingChange('defaultTimeframe', e.target.value)}
-                    className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none"
-                  >
-                    <option value="1m">1分钟</option>
-                    <option value="5m">5分钟</option>
-                    <option value="15m">15分钟</option>
-                    <option value="1h">1小时</option>
-                    <option value="4h">4小时</option>
-                    <option value="1d">1天</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
             {/* API 配置 */}
             <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
               <h2 className="text-2xl font-bold mb-4 bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
