@@ -124,107 +124,137 @@ const StrategyActivationFlow: React.FC = () => {
 
   if (!strategy) {
     return (
-      <div className="min-h-screen bg-[#0a0e17] flex items-center justify-center">
-        <div className="text-[#00ccff]">加载中...</div>
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0d1219] to-[#0a0e17] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#2a3a5a] border-t-[#00ccff] mx-auto shadow-lg shadow-[#00ccff]/20"></div>
+          <div className="text-[#00ccff] text-lg animate-pulse">加载策略详情...</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0e17] text-white">
-      {/* 顶部导航 */}
-      <header className="bg-[#141a2a] border-b border-[#2a3a5a] px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center gap-4">
-          <button
-            onClick={() => navigate('/assistant')}
-            className="text-gray-400 hover:text-white"
-          >
-            ← 返回
-          </button>
-          <h1 className="text-xl font-bold text-[#00ccff]">激活策略</h1>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0d1219] to-[#0a0e17] text-white">
+      {/* 顶部导航 - 增强版 */}
+      <header className="bg-gradient-to-r from-[#141a2a] to-[#1a2332] border-b border-[#2a3a5a] shadow-lg backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-4xl mx-auto px-6 py-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/assistant')}
+              className="group flex items-center gap-2 px-3 py-2 text-gray-400 hover:text-white bg-[#1a2332] rounded-lg border border-[#2a3a5a] hover:border-[#00ccff] transition-all duration-300 hover:shadow-md hover:shadow-[#00ccff]/20"
+            >
+              <span className="transform group-hover:-translate-x-1 transition-transform">←</span>
+              <span>返回</span>
+            </button>
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent">
+                激活投资策略
+              </h1>
+            </div>
+          </div>
         </div>
       </header>
 
       <div className="max-w-4xl mx-auto px-6 py-8">
-        {/* 进度指示器 */}
-        <div className="mb-8">
+        {/* 进度指示器 - 增强版 */}
+        <div className="mb-10">
           <div className="flex items-center justify-between mb-4">
             {[1, 2, 3].map((step) => (
               <div key={step} className="flex items-center flex-1">
                 <div className={`
-                  w-10 h-10 rounded-full flex items-center justify-center font-bold
-                  ${currentStep >= step ? 'bg-[#00ccff] text-black' : 'bg-[#2a3a5a] text-gray-400'}
+                  w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300
+                  ${currentStep >= step 
+                    ? 'bg-gradient-to-br from-[#00ccff] to-[#00ff88] text-black shadow-lg shadow-[#00ccff]/30 scale-110' 
+                    : 'bg-[#2a3a5a] text-gray-400'}
                 `}>
-                  {step}
+                  {currentStep > step ? '✓' : step}
                 </div>
                 {step < 3 && (
-                  <div className={`flex-1 h-1 mx-2 ${currentStep > step ? 'bg-[#00ccff]' : 'bg-[#2a3a5a]'}`} />
+                  <div className={`flex-1 h-1.5 mx-3 rounded-full transition-all duration-500 ${currentStep > step ? 'bg-gradient-to-r from-[#00ccff] to-[#00ff88]' : 'bg-[#2a3a5a]'}`} />
                 )}
               </div>
             ))}
           </div>
-          <div className="flex justify-between text-sm text-gray-400">
-            <span>确认策略</span>
-            <span>设置参数</span>
-            <span>开始运行</span>
+          <div className="flex justify-between text-sm font-medium">
+            <span className={currentStep >= 1 ? 'text-[#00ccff]' : 'text-gray-400'}>确认策略</span>
+            <span className={currentStep >= 2 ? 'text-[#00ccff]' : 'text-gray-400'}>设置参数</span>
+            <span className={currentStep >= 3 ? 'text-[#00ccff]' : 'text-gray-400'}>开始运行</span>
           </div>
         </div>
 
-        {/* 错误提示 */}
+        {/* 错误提示 - 增强版 */}
         {error && (
-          <div className="bg-[#ff4444] bg-opacity-20 border border-[#ff4444] rounded-lg p-4 mb-6">
-            <p className="text-[#ff4444]">{error}</p>
+          <div className="bg-gradient-to-r from-[#ff4444]/20 to-[#ff2222]/20 border border-[#ff4444] rounded-xl p-5 mb-6 shadow-lg shadow-[#ff4444]/20 animate-fadeIn">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">⚠️</span>
+              <p className="text-[#ff4444] flex-1">{error}</p>
+            </div>
           </div>
         )}
 
-        {/* Step 1: 确认策略信息 */}
+        {/* Step 1: 确认策略信息 - 增强版 */}
         {currentStep === 1 && (
-          <div className="bg-[#141a2a] border border-[#2a3a5a] rounded-lg p-8">
-            <div className="text-center mb-6">
-              <div className="text-6xl mb-4">{strategy.icon}</div>
-              <h2 className="text-3xl font-bold mb-2">{strategy.friendly_name}</h2>
-              <p className="text-xl text-gray-400">{strategy.tagline}</p>
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-xl p-10 shadow-2xl hover:shadow-[#00ccff]/10 transition-all duration-300 animate-fadeIn">
+            <div className="text-center mb-8">
+              <div className="inline-block text-8xl mb-6 transform hover:scale-110 transition-transform duration-300">{strategy.icon}</div>
+              <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">{strategy.friendly_name}</h2>
+              <p className="text-2xl text-gray-400">{strategy.tagline}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-6 mb-8">
-              <div className="bg-[#1a2332] rounded-lg p-4">
-                <div className="text-sm text-gray-400 mb-1">风险等级</div>
+              <div className="bg-gradient-to-br from-[#1a2332] to-[#141a2a] rounded-xl p-6 border border-[#2a3a5a] hover:border-[#00ccff]/50 transition-all duration-300 hover:shadow-lg hover:shadow-[#00ccff]/20">
+                <div className="text-sm text-gray-400 mb-3 font-medium flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-gray-500"></span>
+                  风险等级
+                </div>
                 <div className="flex items-center gap-2">
                   {[...Array(5)].map((_, i) => (
                     <div
                       key={i}
-                      className={`w-8 h-8 rounded ${
+                      className={`w-10 h-10 rounded-lg transition-all duration-300 ${
                         i < strategy.risk_score
                           ? strategy.risk_score <= 2
-                            ? 'bg-[#00ff88]'
+                            ? 'bg-gradient-to-br from-[#00ff88] to-[#00ccaa] shadow-md shadow-[#00ff88]/30'
                             : strategy.risk_score <= 3
-                            ? 'bg-[#ffaa00]'
-                            : 'bg-[#ff4444]'
+                            ? 'bg-gradient-to-br from-[#ffaa00] to-[#ff8800] shadow-md shadow-[#ffaa00]/30'
+                            : 'bg-gradient-to-br from-[#ff4444] to-[#ff2222] shadow-md shadow-[#ff4444]/30'
                           : 'bg-[#2a3a5a]'
                       }`}
                     />
                   ))}
-                  <span className="ml-2">{strategy.risk_score}/5</span>
+                  <span className="ml-3 text-xl font-bold">{strategy.risk_score}/5</span>
                 </div>
               </div>
 
-              <div className="bg-[#1a2332] rounded-lg p-4">
-                <div className="text-sm text-gray-400 mb-1">预期收益</div>
-                <div className="text-2xl font-bold text-[#00ff88]">{strategy.expected_return}</div>
+              <div className="bg-gradient-to-br from-[#1a2332] to-[#141a2a] rounded-xl p-6 border border-[#2a3a5a] hover:border-[#00ff88]/50 transition-all duration-300 hover:shadow-lg hover:shadow-[#00ff88]/20">
+                <div className="text-sm text-gray-400 mb-3 font-medium flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#00ff88]"></span>
+                  预期收益
+                </div>
+                <div className="text-3xl font-bold text-[#00ff88]">{strategy.expected_return}</div>
               </div>
             </div>
 
-            <div className="bg-[#1a2332] rounded-lg p-6 mb-8">
-              <h3 className="font-semibold mb-2 text-[#00ccff]">策略说明</h3>
-              <p className="text-gray-300 mb-4">{strategy.description}</p>
+            <div className="bg-gradient-to-r from-[#1a2332] to-[#141a2a] rounded-xl p-8 mb-8 border border-[#2a3a5a] shadow-inner">
+              <h3 className="font-semibold mb-3 text-xl flex items-center gap-2">
+                <span className="text-[#00ccff]">📋</span>
+                <span className="text-transparent bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text">策略说明</span>
+              </h3>
+              <p className="text-gray-300 mb-6 leading-relaxed text-lg">{strategy.description}</p>
               
-              <h3 className="font-semibold mb-2 text-[#00ccff]">通俗理解</h3>
-              <p className="text-gray-300 mb-4">{strategy.analogy}</p>
+              <h3 className="font-semibold mb-3 text-xl flex items-center gap-2">
+                <span className="text-[#00ccff]">💡</span>
+                <span className="text-transparent bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text">通俗理解</span>
+              </h3>
+              <p className="text-gray-300 mb-6 leading-relaxed text-lg">{strategy.analogy}</p>
 
-              <h3 className="font-semibold mb-2 text-[#00ccff]">适合人群</h3>
-              <div className="flex flex-wrap gap-2">
+              <h3 className="font-semibold mb-4 text-xl flex items-center gap-2">
+                <span className="text-[#00ccff]">👥</span>
+                <span className="text-transparent bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text">适合人群</span>
+              </h3>
+              <div className="flex flex-wrap gap-3">
                 {strategy.suitable_for.map((item, index) => (
-                  <span key={index} className="px-3 py-1 bg-[#2a3a5a] rounded-full text-sm">
+                  <span key={index} className="px-4 py-2 bg-gradient-to-r from-[#2a3a5a] to-[#1a2332] border border-[#2a3a5a] rounded-full text-sm font-medium hover:border-[#00ccff] hover:shadow-md hover:shadow-[#00ccff]/20 transition-all duration-300">
                     {item}
                   </span>
                 ))}
@@ -233,9 +263,10 @@ const StrategyActivationFlow: React.FC = () => {
 
             <button
               onClick={() => setCurrentStep(2)}
-              className="w-full py-4 bg-[#00ccff] text-black font-bold rounded-lg hover:bg-[#00aadd] transition-colors"
+              className="w-full py-5 bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black font-bold text-lg rounded-xl hover:from-[#00aadd] hover:to-[#00ccaa] transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-[#00ccff]/30 transform hover:scale-[1.02] flex items-center justify-center gap-2 group"
             >
-              看起来不错，继续 →
+              <span>看起来不错，继续</span>
+              <span className="transform group-hover:translate-x-1 transition-transform">→</span>
             </button>
           </div>
         )}

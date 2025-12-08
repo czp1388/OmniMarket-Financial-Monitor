@@ -1,6 +1,6 @@
-/* 彭博终端风格CSS */
+/* 彭博终端风格CSS - 增强版 */
 .bloomberg-terminal {
-  background: #0a0e14;
+  background: linear-gradient(135deg, #0a0e14 0%, #0d1219 50%, #0a0e14 100%);
   color: #ffffff;
   font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
   min-height: 100vh;
@@ -9,14 +9,15 @@
 
 /* 彭博终端导航键样式 - 统一标准 */
 .terminal-navbar {
-  background: #1a1d23;
+  background: linear-gradient(to right, #1a1d23, #1d2128);
   border-bottom: 1px solid #2d313a;
   padding: 8px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   height: 48px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
 }
 
 .navbar-left {
@@ -28,10 +29,14 @@
 .terminal-title {
   font-size: 16px;
   font-weight: 700;
-  color: #00ff88;
+  background: linear-gradient(135deg, #00ff88, #00ccff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin: 0;
   letter-spacing: 1px;
   text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
 }
 
 /* 标准导航键样式 */
@@ -73,16 +78,16 @@
 }
 
 .bloomberg-nav-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.9);
-  transform: translateY(-0.5px);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  color: rgba(255, 255, 255, 0.95);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 204, 255, 0.2);
 }
 
 .bloomberg-nav-btn.active {
-  background: linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 204, 255, 0.1));
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.18), rgba(0, 204, 255, 0.12));
   color: #00ff88;
-  box-shadow: inset 0 0 8px rgba(0, 255, 136, 0.2);
+  box-shadow: inset 0 0 12px rgba(0, 255, 136, 0.25), 0 2px 8px rgba(0, 255, 136, 0.15);
 }
 
 .bloomberg-nav-btn.active::before {
@@ -211,15 +216,18 @@
   gap: 8px;
   padding: 8px 12px;
   margin-bottom: 4px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 11px;
   font-weight: 600;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
   align-items: center;
+  cursor: pointer;
 }
 
 .symbol-row:hover {
-  background: #1f2937;
+  background: linear-gradient(135deg, rgba(31, 41, 55, 0.8), rgba(26, 33, 47, 0.8));
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(0, 204, 255, 0.1);
 }
 
 .symbol-row.positive {
@@ -256,13 +264,15 @@
 }
 
 .symbol-percent.positive {
-  background: rgba(0, 255, 136, 0.1);
+  background: linear-gradient(135deg, rgba(0, 255, 136, 0.15), rgba(0, 204, 170, 0.1));
   color: #00ff88;
+  box-shadow: 0 0 8px rgba(0, 255, 136, 0.2);
 }
 
 .symbol-percent.negative {
-  background: rgba(255, 68, 68, 0.1);
+  background: linear-gradient(135deg, rgba(255, 68, 68, 0.15), rgba(255, 34, 34, 0.1));
   color: #ff4444;
+  box-shadow: 0 0 8px rgba(255, 68, 68, 0.2);
 }
 
 /* 右侧主内容区 */
@@ -275,12 +285,13 @@
 
 /* 控制面板 */
 .control-panel {
-  background: #161b22;
+  background: linear-gradient(to right, #161b22, #1a1f28);
   border-bottom: 1px solid #2d313a;
   padding: 12px 16px;
   display: flex;
   gap: 24px;
   align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .control-group {
