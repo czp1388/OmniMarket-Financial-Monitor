@@ -123,131 +123,166 @@ const SemiAutoTradingPage: React.FC = () => {
   }, [selectedSignal]);
 
   return (
-    <div className="semi-auto-trading-page">
-      {/* 风险提示横幅 - 合规性要求 */}
-      <div className="risk-warning-banner">
-        <div className="warning-icon">⚠️</div>
-        <div className="warning-content">
-          <div className="warning-title">【模拟交易 - 仅供学习和测试使用】</div>
-          <div className="warning-text">
-            本页面为半自动交易测试环境，所有交易均使用模拟资金，不涉及真实资金交易。交易信号仅供参考，请谨慎决策，不构成任何投资建议。
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0d1219] to-[#0a0e17] text-white p-6 space-y-4">
+      {/* 风险提示横幅 */}
+      <div className="bg-gradient-to-r from-[#ff4444]/20 via-[#ff8844]/20 to-[#ff4444]/20 border-2 border-[#ff4444] rounded-2xl p-5 shadow-2xl">
+        <div className="flex items-start gap-4">
+          <div className="text-5xl">⚠️</div>
+          <div className="flex-1">
+            <div className="text-2xl font-bold text-[#ff4444] mb-2">【模拟交易 - 仅供学习和测试使用】</div>
+            <div className="text-gray-300">
+              本页面为半自动交易测试环境，所有交易均使用模拟资金，不涉及真实资金交易。交易信号仅供参考，请谨慎决策，不构成任何投资建议。
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="container">
-        <div className="header">
-          <h1>牛熊证半自动交易系统</h1>
-          <p>智能信号生成 + 人工决策确认</p>
+      {/* 页面标题 */}
+      <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-3">
+          <span className="text-5xl">🤖</span>
+          <span>牛熊证半自动交易系统</span>
+        </h1>
+        <p className="text-gray-400 mt-2">智能信号生成 + 人工决策确认</p>
+      </div>
+
+      {/* 状态栏 */}
+      <div className="bg-gradient-to-r from-[#141a2a] via-[#1a2332] to-[#141a2a] border border-[#2a3a5a] rounded-xl p-4 shadow-2xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 rounded-full bg-[#00ff88] animate-pulse shadow-lg shadow-[#00ff88]/50"></div>
+            <span className="text-white font-semibold">系统运行正常</span>
+          </div>
+          <div className="flex items-center gap-6 text-sm text-gray-400">
+            <span>风控等级: <span className="text-[#ffaa00] font-semibold">中等</span></span>
+            <span>信号数量: <span className="text-[#00ccff] font-semibold">{signals.length}</span></span>
+            <span>最后更新: <span className="text-[#00ff88] font-mono font-semibold">{new Date().toLocaleTimeString()}</span></span>
+          </div>
+        </div>
+      </div>
+
+      {/* 主内容区域 */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* 左侧控制面板 */}
+        <div className="space-y-4">
+          {/* 信号生成 */}
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
+            <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
+              <span className="text-2xl">🎯</span>
+              <span>信号生成</span>
+            </h3>
+            <button 
+              className="w-full bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black font-semibold py-3 rounded-lg hover:scale-[1.02] transition-all shadow-lg"
+              onClick={generateSignals}
+              disabled={isLoading}
+            >
+              {isLoading ? '⏳ 生成中...' : '🔄 生成交易信号'}
+            </button>
+          </div>
+
+          {/* 风险控制 */}
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
+            <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
+              <span className="text-2xl">⚠️</span>
+              <span>风险控制</span>
+            </h3>
+            <div className="space-y-3">
+              {[
+                { label: '最大仓位', value: `$${riskRules.max_position_size}`, icon: '💰' },
+                { label: '单笔最大', value: `$${riskRules.max_single_trade}`, icon: '📊' },
+                { label: '日亏损上限', value: `$${riskRules.max_daily_loss}`, icon: '🔻' },
+                { label: '最低置信度', value: `${(riskRules.min_confidence * 100).toFixed(0)}%`, icon: '✅' }
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between p-3 bg-[#1a2332] rounded-lg">
+                  <span className="text-gray-400 flex items-center gap-2">
+                    <span>{item.icon}</span>
+                    <span>{item.label}:</span>
+                  </span>
+                  <span className="text-white font-bold">{item.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 交易执行 */}
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
+            <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
+              <span className="text-2xl">⚡</span>
+              <span>交易执行</span>
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                  <span>💵</span><span>仓位大小 ($)</span>
+                </label>
+                <input 
+                  type="number" 
+                  value={positionSize}
+                  onChange={(e) => setPositionSize(Number(e.target.value))}
+                  min="100"
+                  max="10000"
+                  className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none"
+                />
+              </div>
+              
+              {selectedSignal && (
+                <button 
+                  className={`w-full font-semibold py-3 rounded-lg transition-all shadow-lg ${
+                    isLoading || !validationResult?.is_valid
+                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-[#ff4444] to-[#ff8844] text-white hover:scale-[1.02]'
+                  }`}
+                  onClick={executeTrade}
+                  disabled={isLoading || !validationResult?.is_valid}
+                >
+                  {isLoading ? '⏳ 执行中...' : '✅ 确认执行交易'}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="status-bar">
-          <div className="status-indicator">
-            <div className="status-dot" style={{background: '#00ff88'}}></div>
-            <span>系统运行正常</span>
-          </div>
-          <div className="status-info">
-            <span>风控等级: 中等</span>
-            <span>信号数量: {signals.length}</span>
-            <span>最后更新: {new Date().toLocaleTimeString()}</span>
-          </div>
-        </div>
-
-        <div className="main-content">
-          {/* 左侧控制面板 */}
-          <div className="control-panel">
-            <div className="panel-section">
-              <h3>信号生成</h3>
-              <button 
-                className="btn btn-generate"
-                onClick={generateSignals}
-                disabled={isLoading}
-              >
-                {isLoading ? '生成中...' : '生成交易信号'}
-              </button>
-            </div>
-
-            <div className="panel-section">
-              <h3>风险控制</h3>
-              <div className="risk-rules">
-                <div className="risk-item">
-                  <span>最大仓位:</span>
-                  <span>${riskRules.max_position_size}</span>
-                </div>
-                <div className="risk-item">
-                  <span>单笔最大:</span>
-                  <span>${riskRules.max_single_trade}</span>
-                </div>
-                <div className="risk-item">
-                  <span>日亏损上限:</span>
-                  <span>${riskRules.max_daily_loss}</span>
-                </div>
-                <div className="risk-item">
-                  <span>最低置信度:</span>
-                  <span>{(riskRules.min_confidence * 100).toFixed(0)}%</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="panel-section">
-              <h3>交易执行</h3>
-              <div className="trade-controls">
-                <div className="config-item">
-                  <label>仓位大小 ($):</label>
-                  <input 
-                    type="number" 
-                    value={positionSize}
-                    onChange={(e) => setPositionSize(Number(e.target.value))}
-                    min="100"
-                    max="10000"
-                  />
-                </div>
-                
-                {selectedSignal && (
-                  <button 
-                    className="btn btn-execute"
-                    onClick={executeTrade}
-                    disabled={isLoading || !validationResult?.is_valid}
-                  >
-                    {isLoading ? '执行中...' : '确认执行交易'}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* 右侧信息面板 */}
-          <div className="info-panel">
-            {/* 信号列表 */}
-            <div className="panel-section">
-              <h3>交易信号 ({signals.length})</h3>
-              <div className="signals-list">
-                {signals.map((signal, index) => (
-                  <div 
-                    key={index}
-                    className={`signal-item ${selectedSignal === signal ? 'selected' : ''}`}
-                    onClick={() => setSelectedSignal(signal)}
-                  >
-                    <div className="signal-header">
-                      <span className="warrant-code">{signal.warrant_code}</span>
-                      <span className={`signal-type ${signal.signal_type.toLowerCase()}`}>
-                        {signal.signal_type}
-                      </span>
-                    </div>
-                    <div className="signal-details">
-                      <div className="signal-metrics">
-                        <span>强度: {(signal.strength * 100).toFixed(0)}%</span>
-                        <span>置信度: {(signal.confidence * 100).toFixed(0)}%</span>
-                        <span>价格: ${signal.price}</span>
-                      </div>
-                      <div className="signal-reason">
-                        {signal.reason}
-                      </div>
-                    </div>
+        {/* 右侧信息面板 */}
+        <div className="md:col-span-2 space-y-4">
+          {/* 信号列表 */}
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
+            <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
+              <span className="text-2xl">📡</span>
+              <span>交易信号 ({signals.length})</span>
+            </h3>
+            <div className="space-y-3 max-h-[600px] overflow-y-auto">
+              {signals.map((signal, index) => (
+                <div 
+                  key={index}
+                  className={`p-4 rounded-xl cursor-pointer transition-all ${
+                    selectedSignal === signal
+                      ? 'bg-gradient-to-r from-[#00ccff]/20 to-[#00ff88]/20 border-2 border-[#00ccff]'
+                      : 'bg-[#1a2332] border border-[#2a3a5a] hover:bg-[#222b3d]'
+                  }`}
+                  onClick={() => setSelectedSignal(signal)}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-white font-bold text-lg">{signal.warrant_code}</span>
+                    <span className={`px-3 py-1 rounded-lg font-semibold ${
+                      signal.signal_type === 'BUY' 
+                        ? 'bg-[#00ff88] text-black' 
+                        : 'bg-[#ff4444] text-white'
+                    }`}>
+                      {signal.signal_type}
+                    </span>
                   </div>
-                ))}
-                {signals.length === 0 && (
-                  <div className="no-signals">
+                  <div className="flex items-center gap-4 text-sm mb-2">
+                    <span className="text-gray-400">强度: <span className="text-[#00ccff] font-semibold">{(signal.strength * 100).toFixed(0)}%</span></span>
+                    <span className="text-gray-400">置信度: <span className="text-[#00ff88] font-semibold">{(signal.confidence * 100).toFixed(0)}%</span></span>
+                    <span className="text-gray-400">价格: <span className="text-white font-bold">${signal.price}</span></span>
+                  </div>
+                  <div className="text-sm text-gray-300">
+                    {signal.reason}
+                  </div>
+                </div>
+              ))}
+              {signals.length === 0 && (
+                <div className="text-center py-12 text-gray-400">
                     暂无交易信号，点击生成按钮获取信号
                   </div>
                 )}
