@@ -271,190 +271,254 @@ const StrategyActivationFlow: React.FC = () => {
           </div>
         )}
 
-        {/* Step 2: 设置参数 */}
+        {/* Step 2: 设置参数 - 增强版 */}
         {currentStep === 2 && (
-          <div className="bg-[#141a2a] border border-[#2a3a5a] rounded-lg p-8">
-            <h2 className="text-2xl font-bold mb-6">设置投资参数</h2>
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-xl p-10 shadow-2xl hover:shadow-[#00ccff]/10 transition-all duration-300 animate-fadeIn">
+            <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">设置投资参数</h2>
 
             {/* 投资金额 */}
-            <div className="mb-8">
-              <label className="block mb-2 font-semibold">
-                投资金额
-                <span className="ml-2 text-sm text-gray-400">（可随时调整）</span>
+            <div className="mb-10">
+              <label className="block mb-4 text-lg font-semibold flex items-center gap-2">
+                <span className="text-[#00ccff]">💰</span>
+                <span>投资金额</span>
+                <span className="ml-2 text-sm text-gray-400 font-normal">（可随时调整）</span>
               </label>
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => setParams({ ...params, investment_amount: Math.max(1000, params.investment_amount - 1000) })}
-                  className="w-12 h-12 bg-[#2a3a5a] rounded-lg hover:bg-[#3a4a6a] transition-colors"
+                  className="w-14 h-14 bg-gradient-to-br from-[#2a3a5a] to-[#1a2332] rounded-xl hover:from-[#3a4a6a] hover:to-[#2a3a5a] transition-all duration-300 font-bold text-xl shadow-md hover:shadow-lg hover:shadow-[#00ccff]/20 hover:scale-105"
                 >
                   -
                 </button>
-                <div className="flex-1 bg-[#1a2332] rounded-lg p-4 text-center">
-                  <div className="text-3xl font-bold text-[#00ccff]">
+                <div className="flex-1 bg-gradient-to-br from-[#1a2332] to-[#141a2a] rounded-xl p-6 text-center border border-[#2a3a5a] shadow-inner">
+                  <div className="text-4xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent">
                     ¥{params.investment_amount.toLocaleString()}
                   </div>
                 </div>
                 <button
                   onClick={() => setParams({ ...params, investment_amount: params.investment_amount + 1000 })}
-                  className="w-12 h-12 bg-[#2a3a5a] rounded-lg hover:bg-[#3a4a6a] transition-colors"
+                  className="w-14 h-14 bg-gradient-to-br from-[#2a3a5a] to-[#1a2332] rounded-xl hover:from-[#3a4a6a] hover:to-[#2a3a5a] transition-all duration-300 font-bold text-xl shadow-md hover:shadow-lg hover:shadow-[#00ccff]/20 hover:scale-105"
                 >
                   +
                 </button>
               </div>
-              <div className="mt-2 text-sm text-gray-400">
-                💡 建议投入闲钱的30-50%，不影响日常生活
+              <div className="mt-4 text-sm text-gray-400 bg-gradient-to-r from-[#1a2332] to-[#141a2a] rounded-lg p-4 border border-[#2a3a5a]/50">
+                <span className="text-lg mr-2">💡</span>
+                建议投入闲钱的30-50%，不影响日常生活
               </div>
             </div>
 
             {/* 定投周期 */}
-            <div className="mb-8">
-              <label className="block mb-2 font-semibold">定投周期</label>
-              <div className="grid grid-cols-2 gap-4">
+            <div className="mb-10">
+              <label className="block mb-4 text-lg font-semibold flex items-center gap-2">
+                <span className="text-[#00ccff]">📅</span>
+                <span>定投周期</span>
+              </label>
+              <div className="grid grid-cols-2 gap-5">
                 <button
                   onClick={() => setParams({ ...params, frequency: 'weekly' })}
-                  className={`p-4 rounded-lg border-2 transition-all ${
+                  className={`p-6 rounded-xl border-2 transition-all duration-300 ${
                     params.frequency === 'weekly'
-                      ? 'border-[#00ccff] bg-[#00ccff] bg-opacity-20'
-                      : 'border-[#2a3a5a] hover:border-[#3a4a6a]'
+                      ? 'border-[#00ccff] bg-gradient-to-br from-[#00ccff]/20 to-[#00ff88]/10 shadow-lg shadow-[#00ccff]/30 scale-105'
+                      : 'border-[#2a3a5a] bg-gradient-to-br from-[#1a2332] to-[#141a2a] hover:border-[#00ccff]/50 hover:shadow-md hover:shadow-[#00ccff]/10'
                   }`}
                 >
-                  <div className="font-bold mb-1">每周定投</div>
+                  <div className="font-bold text-lg mb-2 flex items-center gap-2">
+                    <span className="text-2xl">📆</span>
+                    <span>每周定投</span>
+                  </div>
                   <div className="text-sm text-gray-400">
-                    每周投¥{Math.round(params.investment_amount / 4)}
+                    每周投 <span className="text-[#00ccff] font-bold">¥{Math.round(params.investment_amount / 4).toLocaleString()}</span>
                   </div>
                 </button>
                 <button
                   onClick={() => setParams({ ...params, frequency: 'monthly' })}
-                  className={`p-4 rounded-lg border-2 transition-all ${
+                  className={`p-6 rounded-xl border-2 transition-all duration-300 ${
                     params.frequency === 'monthly'
-                      ? 'border-[#00ccff] bg-[#00ccff] bg-opacity-20'
-                      : 'border-[#2a3a5a] hover:border-[#3a4a6a]'
+                      ? 'border-[#00ccff] bg-gradient-to-br from-[#00ccff]/20 to-[#00ff88]/10 shadow-lg shadow-[#00ccff]/30 scale-105'
+                      : 'border-[#2a3a5a] bg-gradient-to-br from-[#1a2332] to-[#141a2a] hover:border-[#00ccff]/50 hover:shadow-md hover:shadow-[#00ccff]/10'
                   }`}
                 >
-                  <div className="font-bold mb-1">每月定投</div>
+                  <div className="font-bold text-lg mb-2 flex items-center gap-2">
+                    <span className="text-2xl">🗓️</span>
+                    <span>每月定投</span>
+                  </div>
                   <div className="text-sm text-gray-400">
-                    每月投¥{params.investment_amount.toLocaleString()}
+                    每月投 <span className="text-[#00ccff] font-bold">¥{params.investment_amount.toLocaleString()}</span>
                   </div>
                 </button>
               </div>
             </div>
 
             {/* 自动执行 */}
-            <div className="mb-8">
-              <label className="flex items-center gap-3 cursor-pointer">
+            <div className="mb-10">
+              <label className="flex items-start gap-4 cursor-pointer p-6 bg-gradient-to-r from-[#1a2332] to-[#141a2a] rounded-xl border border-[#2a3a5a] hover:border-[#00ccff]/50 transition-all duration-300 hover:shadow-md hover:shadow-[#00ccff]/10">
                 <input
                   type="checkbox"
                   checked={params.auto_execute}
                   onChange={(e) => setParams({ ...params, auto_execute: e.target.checked })}
-                  className="w-5 h-5"
+                  className="w-6 h-6 mt-1 accent-[#00ccff]"
                 />
-                <div>
-                  <div className="font-semibold">自动执行交易</div>
-                  <div className="text-sm text-gray-400">
+                <div className="flex-1">
+                  <div className="font-semibold text-lg mb-2 flex items-center gap-2">
+                    <span className="text-[#00ccff]">⚙️</span>
+                    <span>自动执行交易</span>
+                  </div>
+                  <div className="text-sm text-gray-400 leading-relaxed">
                     开启后，系统会在合适时机自动买入，无需手动确认（当前为虚拟交易）
                   </div>
                 </div>
               </label>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex gap-5">
               <button
                 onClick={() => setCurrentStep(1)}
-                className="flex-1 py-4 bg-[#2a3a5a] rounded-lg hover:bg-[#3a4a6a] transition-colors"
+                className="flex-1 py-5 bg-gradient-to-br from-[#2a3a5a] to-[#1a2332] rounded-xl hover:from-[#3a4a6a] hover:to-[#2a3a5a] transition-all duration-300 font-semibold shadow-md hover:shadow-lg group flex items-center justify-center gap-2"
               >
-                ← 上一步
+                <span className="transform group-hover:-translate-x-1 transition-transform">←</span>
+                <span>上一步</span>
               </button>
               <button
                 onClick={() => setCurrentStep(3)}
-                className="flex-1 py-4 bg-[#00ccff] text-black font-bold rounded-lg hover:bg-[#00aadd] transition-colors"
+                className="flex-1 py-5 bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black font-bold rounded-xl hover:from-[#00aadd] hover:to-[#00ccaa] transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-[#00ccff]/30 transform hover:scale-[1.02] group flex items-center justify-center gap-2"
               >
-                下一步 →
+                <span>下一步</span>
+                <span className="transform group-hover:translate-x-1 transition-transform">→</span>
               </button>
             </div>
           </div>
         )}
 
-        {/* Step 3: 确认并启动 */}
+        {/* Step 3: 确认并启动 - 增强版 */}
         {currentStep === 3 && (
-          <div className="bg-[#141a2a] border border-[#2a3a5a] rounded-lg p-8">
-            <h2 className="text-2xl font-bold mb-6">确认信息</h2>
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-xl p-10 shadow-2xl hover:shadow-[#00ccff]/10 transition-all duration-300 animate-fadeIn">
+            <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">确认信息</h2>
 
             {/* 参数汇总 */}
-            <div className="bg-[#1a2332] rounded-lg p-6 mb-6">
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <div className="text-sm text-gray-400 mb-1">策略名称</div>
-                  <div className="font-semibold">{strategy.friendly_name}</div>
+            <div className="bg-gradient-to-r from-[#1a2332] to-[#141a2a] rounded-xl p-8 mb-8 border border-[#2a3a5a] shadow-inner">
+              <div className="grid grid-cols-2 gap-8">
+                <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] p-5 rounded-lg border border-[#2a3a5a]">
+                  <div className="text-sm text-gray-400 mb-2 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-gray-500"></span>
+                    策略名称
+                  </div>
+                  <div className="font-semibold text-lg">{strategy.friendly_name}</div>
                 </div>
-                <div>
-                  <div className="text-sm text-gray-400 mb-1">风险等级</div>
-                  <div className="font-semibold">{strategy.risk_score}/5</div>
+                <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] p-5 rounded-lg border border-[#2a3a5a]">
+                  <div className="text-sm text-gray-400 mb-2 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-gray-500"></span>
+                    风险等级
+                  </div>
+                  <div className="font-semibold text-lg">{strategy.risk_score}/5</div>
                 </div>
-                <div>
-                  <div className="text-sm text-gray-400 mb-1">投资金额</div>
-                  <div className="font-semibold text-[#00ccff]">
+                <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] p-5 rounded-lg border border-[#2a3a5a]">
+                  <div className="text-sm text-gray-400 mb-2 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#00ccff]"></span>
+                    投资金额
+                  </div>
+                  <div className="font-bold text-xl bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent">
                     ¥{params.investment_amount.toLocaleString()}
                   </div>
                 </div>
-                <div>
-                  <div className="text-sm text-gray-400 mb-1">定投周期</div>
-                  <div className="font-semibold">
+                <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] p-5 rounded-lg border border-[#2a3a5a]">
+                  <div className="text-sm text-gray-400 mb-2 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-gray-500"></span>
+                    定投周期
+                  </div>
+                  <div className="font-semibold text-lg">
                     {params.frequency === 'weekly' ? '每周' : '每月'}
                   </div>
                 </div>
-                <div>
-                  <div className="text-sm text-gray-400 mb-1">自动执行</div>
-                  <div className="font-semibold">
+                <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] p-5 rounded-lg border border-[#2a3a5a]">
+                  <div className="text-sm text-gray-400 mb-2 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-gray-500"></span>
+                    自动执行
+                  </div>
+                  <div className="font-semibold text-lg">
                     {params.auto_execute ? '是' : '否'}
                   </div>
                 </div>
-                <div>
-                  <div className="text-sm text-gray-400 mb-1">预期年化收益</div>
-                  <div className="font-semibold text-[#00ff88]">{strategy.expected_return}</div>
+                <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] p-5 rounded-lg border border-[#2a3a5a]">
+                  <div className="text-sm text-gray-400 mb-2 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#00ff88]"></span>
+                    预期年化收益
+                  </div>
+                  <div className="font-bold text-xl text-[#00ff88]">{strategy.expected_return}</div>
                 </div>
               </div>
             </div>
 
             {/* 风险提示 */}
-            <div className="bg-[#ff4444] bg-opacity-10 border border-[#ff4444] rounded-lg p-6 mb-6">
-              <h3 className="font-bold mb-3 text-[#ff4444]">⚠️ 重要风险提示</h3>
-              <ul className="space-y-2 text-sm text-gray-300">
-                <li>• 这是虚拟交易，不涉及真实资金</li>
-                <li>• 历史收益不代表未来表现</li>
-                <li>• 投资有风险，可能面临本金损失</li>
-                <li>• 建议仅投入可承受损失的闲钱</li>
-                <li>• 最大可能回撤：{strategy.max_drawdown}</li>
+            <div className="bg-gradient-to-r from-[#ff4444]/20 to-[#ff2222]/15 border-2 border-[#ff4444] rounded-xl p-8 mb-8 shadow-lg shadow-[#ff4444]/20">
+              <h3 className="font-bold mb-5 text-xl flex items-center gap-3">
+                <span className="text-3xl">⚠️</span>
+                <span className="text-[#ff4444]">重要风险提示</span>
+              </h3>
+              <ul className="space-y-3 text-sm text-gray-300 mb-6">
+                <li className="flex items-start gap-3">
+                  <span className="text-[#00ccff] text-lg">•</span>
+                  <span>这是虚拟交易，不涉及真实资金</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-[#00ccff] text-lg">•</span>
+                  <span>历史收益不代表未来表现</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-[#00ccff] text-lg">•</span>
+                  <span>投资有风险，可能面临本金损失</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-[#00ccff] text-lg">•</span>
+                  <span>建议仅投入可承受损失的闲钱</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-[#00ccff] text-lg">•</span>
+                  <span>最大可能回撤：<span className="font-bold text-[#ff4444]">{strategy.max_drawdown}</span></span>
+                </li>
               </ul>
               
-              <label className="flex items-center gap-3 mt-4 cursor-pointer">
+              <label className="flex items-start gap-4 cursor-pointer p-5 bg-[#141a2a]/50 rounded-lg border border-[#ff4444]/50 hover:bg-[#141a2a]/70 transition-all duration-300">
                 <input
                   type="checkbox"
                   checked={agreedToRisk}
                   onChange={(e) => setAgreedToRisk(e.target.checked)}
-                  className="w-5 h-5"
+                  className="w-6 h-6 mt-0.5 accent-[#ff4444]"
                 />
-                <span className="font-semibold">我已阅读并理解上述风险</span>
+                <span className="font-semibold text-base">我已阅读并理解上述风险</span>
               </label>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex gap-5">
               <button
                 onClick={() => setCurrentStep(2)}
-                className="flex-1 py-4 bg-[#2a3a5a] rounded-lg hover:bg-[#3a4a6a] transition-colors"
+                className="flex-1 py-5 bg-gradient-to-br from-[#2a3a5a] to-[#1a2332] rounded-xl hover:from-[#3a4a6a] hover:to-[#2a3a5a] transition-all duration-300 font-semibold shadow-md hover:shadow-lg group flex items-center justify-center gap-2"
                 disabled={loading}
               >
-                ← 上一步
+                <span className="transform group-hover:-translate-x-1 transition-transform">←</span>
+                <span>上一步</span>
               </button>
               <button
                 onClick={handleActivate}
                 disabled={!agreedToRisk || loading}
-                className={`flex-1 py-4 font-bold rounded-lg transition-colors ${
+                className={`flex-1 py-6 font-bold text-lg rounded-xl transition-all duration-300 shadow-lg group flex items-center justify-center gap-3 ${
                   agreedToRisk && !loading
-                    ? 'bg-[#00ff88] text-black hover:bg-[#00dd77]'
+                    ? 'bg-gradient-to-r from-[#00ff88] to-[#00ccaa] text-black hover:from-[#00dd77] hover:to-[#00aa88] hover:shadow-xl hover:shadow-[#00ff88]/30 transform hover:scale-[1.02]'
                     : 'bg-[#2a3a5a] text-gray-500 cursor-not-allowed'
                 }`}
               >
-                {loading ? '启动中...' : '🚀 启动策略'}
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-black border-t-transparent"></div>
+                    <span>启动中...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-2xl">🚀</span>
+                    <span>启动策略</span>
+                    <span className="transform group-hover:translate-x-1 transition-transform">→</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
