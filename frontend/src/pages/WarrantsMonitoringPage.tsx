@@ -523,6 +523,7 @@ const WarrantsMonitoringPage: React.FC = () => {
             </div>
             <span className="text-sm text-gray-400">最后刷新: <span className="text-[#00ccff] font-mono">{lastUpdate || '未刷新'}</span></span>
           </div>
+          </div>
         </div>
       </div>
     </div>

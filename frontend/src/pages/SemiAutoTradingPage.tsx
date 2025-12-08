@@ -286,52 +286,51 @@ const SemiAutoTradingPage: React.FC = () => {
                     暂无交易信号，点击生成按钮获取信号
                   </div>
                 )}
+            </div>
+          </div>
+
+          {/* 验证结果 */}
+          {validationResult && selectedSignal && (
+            <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
+              <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent">交易验证</h3>
+              <div className={`p-4 rounded-xl ${validationResult.is_valid ? 'bg-[#00ff88]/10 border-2 border-[#00ff88]' : 'bg-[#ff4444]/10 border-2 border-[#ff4444]'}`}>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-white font-semibold">验证状态: {validationResult.is_valid ? '✅ 通过' : '❌ 不通过'}</span>
+                  <span className="px-3 py-1 rounded-lg font-semibold bg-[#ffaa00] text-black">
+                    {validationResult.risk_level}
+                  </span>
+                </div>
+                {validationResult.warnings.map((warning: string, index: number) => (
+                  <div key={index} className="text-[#ffaa00] text-sm mb-2">
+                    ⚠️ {warning}
+                  </div>
+                ))}
+                {validationResult.recommendations.map((rec: string, index: number) => (
+                  <div key={index} className="text-[#00ccff] text-sm">
+                    💡 {rec}
+                  </div>
+                ))}
               </div>
             </div>
+          )}
 
-            {/* 验证结果 */}
-            {validationResult && selectedSignal && (
-              <div className="panel-section">
-                <h3>交易验证</h3>
-                <div className={`validation-result ${validationResult.is_valid ? 'valid' : 'invalid'}`}>
-                  <div className="validation-header">
-                    <span>验证状态: {validationResult.is_valid ? '通过' : '不通过'}</span>
-                    <span className={`risk-level ${validationResult.risk_level.replace('风险', '')}`}>
-                      {validationResult.risk_level}
-                    </span>
-                  </div>
-                  {validationResult.warnings.map((warning: string, index: number) => (
-                    <div key={index} className="warning-item">
-                      ⚠️ {warning}
-                    </div>
-                  ))}
-                  {validationResult.recommendations.map((rec: string, index: number) => (
-                    <div key={index} className="recommendation-item">
-                      💡 {rec}
-                    </div>
-                  ))}
+          {/* 执行结果 */}
+          {executionResult && (
+            <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
+              <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent">执行结果</h3>
+              <div className="bg-[#00ff88]/10 border-2 border-[#00ff88] rounded-xl p-4">
+                <div className="text-[#00ff88] text-lg font-bold mb-3">
+                  ✅ 交易执行成功
+                </div>
+                <div className="space-y-2 text-white">
+                  <div>订单号: <span className="text-[#00ccff] font-mono">{executionResult.order_id}</span></div>
+                  <div>执行价格: <span className="text-[#00ff88] font-bold">${executionResult.executed_price}</span></div>
+                  <div>仓位大小: <span className="text-white font-bold">${executionResult.position_size}</span></div>
+                  <div>时间: <span className="text-gray-400 font-mono">{new Date(executionResult.timestamp).toLocaleString()}</span></div>
                 </div>
               </div>
-            )}
-
-            {/* 执行结果 */}
-            {executionResult && (
-              <div className="panel-section">
-                <h3>执行结果</h3>
-                <div className="execution-result">
-                  <div className="execution-success">
-                    ✅ 交易执行成功
-                  </div>
-                  <div className="execution-details">
-                    <div>订单号: {executionResult.order_id}</div>
-                    <div>执行价格: ${executionResult.executed_price}</div>
-                    <div>仓位大小: ${executionResult.position_size}</div>
-                    <div>时间: {new Date(executionResult.timestamp).toLocaleString()}</div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

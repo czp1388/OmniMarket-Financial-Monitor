@@ -81,15 +81,15 @@ class MarketDataBase:
         except Exception as e:
             logger.error(f"创建表失败: {e}")
 
-# 导入所有模型以确保它们被注册
-from models.market_data import MarketData, KlineData
-from models.alerts import Alert
-from models.users import User
-
 # 创建所有表
 async def create_tables():
     """创建所有数据库表"""
     try:
+        # 延迟导入所有模型以避免循环导入
+        from models.market_data import MarketData, KlineData
+        from models.alerts import Alert
+        from models.users import User
+        
         Base.metadata.create_all(bind=engine)
         logger.info("数据库表创建成功")
     except Exception as e:

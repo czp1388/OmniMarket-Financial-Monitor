@@ -33,18 +33,35 @@ const KlineStyleDashboard: React.FC = () => {
   const candleSeriesRef = useRef<any>(null);
   const smaSeriesRef = useRef<any>(null);
   const updateIntervalRef = useRef<number | null>(null);
+  const [drawings, setDrawings] = useState<any[]>([]);
   
-  // 绘图工具集成
-  const {
-    drawings,
-    currentTool,
-    setCurrentTool,
-    addDrawing,
-    removeDrawing,
-    clearAllDrawings,
-    loadDrawings,
-    saveDrawings
-  } = useDrawingManager();
+  // 绘图工具相关状态
+  const [currentTool, setCurrentTool] = useState<string>('none');
+  
+  const addDrawing = (drawing: any) => {
+    setDrawings(prev => [...prev, drawing]);
+  };
+  
+  const removeDrawing = (id: string) => {
+    setDrawings(prev => prev.filter(d => d.id !== id));
+  };
+  
+  const clearAllDrawings = () => {
+    setDrawings([]);
+  };
+  
+  const loadDrawings = () => {
+    // 从 localStorage 加载绘图
+    const saved = localStorage.getItem('chart-drawings');
+    if (saved) {
+      setDrawings(JSON.parse(saved));
+    }
+  };
+  
+  const saveDrawings = () => {
+    // 保存绘图到 localStorage
+    localStorage.setItem('chart-drawings', JSON.stringify(drawings));
+  };
   
   const [selectedMarket, setSelectedMarket] = useState<string>('crypto');
   const [timeframe, setTimeframe] = useState<string>('1h');
@@ -305,9 +322,9 @@ const KlineStyleDashboard: React.FC = () => {
         <div className="text-center">
           <h1 className="text-5xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent mb-2 flex items-center justify-center gap-3">
             <span className="text-6xl">📈</span>
-            <span>寐宇多市场金融监控系统</span>
+            <span>寰宇多市场金融监控系统</span>
           </h1>
-          <p className="text-gray-400 text-lg">实时K线图表演示 - 支持多市场多周期监控</p>
+          <p className="text-gray-400 text-lg">OmniMarket Financial Monitor - 实时K线图表演示 - 支持多市场多周期监控</p>
         </div>
 
         {/* 功能导航栏 */}

@@ -17,11 +17,15 @@ import AssistantDashboard from './pages/AssistantDashboard';
 import StrategyActivationFlow from './pages/StrategyActivationFlow';
 import StrategyRunningStatus from './pages/StrategyRunningStatus';
 import SimpleProgressReport from './pages/SimpleProgressReport';
+import TestPage from './pages/TestPage';
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* 测试页面 */}
+        <Route path="/test" element={<TestPage />} />
+        
         {/* 助手模式路由 - 为零基础用户设计 */}
         <Route path="/assistant" element={<AssistantDashboard />} />
         <Route path="/assistant/strategies/activate/:packageId" element={<StrategyActivationFlow />} />
