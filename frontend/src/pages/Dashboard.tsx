@@ -176,73 +176,92 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="financial-dashboard">
-      {/* 专业顶部导航栏 - 彭博终端风格 */}
-      <header className="top-navigation">
-        <div className="nav-container">
-          <div className="nav-brand">
-            <h1 className="brand-title">OmniMarket</h1>
-            <p className="brand-subtitle">寰宇多市场金融监控系统</p>
-          </div>
-          
-          {/* 专业导航键 - 符合彭博终端标准 */}
-          <div className="dashboard-nav-keys">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={clsx(
-                  'dashboard-nav-key',
-                  isActive(item.href) && 'active'
-                )}
-              >
-                {item.name}
-              </Link>
-            ))}
-          </div>
-
-          <div className="nav-info">
-            <div className="current-time">
-              {new Date().toLocaleString('zh-CN')}
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0d1219] to-[#0a0e17] text-white">
+      {/* 专业顶部导航栏 */}
+      <header className="bg-gradient-to-r from-[#141a2a] via-[#1a2332] to-[#141a2a] border-b border-[#2a3a5a] shadow-2xl">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent">
+                OmniMarket
+              </h1>
+              <p className="text-gray-400 text-sm">寰宇多市场金融监控系统</p>
             </div>
-            <div className="user-avatar">
-              <div className="avatar-circle">U</div>
+            
+            {/* 专业导航键 */}
+            <div className="flex items-center gap-2 overflow-x-auto">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={clsx(
+                    'px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 whitespace-nowrap flex items-center gap-2',
+                    isActive(item.href) 
+                      ? 'bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black shadow-lg' 
+                      : 'bg-[#141a2a] text-gray-400 hover:bg-[#1a2332] hover:text-white'
+                  )}
+                >
+                  <span className="text-lg">{item.icon}</span>
+                  <span>{item.name}</span>
+                </Link>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="text-[#00ccff] font-mono text-sm">
+                {new Date().toLocaleString('zh-CN')}
+              </div>
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00ccff] to-[#00ff88] flex items-center justify-center font-bold text-black">
+                U
+              </div>
             </div>
           </div>
         </div>
       </header>
 
       {/* 主内容区域 - 30/70分栏布局 */}
-      <div className="dashboard-content">
-        {/* 左侧30% - 专业品种监控面板 */}
-        <div className="left-panel">
-          <div className="panel-header">
-            <h3 className="panel-title">实时监控品种</h3>
-          </div>
-          <div className="price-card-container">
-            {marketData.map((data, index) => (
-              <div key={index} className="price-card">
-                <div className="card-header">
-                  <span className="symbol-icon">█</span>
-                  <span className="symbol">{data.symbol}</span>
+      <div className="flex gap-4 p-6">
+        {/* 左侧30% - 实时监控面板 */}
+        <div className="w-full md:w-[30%] space-y-4">
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
+            <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
+              <span className="text-3xl">📊</span>
+              <span>实时监控品种</span>
+            </h3>
+            <div className="space-y-3">
+              {marketData.map((data, index) => (
+                <div key={index} className="bg-gradient-to-br from-[#1a2332] to-[#141a2a] border border-[#2a3a5a] rounded-xl p-4 shadow-lg hover:scale-[1.02] transition-all duration-300">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[#00ccff] font-bold">█</span>
+                    <span className="text-white font-bold text-lg">{data.symbol}</span>
+                  </div>
+                  <div className="text-2xl font-bold text-white font-mono">
+                    ${data.price.toLocaleString()}
+                  </div>
+                  <div className={clsx(
+                    'text-sm font-semibold flex items-center gap-2',
+                    data.change >= 0 ? 'text-[#00ff88]' : 'text-[#ff4444]'
+                  )}>
+                    <span>{data.change >= 0 ? '↗' : '↘'}</span>
+                    <span>
+                      {data.change >= 0 ? '+' : ''}{data.change.toFixed(2)} ({data.changePercent.toFixed(2)}%)
+                    </span>
+                    <span className="ml-auto">{data.change >= 0 ? '🟢' : '🔴'}</span>
+                  </div>
                 </div>
-                <div className="price">${data.price.toLocaleString()}</div>
-                <div className={`change ${data.change >= 0 ? 'positive' : 'negative'}`}>
-                  {data.change >= 0 ? '+' : ''}{data.change.toFixed(2)} ({data.changePercent.toFixed(2)}%)
-                  <span className="status-indicator">{data.change >= 0 ? '🟢' : '🔴'}</span>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
         {/* 右侧70% - 核心功能区域 */}
-        <div className="right-panel">
-          {/* 专业K线图表区域 - 彭博终端风格 */}
-          <div className="chart-container">
-            <div className="chart-header">
-              <h3>📊 专业K线图表分析</h3>
-            </div>
+        <div className="w-full md:w-[70%] space-y-4">
+          {/* K线图表区域 */}
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-6 shadow-2xl">
+            <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
+              <span className="text-3xl">📊</span>
+              <span>专业K线图表分析</span>
+            </h3>
             <ReactECharts 
               option={getKLineOption()} 
               style={{ height: '400px', width: '100%' }}
@@ -250,85 +269,107 @@ const Dashboard: React.FC = () => {
             />
           </div>
 
-          {/* 专业控制面板 - 彭博终端风格 */}
-          <div className="control-panel">
-            <div className="control-group">
-              <label>市场选择</label>
-              <select 
-                value={selectedMarket} 
-                onChange={(e) => setSelectedMarket(e.target.value)}
-                className="control-select"
-              >
-                <option value="股票">股票(AAPL)</option>
-                <option value="加密货币">加密货币</option>
-                <option value="外汇">外汇</option>
-                <option value="期货">期货</option>
-                <option value="期权">期权</option>
-              </select>
-            </div>
+          {/* 控制面板 */}
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+              <div>
+                <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                  <span>🌏</span><span>市场选择</span>
+                </label>
+                <select 
+                  value={selectedMarket} 
+                  onChange={(e) => setSelectedMarket(e.target.value)}
+                  className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none transition-all"
+                >
+                  <option value="股票">股票(AAPL)</option>
+                  <option value="加密货币">加密货币</option>
+                  <option value="外汇">外汇</option>
+                  <option value="期货">期货</option>
+                  <option value="期权">期权</option>
+                </select>
+              </div>
 
-            <div className="control-group">
-              <label>时间周期</label>
-              <select 
-                value={selectedTimeframe} 
-                onChange={(e) => setSelectedTimeframe(e.target.value)}
-                className="control-select"
-              >
-                <option value="1分钟">1分钟</option>
-                <option value="5分钟">5分钟</option>
-                <option value="15分钟">15分钟</option>
-                <option value="30分钟">30分钟</option>
-                <option value="1小时">1小时</option>
-                <option value="4小时">4小时</option>
-                <option value="日线">日线</option>
-                <option value="周线">周线</option>
-              </select>
-            </div>
+              <div>
+                <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                  <span>⏱️</span><span>时间周期</span>
+                </label>
+                <select 
+                  value={selectedTimeframe} 
+                  onChange={(e) => setSelectedTimeframe(e.target.value)}
+                  className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none transition-all"
+                >
+                  <option value="1分钟">1分钟</option>
+                  <option value="5分钟">5分钟</option>
+                  <option value="15分钟">15分钟</option>
+                  <option value="30分钟">30分钟</option>
+                  <option value="1小时">1小时</option>
+                  <option value="4小时">4小时</option>
+                  <option value="日线">日线</option>
+                  <option value="周线">周线</option>
+                </select>
+              </div>
 
-            <div className="control-group">
-              <label>技术指标</label>
-              <select 
-                value={selectedIndicator} 
-                onChange={(e) => setSelectedIndicator(e.target.value)}
-                className="control-select"
-              >
-                <option value="无指标">无指标</option>
-                <option value="MA">移动平均线</option>
-                <option value="EMA">指数移动平均</option>
-                <option value="MACD">MACD</option>
-                <option value="RSI">RSI</option>
-                <option value="布林带">布林带</option>
-                <option value="KDJ">KDJ</option>
-                <option value="OBV">OBV</option>
-              </select>
-            </div>
+              <div>
+                <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                  <span>📈</span><span>技术指标</span>
+                </label>
+                <select 
+                  value={selectedIndicator} 
+                  onChange={(e) => setSelectedIndicator(e.target.value)}
+                  className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none transition-all"
+                >
+                  <option value="无指标">无指标</option>
+                  <option value="MA">移动平均线</option>
+                  <option value="EMA">指数移动平均</option>
+                  <option value="MACD">MACD</option>
+                  <option value="RSI">RSI</option>
+                  <option value="布林带">布林带</option>
+                  <option value="KDJ">KDJ</option>
+                  <option value="OBV">OBV</option>
+                </select>
+              </div>
 
-            <button className="simulate-btn" onClick={handleRefreshData}>
-              🔄 刷新数据
-            </button>
+              <button 
+                className="bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black font-semibold px-6 py-3 rounded-lg hover:scale-105 transition-all duration-300 shadow-lg flex items-center justify-center gap-2"
+                onClick={handleRefreshData}
+              >
+                <span className="text-lg">🔄</span>
+                <span>刷新数据</span>
+              </button>
+            </div>
           </div>
 
-          {/* 专业状态信息面板 - 彭博终端风格 */}
-          <div className="status-panel">
-            <div className="status-item">
-              <span className="status-icon">🔔</span>
-              <span className="status-label">活跃预警</span>
-              <span className="status-value warning">{systemStatus.activeAlerts}</span>
-            </div>
-            <div className="status-item">
-              <span className="status-icon">✅</span>
-              <span className="status-label">市场状态</span>
-              <span className="status-value normal">{systemStatus.marketStatus}</span>
-            </div>
-            <div className="status-item">
-              <span className="status-icon">📡</span>
-              <span className="status-label">数据更新</span>
-              <span className="status-value realtime">{systemStatus.dataStatus}</span>
-            </div>
-            <div className="status-item">
-              <span className="status-icon">⚡</span>
-              <span className="status-label">延迟</span>
-              <span className="status-value latency">{systemStatus.latency}</span>
+          {/* 状态信息面板 */}
+          <div className="bg-gradient-to-r from-[#141a2a] via-[#1a2332] to-[#141a2a] border border-[#2a3a5a] rounded-xl p-5 shadow-2xl">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🔔</span>
+                <div>
+                  <div className="text-xs text-gray-400">活跃预警</div>
+                  <div className="text-xl font-bold text-[#ff4444]">{systemStatus.activeAlerts}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">✅</span>
+                <div>
+                  <div className="text-xs text-gray-400">市场状态</div>
+                  <div className="text-xl font-bold text-[#00ff88]">{systemStatus.marketStatus}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">📡</span>
+                <div>
+                  <div className="text-xs text-gray-400">数据更新</div>
+                  <div className="text-xl font-bold text-[#00ccff]">{systemStatus.dataStatus}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">⚡</span>
+                <div>
+                  <div className="text-xs text-gray-400">延迟</div>
+                  <div className="text-xl font-bold text-white">{systemStatus.latency}</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
