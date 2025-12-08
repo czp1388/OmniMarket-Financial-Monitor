@@ -26,18 +26,22 @@ interface ChartData {
 const BloombergStyleDashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const chartRef = React.useRef<any>(null);
   
   // 绘图工具集成
   const {
     drawings,
-    currentTool,
-    setCurrentTool,
+    activeTool: currentTool,
+    setActiveTool: setCurrentTool,
     addDrawing,
     removeDrawing,
     clearAllDrawings,
-    loadDrawings,
-    saveDrawings
-  } = useDrawingManager();
+  } = useDrawingManager({ 
+    chartRef,
+    onDrawingsChange: (drawings) => {
+      console.log('Drawings updated:', drawings);
+    }
+  });
   
   const [selectedMarket, setSelectedMarket] = useState<string>('AAPL');
   const [timeframe, setTimeframe] = useState<string>('1h');
@@ -412,6 +416,7 @@ const BloombergStyleDashboard: React.FC = () => {
                 onClear={clearAllDrawings}
               />
               <ReactECharts 
+                ref={chartRef}
                 option={getChartOption()} 
                 style={{ height: '500px', width: '100%' }}
                 opts={{ renderer: 'canvas' }}

@@ -138,7 +138,7 @@ class AlertResponse(AlertBase):
     updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class AlertTriggerResponse(BaseModel):
     id: int
@@ -149,4 +149,4 @@ class AlertTriggerResponse(BaseModel):
     notification_results: Dict[str, Any]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
