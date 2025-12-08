@@ -18,7 +18,7 @@ class TestDataService:
     async def test_get_klines_from_cache(self, mock_redis, sample_kline_data):
         """测试从缓存获取 K 线数据"""
         # 模拟缓存命中
-        with patch('backend.services.data_service.data_cache_service') as mock_cache:
+        with patch('services.data_service.data_cache_service') as mock_cache:
             mock_cache.get = AsyncMock(return_value=sample_kline_data)
             
             service = DataService()
@@ -40,9 +40,9 @@ class TestDataService:
         service = DataService()
         
         # 模拟所有数据源失败，最终使用模拟数据
-        with patch('backend.services.data_service.coingecko_service') as mock_coingecko, \
-             patch('backend.services.data_service.alpha_vantage_service') as mock_av, \
-             patch('backend.services.data_service.data_cache_service') as mock_cache:
+        with patch('services.data_service.coingecko_service') as mock_coingecko, \
+             patch('services.data_service.alpha_vantage_service') as mock_av, \
+             patch('services.data_service.data_cache_service') as mock_cache:
             
             # 模拟缓存未命中
             mock_cache.get = AsyncMock(return_value=None)
@@ -74,8 +74,8 @@ class TestDataService:
         """测试成功获取股票 K 线数据"""
         service = DataService()
         
-        with patch('backend.services.data_service.alpha_vantage_service') as mock_av, \
-             patch('backend.services.data_service.data_cache_service') as mock_cache:
+        with patch('services.data_service.alpha_vantage_service') as mock_av, \
+             patch('services.data_service.data_cache_service') as mock_cache:
             
             # 模拟缓存未命中
             mock_cache.get = AsyncMock(return_value=None)
@@ -118,8 +118,8 @@ class TestDataService:
         """测试成功获取外汇 K 线数据"""
         service = DataService()
         
-        with patch('backend.services.data_service.alpha_vantage_service') as mock_av, \
-             patch('backend.services.data_service.data_cache_service') as mock_cache:
+        with patch('services.data_service.alpha_vantage_service') as mock_av, \
+             patch('services.data_service.data_cache_service') as mock_cache:
             
             mock_cache.get = AsyncMock(return_value=None)
             mock_cache.set = AsyncMock()
@@ -181,8 +181,8 @@ class TestDataService:
         """测试缓存策略"""
         service = DataService()
         
-        with patch('backend.services.data_service.data_cache_service') as mock_cache, \
-             patch('backend.services.data_service.coingecko_service') as mock_cg:
+        with patch('services.data_service.data_cache_service') as mock_cache, \
+             patch('services.data_service.coingecko_service') as mock_cg:
             
             mock_cache.get = AsyncMock(return_value=None)
             mock_cache.set = AsyncMock()

@@ -99,7 +99,7 @@ class TestAlertService:
         }
         
         # 模拟数据服务
-        with patch('backend.services.alert_service.data_service') as mock_data:
+        with patch('services.alert_service.data_service') as mock_data:
             mock_data.get_kline_data = AsyncMock(return_value=[
                 Mock(close=40000.0),  # 1小时前
                 Mock(close=42000.0),  # 当前
@@ -129,7 +129,7 @@ class TestAlertService:
         }
         
         # 模拟数据服务
-        with patch('backend.services.alert_service.data_service') as mock_data:
+        with patch('services.alert_service.data_service') as mock_data:
             mock_data.get_kline_data = AsyncMock(return_value=[
                 Mock(volume=1500000.0)  # 当前成交量
             ])
@@ -206,7 +206,7 @@ class TestAlertService:
         trigger.alert_id = "alert_123"
         trigger.triggered_at = datetime.now()
         
-        with patch('backend.services.alert_service.notification_service') as mock_notif:
+        with patch('services.alert_service.notification_service') as mock_notif:
             mock_notif.send_in_app_notification = AsyncMock()
             mock_notif.send_email_notification = AsyncMock()
             
@@ -240,7 +240,7 @@ class TestAlertService:
         
         service.active_alerts[alert.id] = alert
         # Mock data_service 以避免实际网络调用
-        with patch('backend.services.alert_service.data_service') as mock_data:
+        with patch('services.alert_service.data_service') as mock_data:
             mock_data.get_current_price = AsyncMock(return_value=46000.0)
             with patch.object(service, '_evaluate_condition_config', return_value=False) as mock_eval:
                 await service._check_all_alerts()
@@ -269,7 +269,7 @@ class TestAlertService:
         service.active_alerts[alert.id] = alert
         
         # Mock data_service
-        with patch('backend.services.alert_service.data_service') as mock_data:
+        with patch('services.alert_service.data_service') as mock_data:
             mock_data.get_current_price = AsyncMock(return_value=46000.0)
             with patch.object(service, '_evaluate_condition_config', return_value=False) as mock_eval:
                 with patch.object(service, '_trigger_alert') as mock_trigger:
@@ -301,7 +301,7 @@ class TestAlertService:
         service.active_alerts[alert.id] = alert
         
         # 2. 模拟价格数据
-        with patch('backend.services.alert_service.data_service') as mock_data:
+        with patch('services.alert_service.data_service') as mock_data:
             mock_data.get_current_price = AsyncMock(return_value=42000.0)
             mock_data.get_kline_data = AsyncMock(return_value=[
                 Mock(close=42000.0)

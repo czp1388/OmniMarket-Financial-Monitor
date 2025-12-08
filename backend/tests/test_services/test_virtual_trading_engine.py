@@ -47,7 +47,7 @@ class TestVirtualTradingEngine:
     @pytest.mark.asyncio
     async def test_create_buy_order(self, trading_engine, sample_order):
         """测试创建买单"""
-        from backend.services.virtual_trading_engine import OrderType, OrderSide
+        from services.virtual_trading_engine import OrderType, OrderSide
         
         order_id = await trading_engine.place_order(
             account_id=trading_engine.test_account_id,
@@ -65,7 +65,7 @@ class TestVirtualTradingEngine:
     @pytest.mark.asyncio
     async def test_create_sell_order(self, trading_engine, sample_order):
         """测试创建卖单"""
-        from backend.services.virtual_trading_engine import OrderType, OrderSide
+        from services.virtual_trading_engine import OrderType, OrderSide
         
         # 先买入建仓（市价单立即执行）
         await trading_engine.update_market_price("BTC/USDT", Decimal('42000.0'))
@@ -93,7 +93,7 @@ class TestVirtualTradingEngine:
     @pytest.mark.asyncio
     async def test_fill_order(self, trading_engine, sample_order):
         """测试订单成交"""
-        from backend.services.virtual_trading_engine import OrderType, OrderSide, OrderStatus
+        from services.virtual_trading_engine import OrderType, OrderSide, OrderStatus
         
         # 更新市场价格
         await trading_engine.update_market_price("BTC/USDT", Decimal('42000.0'))
@@ -115,7 +115,7 @@ class TestVirtualTradingEngine:
     @pytest.mark.asyncio
     async def test_cancel_order(self, trading_engine, sample_order):
         """测试取消订单"""
-        from backend.services.virtual_trading_engine import OrderType, OrderSide, OrderStatus
+        from services.virtual_trading_engine import OrderType, OrderSide, OrderStatus
         
         # 创建限价单（不会立即成交）
         order_id = await trading_engine.place_order(
@@ -147,7 +147,7 @@ class TestVirtualTradingEngine:
     @pytest.mark.asyncio
     async def test_get_positions(self, trading_engine, sample_order):
         """测试获取持仓"""
-        from backend.services.virtual_trading_engine import OrderType, OrderSide
+        from services.virtual_trading_engine import OrderType, OrderSide
         
         # 创建并成交买单
         await trading_engine.update_market_price("BTC/USDT", Decimal('42000.0'))
@@ -172,7 +172,7 @@ class TestVirtualTradingEngine:
     @pytest.mark.asyncio
     async def test_insufficient_balance(self, trading_engine):
         """测试余额不足情况"""
-        from backend.services.virtual_trading_engine import OrderType, OrderSide
+        from services.virtual_trading_engine import OrderType, OrderSide
         
         # 尝试购买超过余额的数量
         await trading_engine.update_market_price("BTC/USDT", Decimal('42000.0'))
@@ -189,7 +189,7 @@ class TestVirtualTradingEngine:
             )
             # 如果创建成功，订单应该被拒绝
             if order_id:
-                from backend.services.virtual_trading_engine import OrderStatus
+                from services.virtual_trading_engine import OrderStatus
                 order = trading_engine.orders.get(order_id)
                 assert order is None or order.status == OrderStatus.REJECTED
         except Exception:
@@ -198,7 +198,7 @@ class TestVirtualTradingEngine:
     @pytest.mark.asyncio
     async def test_position_pnl_calculation(self, trading_engine, sample_order):
         """测试持仓盈亏计算"""
-        from backend.services.virtual_trading_engine import OrderType, OrderSide
+        from services.virtual_trading_engine import OrderType, OrderSide
         
         # 买入
         await trading_engine.update_market_price("BTC/USDT", Decimal('42000.0'))
@@ -221,7 +221,7 @@ class TestVirtualTradingEngine:
     @pytest.mark.asyncio
     async def test_market_order(self, trading_engine):
         """测试市价单"""
-        from backend.services.virtual_trading_engine import OrderType, OrderSide, OrderStatus
+        from services.virtual_trading_engine import OrderType, OrderSide, OrderStatus
         
         # 更新市场价格
         await trading_engine.update_market_price("BTC/USDT", Decimal('42000.0'))
@@ -243,7 +243,7 @@ class TestVirtualTradingEngine:
     @pytest.mark.asyncio
     async def test_limit_order(self, trading_engine, sample_order):
         """测试限价单"""
-        from backend.services.virtual_trading_engine import OrderType, OrderSide, OrderStatus
+        from services.virtual_trading_engine import OrderType, OrderSide, OrderStatus
         
         order_id = await trading_engine.place_order(
             account_id=trading_engine.test_account_id,
@@ -263,7 +263,7 @@ class TestVirtualTradingEngine:
     @pytest.mark.asyncio
     async def test_stop_loss_order(self, trading_engine):
         """测试止损单"""
-        from backend.services.virtual_trading_engine import OrderType, OrderSide, OrderStatus
+        from services.virtual_trading_engine import OrderType, OrderSide, OrderStatus
         
         # 先买入建仓
         await trading_engine.update_market_price("BTC/USDT", Decimal('42000.0'))
@@ -295,7 +295,7 @@ class TestVirtualTradingEngine:
     @pytest.mark.asyncio
     async def test_get_order_history(self, trading_engine, sample_order):
         """测试获取订单历史"""
-        from backend.services.virtual_trading_engine import OrderType, OrderSide
+        from services.virtual_trading_engine import OrderType, OrderSide
         
         # 创建几个订单
         await trading_engine.update_market_price("BTC/USDT", Decimal('42000.0'))
@@ -318,7 +318,7 @@ class TestVirtualTradingEngine:
     @pytest.mark.asyncio
     async def test_close_position(self, trading_engine, sample_order):
         """测试平仓"""
-        from backend.services.virtual_trading_engine import OrderType, OrderSide
+        from services.virtual_trading_engine import OrderType, OrderSide
         
         # 建仓
         await trading_engine.update_market_price("BTC/USDT", Decimal('42000.0'))
@@ -348,7 +348,7 @@ class TestVirtualTradingEngine:
     @pytest.mark.asyncio
     async def test_multiple_positions(self, trading_engine):
         """测试多个持仓"""
-        from backend.services.virtual_trading_engine import OrderType, OrderSide
+        from services.virtual_trading_engine import OrderType, OrderSide
         
         symbols = ["BTC/USDT", "ETH/USDT", "BNB/USDT"]
         
@@ -381,7 +381,7 @@ class TestVirtualTradingEngine:
     @pytest.mark.asyncio
     async def test_reset_account(self, trading_engine):
         """测试重置账户"""
-        from backend.services.virtual_trading_engine import OrderType, OrderSide
+        from services.virtual_trading_engine import OrderType, OrderSide
         
         # 执行一些交易
         await trading_engine.update_market_price("BTC/USDT", Decimal('42000.0'))

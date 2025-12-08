@@ -27,10 +27,11 @@ const TopBar: React.FC<TopBarProps> = ({
 
   const navigationItems = [
     { path: '/dashboard', label: '主控台', icon: '📊' },
+    { path: '/assistant', label: '智能助手', icon: '🤖' },
     { path: '/kline', label: 'K线图', icon: '📈' },
     { path: '/bloomberg', label: '彭博风格', icon: '💹' },
     { path: '/virtual-trading', label: '虚拟交易', icon: '💰' },
-    { path: '/auto-trading', label: '自动交易', icon: '🤖' },
+    { path: '/auto-trading', label: '自动交易', icon: '⚡' },
     { path: '/warrants', label: '窝轮监控', icon: '🎯' },
     { path: '/alerts', label: '预警管理', icon: '🔔' },
     { path: '/portfolio', label: '投资组合', icon: '💼' },

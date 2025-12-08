@@ -27,6 +27,7 @@ const Dashboard: React.FC = () => {
   
   const navigation = [
     { name: '仪表板', href: '/', icon: '📊' },
+    { name: '智能助手', href: '/assistant', icon: '🤖' },
     { name: '专业监控', href: '/financial-monitoring', icon: '📊' },
     { name: '图表分析', href: '/chart', icon: '📈' },
     { name: '预警管理', href: '/alerts', icon: '🔔' },
