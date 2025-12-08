@@ -360,31 +360,37 @@ const AlertsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <span className="loading-text">加载预警数据...</span>
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0d1219] to-[#0a0e17] flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#2a3a5a] border-t-[#00ccff] mx-auto shadow-lg shadow-[#00ccff]/20"></div>
+          <span className="text-[#00ccff] text-lg animate-pulse">加载预警数据...</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="alerts-container">
-      {/* 顶部状态栏 - 专业金融终端标准 */}
-      <div className="status-bar top-status-bar">
-        <div className="status-left">
-          <span className="system-name">OmniMarket</span>
-          <span className={`status-indicator ${systemStatus === '正常' ? 'status-normal' : systemStatus === '连接异常' ? 'status-warning' : 'status-closed'}`}>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0d1219] to-[#0a0e17] text-white">
+      {/* 顶部状态栏 - 增强版 */}
+      <div className="bg-gradient-to-r from-[#141a2a] to-[#1a2332] border-b border-[#2a3a5a] px-6 py-3 flex items-center justify-between shadow-lg">
+        <div className="flex items-center gap-6">
+          <span className="text-xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent">OmniMarket</span>
+          <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${
+            systemStatus === '正常' ? 'bg-[#00ff88]/20 text-[#00ff88]' :
+            systemStatus === '连接异常' ? 'bg-yellow-500/20 text-yellow-500' :
+            'bg-gray-500/20 text-gray-400'
+          }`}>
             {systemStatus}
           </span>
-          <span className="delay-info">延迟: {connectionDelay}ms</span>
+          <span className="text-sm text-gray-400">延迟: <span className="text-[#00ccff] font-semibold">{connectionDelay}ms</span></span>
         </div>
-        <div className="status-center">
-          <span className="market-status">市场状态: {systemStatus === '市场关闭' ? '休市' : '开市'}</span>
-          <span className="active-alerts-count">活跃预警: {alerts.filter(a => a.isActive).length}</span>
+        <div className="flex items-center gap-6">
+          <span className="text-sm text-gray-400">市场状态: <span className="text-white font-semibold">{systemStatus === '市场关闭' ? '休市' : '开市'}</span></span>
+          <span className="text-sm text-gray-400">活跃预警: <span className="text-[#ff4444] font-semibold">{alerts.filter(a => a.isActive).length}</span></span>
         </div>
-        <div className="status-right">
-          <span className="current-time">{currentTime}</span>
-          <span className="data-source">数据源: 实时数据</span>
+        <div className="flex items-center gap-6">
+          <span className="text-sm text-[#00ccff] font-mono">{currentTime}</span>
+          <span className="text-sm text-gray-500">数据源: 实时数据</span>
         </div>
       </div>
 
