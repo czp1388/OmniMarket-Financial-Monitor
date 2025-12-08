@@ -245,235 +245,267 @@ const WarrantsMonitoringPage: React.FC = () => {
   };
 
   return (
-    <div className="warrants-monitoring-container">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0d1219] to-[#0a0e17] text-white">
       {/* 统一导航键 - 专业金融终端标准 */}
-      <div className="warrants-nav-bar">
-        <button className="warrants-nav-btn active">
-          <span className="status-indicator"></span>
-          监控
-        </button>
-        <button className="warrants-nav-btn">
-          <span className="status-indicator"></span>
-          预警
-        </button>
-        <button className="warrants-nav-btn">
-          <span className="status-indicator"></span>
-          分析
-        </button>
-        <button className="warrants-nav-btn">
-          <span className="status-indicator"></span>
-          信号
-        </button>
-        <button className="warrants-nav-btn">
-          <span className="status-indicator"></span>
-          设置
-        </button>
-        <button className="warrants-nav-btn">
-          <span className="status-indicator"></span>
-          历史
-        </button>
-        <button className="warrants-nav-btn">
-          <span className="status-indicator"></span>
-          报告
-        </button>
+      <div className="bg-[#0a0e17] border-b border-[#2a3a5a] px-6 py-3 flex items-center gap-2 overflow-x-auto">
+        {[
+          { key: '监控', icon: '📊', active: true },
+          { key: '预警', icon: '⚡', active: false },
+          { key: '分析', icon: '📈', active: false },
+          { key: '信号', icon: '📡', active: false },
+          { key: '设置', icon: '⚙️', active: false },
+          { key: '历史', icon: '📜', active: false },
+          { key: '报告', icon: '📄', active: false }
+        ].map(nav => (
+          <button 
+            key={nav.key}
+            className={`px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${
+              nav.active
+                ? 'bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black font-semibold shadow-lg shadow-[#00ccff]/30'
+                : 'bg-[#141a2a] text-gray-400 hover:bg-[#1a2332] hover:text-white'
+            }`}
+          >
+            <span className="text-lg">{nav.icon}</span>
+            <span>{nav.key}</span>
+          </button>
+        ))}
       </div>
 
       {/* 顶部状态栏 */}
-      <div className="status-bar">
-        <div className="status-item">
-          <span className="status-label">系统状态:</span>
-          <span className="status-value connected">正常</span>
+      <div className="bg-gradient-to-r from-[#141a2a] to-[#1a2332] border-b border-[#2a3a5a] px-6 py-3 flex items-center justify-between shadow-lg">
+        <div className="flex items-center gap-6">
+          <span className="text-xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent">牛熊证监控</span>
+          <span className="px-3 py-1 rounded-lg text-sm font-semibold bg-[#00ff88]/20 text-[#00ff88]">正常</span>
+          <span className="text-sm text-gray-400">延迟: <span className="text-[#00ccff] font-semibold">23ms</span></span>
         </div>
-        <div className="status-item">
-          <span className="status-label">连接延迟:</span>
-          <span className="status-value">23ms</span>
+        <div className="flex items-center gap-6">
+          <span className="text-sm text-gray-400">市场状态: <span className="text-white font-semibold">交易中</span></span>
+          <span className="text-sm text-gray-400">活跃品种: <span className="text-[#00ccff] font-semibold">{warrants.length}</span></span>
         </div>
-        <div className="status-item">
-          <span className="status-label">市场状态:</span>
-          <span className="status-value">交易中</span>
-        </div>
-        <div className="status-item">
-          <span className="status-label">时间:</span>
-          <span className="status-value">{new Date().toLocaleString('zh-CN')}</span>
+        <div className="flex items-center gap-6">
+          <span className="text-sm text-[#00ccff] font-mono">{new Date().toLocaleString('zh-CN')}</span>
         </div>
       </div>
 
-      <div className="warrants-content">
+      <div className="flex gap-6 p-6">
         {/* 左侧控制面板 */}
-        <div className="control-panel">
-          <div className="panel-section">
-            <h3>市场选择</h3>
-            <select 
-              value={selectedMarket} 
-              onChange={(e) => setSelectedMarket(e.target.value)}
-              className="control-select"
-            >
-              <option value="HK">港股</option>
-              <option value="US">美股</option>
-              <option value="CN">A股</option>
-            </select>
-          </div>
+        <div className="flex-shrink-0 w-80">
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl space-y-6">
+            <div>
+              <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                <span>🌏</span>
+                <span>市场选择</span>
+              </label>
+              <select 
+                value={selectedMarket} 
+                onChange={(e) => setSelectedMarket(e.target.value)}
+                className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none transition-colors"
+              >
+                <option value="HK">港股</option>
+                <option value="US">美股</option>
+                <option value="CN">A股</option>
+              </select>
+            </div>
 
-          <div className="panel-section">
-            <h3>时间周期</h3>
-            <select 
-              value={timeRange} 
-              onChange={(e) => setTimeRange(e.target.value)}
-              className="control-select"
-            >
-              <option value="1m">1分钟</option>
-              <option value="5m">5分钟</option>
-              <option value="1h">1小时</option>
-              <option value="4h">4小时</option>
-              <option value="1d">日线</option>
-            </select>
-          </div>
+            <div>
+              <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                <span>⏱️</span>
+                <span>时间周期</span>
+              </label>
+              <select 
+                value={timeRange} 
+                onChange={(e) => setTimeRange(e.target.value)}
+                className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none transition-colors"
+              >
+                <option value="1m">1分钟</option>
+                <option value="5m">5分钟</option>
+                <option value="1h">1小时</option>
+                <option value="4h">4小时</option>
+                <option value="1d">日线</option>
+              </select>
+            </div>
 
-          <div className="panel-section">
-            <h3>监控指标</h3>
-            <select 
-              value={activeIndicator} 
-              onChange={(e) => setActiveIndicator(e.target.value)}
-              className="control-select"
-            >
-              <option value="distance">距回收价</option>
-              <option value="leverage">有效杠杆</option>
-              <option value="timevalue">时间价值</option>
-              <option value="volume">成交量</option>
-            </select>
-          </div>
+            <div>
+              <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                <span>📊</span>
+                <span>监控指标</span>
+              </label>
+              <select 
+                value={activeIndicator} 
+                onChange={(e) => setActiveIndicator(e.target.value)}
+                className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none transition-colors"
+              >
+                <option value="distance">距回收价</option>
+                <option value="leverage">有效杠杆</option>
+                <option value="timevalue">时间价值</option>
+                <option value="volume">成交量</option>
+              </select>
+            </div>
 
-          <div className="panel-section">
-            <h3>预警设置</h3>
-            <div className="warning-levels">
-              <div className="warning-level danger">
-                高风险: ≤3% 距回收价
-              </div>
-              <div className="warning-level warning">
-                警告: ≤8% 距回收价
-              </div>
-              <div className="warning-level normal">
-                正常: {'>'}8% 距回收价
+            <div>
+              <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-3">
+                <span>⚠️</span>
+                <span>预警设置</span>
+              </h3>
+              <div className="space-y-2">
+                <div className="px-3 py-2 rounded-lg bg-[#ff4444]/20 border border-[#ff4444]/30 text-[#ff4444] text-sm">
+                  高风险: ≤ 3% 距回收价
+                </div>
+                <div className="px-3 py-2 rounded-lg bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 text-sm">
+                  警告: ≤ 8% 距回收价
+                </div>
+                <div className="px-3 py-2 rounded-lg bg-[#00ff88]/20 border border-[#00ff88]/30 text-[#00ff88] text-sm">
+                  正常: {'>'} 8% 距回收价
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="panel-section">
-            <h3>交易信号</h3>
-            <div className="signal-filters">
-              <label className="filter-item">
-                <input type="checkbox" defaultChecked />
-                买入信号
-              </label>
-              <label className="filter-item">
-                <input type="checkbox" defaultChecked />
-                卖出信号
-              </label>
-              <label className="filter-item">
-                <input type="checkbox" defaultChecked />
-                回收预警
-              </label>
+            <div>
+              <h3 className="flex items-center gap-2 text-lg font-bold text-white mb-3">
+                <span>📡</span>
+                <span>交易信号</span>
+              </h3>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 px-3 py-2 bg-[#1a2332] rounded-lg cursor-pointer hover:bg-[#2a3a5a] transition-colors">
+                  <input type="checkbox" defaultChecked className="w-4 h-4" />
+                  <span className="text-white text-sm">买入信号</span>
+                </label>
+                <label className="flex items-center gap-2 px-3 py-2 bg-[#1a2332] rounded-lg cursor-pointer hover:bg-[#2a3a5a] transition-colors">
+                  <input type="checkbox" defaultChecked className="w-4 h-4" />
+                  <span className="text-white text-sm">卖出信号</span>
+                </label>
+                <label className="flex items-center gap-2 px-3 py-2 bg-[#1a2332] rounded-lg cursor-pointer hover:bg-[#2a3a5a] transition-colors">
+                  <input type="checkbox" defaultChecked className="w-4 h-4" />
+                  <span className="text-white text-sm">回收预警</span>
+                </label>
+              </div>
             </div>
-          </div>
 
-          <button className="refresh-btn" onClick={handleRefresh}>
-            刷新数据
-          </button>
+            <button 
+              className="w-full px-6 py-3 bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black font-bold rounded-xl hover:scale-105 transition-all duration-300 shadow-lg shadow-[#00ccff]/30 flex items-center justify-center gap-2"
+              onClick={handleRefresh}
+            >
+              <span className="text-xl">🔄</span>
+              <span>刷新数据</span>
+            </button>
+          </div>
         </div>
 
           {/* 右侧主内容区域 */}
-        <div className="main-content">
-          <div className="content-header">
-            <h2>牛熊证实时监控</h2>
-          <div className="market-stats">
-            <span>活跃牛熊证: {warrants.length}</span>
-            <span>高风险: {warrants.filter(w => {
-              const distanceToKnockOut = w.knock_out_price > 0 
-                ? Math.abs((w.current_price - w.knock_out_price) / w.knock_out_price * 100)
-                : 0;
-              return distanceToKnockOut <= 3;
-            }).length}</span>
-            <span>警告: {warrants.filter(w => {
-              const distanceToKnockOut = w.knock_out_price > 0 
-                ? Math.abs((w.current_price - w.knock_out_price) / w.knock_out_price * 100)
-                : 0;
-              return distanceToKnockOut > 3 && distanceToKnockOut <= 8;
-            }).length}</span>
-          </div>
-          </div>
+        <div className="flex-1 space-y-6">
+          <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
+                <span className="text-3xl">📊</span>
+                <span>牛熊证实时监控</span>
+              </h2>
+              <div className="flex items-center gap-6 text-sm">
+                <span className="text-gray-400">活跃: <span className="text-[#00ccff] font-bold text-lg">{warrants.length}</span></span>
+                <span className="text-gray-400">高风险: <span className="text-[#ff4444] font-bold text-lg">{warrants.filter(w => {
+                  const distanceToKnockOut = w.knock_out_price > 0 
+                    ? Math.abs((w.current_price - w.knock_out_price) / w.knock_out_price * 100)
+                    : 0;
+                  return distanceToKnockOut <= 3;
+                }).length}</span></span>
+                <span className="text-gray-400">警告: <span className="text-yellow-400 font-bold text-lg">{warrants.filter(w => {
+                  const distanceToKnockOut = w.knock_out_price > 0 
+                    ? Math.abs((w.current_price - w.knock_out_price) / w.knock_out_price * 100)
+                    : 0;
+                  return distanceToKnockOut > 3 && distanceToKnockOut <= 8;
+                }).length}</span></span>
+              </div>
+            </div>
 
           {/* 牛熊证数据表格 */}
-          <div className="warrants-table-container">
-            <table className="warrants-table">
+          <div className="overflow-x-auto">
+            <table className="w-full">
               <thead>
-                <tr>
-                  <th>代码</th>
-                  <th>正股</th>
-                  <th>现价</th>
-                  <th>回收价</th>
-                  <th>距回收价</th>
-                  <th>有效杠杆</th>
-                  <th>时间衰减</th>
-                  <th>类型</th>
-                  <th>名义杠杆</th>
-                  <th>剩余天数</th>
-                  <th>成交量</th>
-                  <th>成交量比率</th>
-                  <th>状态</th>
+                <tr className="border-b border-[#2a3a5a]">
+                  <th className="text-left py-4 px-3 text-gray-400 font-semibold text-sm">代码</th>
+                  <th className="text-left py-4 px-3 text-gray-400 font-semibold text-sm">正股</th>
+                  <th className="text-right py-4 px-3 text-gray-400 font-semibold text-sm">现价</th>
+                  <th className="text-right py-4 px-3 text-gray-400 font-semibold text-sm">回收价</th>
+                  <th className="text-right py-4 px-3 text-gray-400 font-semibold text-sm">距回收价</th>
+                  <th className="text-right py-4 px-3 text-gray-400 font-semibold text-sm">有效杠杆</th>
+                  <th className="text-right py-4 px-3 text-gray-400 font-semibold text-sm">时间衰减</th>
+                  <th className="text-center py-4 px-3 text-gray-400 font-semibold text-sm">类型</th>
+                  <th className="text-right py-4 px-3 text-gray-400 font-semibold text-sm">名义杠杆</th>
+                  <th className="text-right py-4 px-3 text-gray-400 font-semibold text-sm">剩余天数</th>
+                  <th className="text-right py-4 px-3 text-gray-400 font-semibold text-sm">成交量</th>
+                  <th className="text-right py-4 px-3 text-gray-400 font-semibold text-sm">成交量比率</th>
+                  <th className="text-center py-4 px-3 text-gray-400 font-semibold text-sm">状态</th>
                 </tr>
               </thead>
               <tbody>
                 {warrants.map((warrant, index) => {
-                  // 计算距回收价百分比（基于正股价格和回收价）
                   const distanceToKnockOut = warrant.knock_out_price > 0 
                     ? Math.abs((warrant.current_price - warrant.knock_out_price) / warrant.knock_out_price * 100)
                     : 0;
                   
-                  // 计算有效杠杆和时间衰减
                   const effectiveLeverage = calculateEffectiveLeverage(warrant);
                   const timeValueDecay = calculateTimeValueDecay(warrant);
-                  
-                  // 根据距回收价确定预警级别
-                  const alertLevel = distanceToKnockOut <= 3 ? 'danger' : 
-                                   distanceToKnockOut <= 8 ? 'warning' : 'normal';
-                  
-                  // 计算杠杆和时间衰减的预警级别
+                  const alertLevel = distanceToKnockOut <= 3 ? 'danger' : distanceToKnockOut <= 8 ? 'warning' : 'normal';
                   const leverageAlertLevel = getLeverageAlertLevel(effectiveLeverage);
                   const timeDecayAlertLevel = getTimeDecayAlertLevel(timeValueDecay, warrant.time_to_maturity);
                   const volumeAlertLevel = getVolumeAlertLevel(warrant);
                   const volumeRatio = calculateVolumeRatio(warrant);
                   
                   return (
-                    <tr key={`${warrant.symbol}-${index}`} className={`warrant-row ${alertLevel}`}>
-                      <td className="code">{warrant.symbol}</td>
-                      <td className="underlying">{warrant.underlying_symbol}</td>
-                      <td className="price">${warrant.current_price.toFixed(2)}</td>
-                      <td className="strike">${warrant.knock_out_price.toFixed(2)}</td>
-                      <td className="distance">{distanceToKnockOut.toFixed(2)}%</td>
-                      <td className={`effective-leverage ${leverageAlertLevel}`}>
-                        {effectiveLeverage.toFixed(1)}x
+                    <tr key={`${warrant.symbol}-${index}`} className={`border-b border-[#2a3a5a]/50 hover:bg-[#1a2332] transition-colors duration-200 ${
+                      alertLevel === 'danger' ? 'bg-[#ff4444]/5' : alertLevel === 'warning' ? 'bg-yellow-500/5' : ''
+                    }`}>
+                      <td className="py-4 px-3 text-white font-semibold font-mono">{warrant.symbol}</td>
+                      <td className="py-4 px-3 text-gray-300">{warrant.underlying_symbol}</td>
+                      <td className="py-4 px-3 text-right text-white font-bold font-mono">${warrant.current_price.toFixed(2)}</td>
+                      <td className="py-4 px-3 text-right text-gray-300 font-mono">${warrant.knock_out_price.toFixed(2)}</td>
+                      <td className="py-4 px-3 text-right">
+                        <span className={`px-2 py-1 rounded font-bold font-mono ${
+                          alertLevel === 'danger' ? 'bg-[#ff4444]/20 text-[#ff4444]' :
+                          alertLevel === 'warning' ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-[#00ff88]/20 text-[#00ff88]'
+                        }`}>{distanceToKnockOut.toFixed(2)}%</span>
                       </td>
-                      <td className={`time-decay ${timeDecayAlertLevel}`}>
-                        {timeValueDecay.toFixed(3)}
+                      <td className="py-4 px-3 text-right">
+                        <span className={`px-2 py-1 rounded font-bold font-mono ${
+                          leverageAlertLevel === 'danger' ? 'bg-[#ff4444]/20 text-[#ff4444]' :
+                          leverageAlertLevel === 'warning' ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-[#00ccff]/20 text-[#00ccff]'
+                        }`}>{effectiveLeverage.toFixed(1)}x</span>
                       </td>
-                      <td className={`type ${warrant.warrant_type === 'BULL' ? 'bull' : 'bear'}`}>
-                        {warrant.warrant_type === 'BULL' ? '牛证' : '熊证'}
+                      <td className="py-4 px-3 text-right">
+                        <span className={`px-2 py-1 rounded font-bold font-mono ${
+                          timeDecayAlertLevel === 'danger' ? 'bg-[#ff4444]/20 text-[#ff4444]' :
+                          timeDecayAlertLevel === 'warning' ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-gray-500/20 text-gray-400'
+                        }`}>{timeValueDecay.toFixed(3)}</span>
                       </td>
-                      <td className="nominal-leverage">{warrant.leverage.toFixed(1)}x</td>
-                      <td className="time-to-maturity">{warrant.time_to_maturity}天</td>
-                      <td className={`volume ${volumeAlertLevel}`}>
-                        {warrant.volume ? warrant.volume.toLocaleString() : 'N/A'}
-                      </td>
-                      <td className={`volume-ratio ${volumeAlertLevel}`}>
-                        {volumeRatio > 0 ? volumeRatio.toFixed(2) + 'x' : 'N/A'}
-                      </td>
-                      <td className="status">
-                        <span 
-                          className="status-badge"
-                          style={{ backgroundColor: getStatusColor(alertLevel) }}
-                        >
-                          {getStatusText(alertLevel)}
+                      <td className="py-4 px-3 text-center">
+                        <span className={`px-3 py-1 rounded-lg font-bold ${
+                          warrant.warrant_type === 'BULL' ? 'bg-[#00ff88]/20 text-[#00ff88]' : 'bg-[#ff4444]/20 text-[#ff4444]'
+                        }`}>
+                          {warrant.warrant_type === 'BULL' ? '🐂 牛证' : '🐻 熊证'}
                         </span>
+                      </td>
+                      <td className="py-4 px-3 text-right text-white font-mono">{warrant.leverage.toFixed(1)}x</td>
+                      <td className="py-4 px-3 text-right text-gray-300 font-mono">{warrant.time_to_maturity}天</td>
+                      <td className="py-4 px-3 text-right">
+                        <span className={`px-2 py-1 rounded font-mono ${
+                          volumeAlertLevel === 'danger' ? 'bg-[#ff4444]/20 text-[#ff4444]' :
+                          volumeAlertLevel === 'warning' ? 'bg-yellow-500/20 text-yellow-400' : 'text-gray-300'
+                        }`}>{warrant.volume ? warrant.volume.toLocaleString() : 'N/A'}</span>
+                      </td>
+                      <td className="py-4 px-3 text-right">
+                        <span className={`px-2 py-1 rounded font-bold font-mono ${
+                          volumeAlertLevel === 'danger' ? 'bg-[#ff4444]/20 text-[#ff4444]' :
+                          volumeAlertLevel === 'warning' ? 'bg-yellow-500/20 text-yellow-400' : 'text-gray-400'
+                        }`}>{volumeRatio > 0 ? volumeRatio.toFixed(2) + 'x' : 'N/A'}</span>
+                      </td>
+                      <td className="py-4 px-3 text-center">
+                        <span className={`px-3 py-1 rounded-lg font-bold ${
+                          alertLevel === 'danger' ? 'bg-[#ff4444]/20 text-[#ff4444]' :
+                          alertLevel === 'warning' ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-[#00ff88]/20 text-[#00ff88]'
+                        }`}>{getStatusText(alertLevel)}</span>
                       </td>
                     </tr>
                   );
@@ -483,19 +515,13 @@ const WarrantsMonitoringPage: React.FC = () => {
           </div>
 
           {/* 底部状态信息 */}
-          <div className="info-panel">
-            <div className="info-item">
-              <span className="info-label">数据更新:</span>
-              <span className="info-value">{isConnected ? '实时' : '离线'}</span>
+          <div className="mt-6 bg-gradient-to-r from-[#141a2a] via-[#1a2332] to-[#141a2a] border-t border-[#2a3a5a] px-6 py-4 flex items-center justify-between rounded-lg shadow-lg">
+            <div className="flex items-center gap-6">
+              <span className="text-sm text-gray-400">数据更新: <span className={`font-semibold ${isConnected ? 'text-[#00ff88]' : 'text-[#ff4444]'}`}>{isConnected ? '实时' : '离线'}</span></span>
+              <span className="text-gray-500">|</span>
+              <span className="text-sm text-gray-400">连接状态: <span className={`font-semibold ${isConnected ? 'text-[#00ff88]' : 'text-[#ff4444]'}`}>{isConnected ? '已连接' : '断开'}</span></span>
             </div>
-            <div className="info-item">
-              <span className="info-label">连接状态:</span>
-              <span className="info-value">{isConnected ? '已连接' : '断开'}</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">最后刷新:</span>
-              <span className="info-value">{lastUpdate || '未刷新'}</span>
-            </div>
+            <span className="text-sm text-gray-400">最后刷新: <span className="text-[#00ccff] font-mono">{lastUpdate || '未刷新'}</span></span>
           </div>
         </div>
       </div>
