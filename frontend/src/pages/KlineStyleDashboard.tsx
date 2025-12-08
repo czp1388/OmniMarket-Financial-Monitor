@@ -300,89 +300,63 @@ const KlineStyleDashboard: React.FC = () => {
   };
 
   return (
-    <div className="kline-terminal">
-      <div className="container">
-        <div className="header">
-          <h1>寰宇多市场金融监控系统</h1>
-          <p>实时K线图表演示 - 支持多市场多周期监控</p>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0d1219] to-[#0a0e17] text-white">
+      <div className="p-6 space-y-6">
+        <div className="text-center">
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent mb-2 flex items-center justify-center gap-3">
+            <span className="text-6xl">📈</span>
+            <span>寐宇多市场金融监控系统</span>
+          </h1>
+          <p className="text-gray-400 text-lg">实时K线图表演示 - 支持多市场多周期监控</p>
         </div>
 
         {/* 功能导航栏 */}
-        <div className="nav-bar">
-          <button 
-            className="nav-btn active"
-            onClick={() => navigate('/')}
-          >
-            仪表板
-          </button>
-          <button 
-            className="nav-btn"
-            onClick={() => navigate('/chart')}
-          >
-            图表分析
-          </button>
-          <button 
-            className="nav-btn"
-            onClick={() => navigate('/virtual-trading')}
-          >
-            虚拟交易
-          </button>
-          <button 
-            className="nav-btn"
-            onClick={() => navigate('/alerts')}
-          >
-            预警管理
-          </button>
-          <button 
-            className="nav-btn"
-            onClick={() => navigate('/portfolio')}
-          >
-            组合管理
-          </button>
-          <button 
-            className="nav-btn"
-            onClick={() => navigate('/warrants')}
-          >
-            权证监控
-          </button>
-          <button 
-            className="nav-btn"
-            onClick={() => navigate('/auto-trading')}
-          >
-            全自动交易
-          </button>
-          <button 
-            className="nav-btn"
-            onClick={() => navigate('/semi-auto-trading')}
-          >
-            半自动交易
-          </button>
-          <button 
-            className="nav-btn"
-            onClick={() => navigate('/settings')}
-          >
-            系统设置
-          </button>
+        <div className="flex items-center gap-2 overflow-x-auto pb-2">
+          {[
+            { label: '仪表板', icon: '📋', path: '/' },
+            { label: '图表分析', icon: '📈', path: '/chart' },
+            { label: '虚拟交易', icon: '💹', path: '/virtual-trading' },
+            { label: '预警管理', icon: '⚡', path: '/alerts' },
+            { label: '组合管理', icon: '💼', path: '/portfolio' },
+            { label: '权证监控', icon: '📊', path: '/warrants' },
+            { label: '全自动交易', icon: '🤖', path: '/auto-trading' },
+            { label: '半自动交易', icon: '🎯', path: '/semi-auto-trading' },
+            { label: '系统设置', icon: '⚙️', path: '/settings' }
+          ].map((nav, idx) => (
+            <button 
+              key={idx}
+              className={`px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${
+                idx === 0
+                  ? 'bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black font-semibold shadow-lg shadow-[#00ccff]/30'
+                  : 'bg-[#141a2a] text-gray-400 hover:bg-[#1a2332] hover:text-white'
+              }`}
+              onClick={() => navigate(nav.path)}
+            >
+              <span className="text-lg">{nav.icon}</span>
+              <span>{nav.label}</span>
+            </button>
+          ))}
         </div>
 
         {/* 市场信息卡片 - 专业金融终端布局 */}
-        <div className="market-info-grid">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {marketSymbols.slice(0, 8).map((symbol, index) => (
-            <div key={index} className="market-card">
-              <div className="symbol-row">
-                <span className="symbol-name">{symbol.symbol}</span>
-                <span className="data-source">{symbol.source}</span>
+            <div key={index} className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-xl p-4 shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-white font-bold text-lg">{symbol.symbol}</span>
+                <span className="text-xs px-2 py-0.5 rounded bg-[#00ccff]/20 text-[#00ccff]">{symbol.source}</span>
               </div>
-              <div className={`price-row ${symbol.changePercent >= 0 ? 'positive' : 'negative'}`}>
-                <span className="price-value">{formatPrice(symbol.price, symbol.type)}</span>
-                <span className="change-value">
-                  {symbol.changePercent >= 0 ? '+' : ''}{symbol.changePercent}%
+              <div className="mb-2">
+                <span className="text-2xl font-bold text-white">{formatPrice(symbol.price, symbol.type)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className={`text-lg font-bold ${
+                  symbol.changePercent >= 0 ? 'text-[#00ff88]' : 'text-[#ff4444]'
+                }`}>
+                  {symbol.changePercent >= 0 ? '↗ +' : '↘ '}{symbol.changePercent}%
                 </span>
-              </div>
-              <div className="volume-row">
-                <span className="volume-label">量:</span>
-                <span className="volume-value">
-                  {symbol.volume ? (symbol.volume > 1000000 
+                <span className="text-sm text-gray-400">
+                  量: {symbol.volume ? (symbol.volume > 1000000 
                     ? `${(symbol.volume / 1000000).toFixed(2)}M` 
                     : symbol.volume > 1000 
                     ? `${(symbol.volume / 1000).toFixed(2)}K` 
@@ -394,103 +368,125 @@ const KlineStyleDashboard: React.FC = () => {
         </div>
 
         {/* 控制面板 - 匹配kline_demo.html的网格布局 */}
-        <div className="controls">
-          <div className="control-group">
-            <label>市场选择:</label>
-            <select 
-              value={selectedMarket} 
-              onChange={(e) => setSelectedMarket(e.target.value)}
-              className="control-select"
-            >
-              <option value="crypto">加密货币 (BTC/USDT)</option>
-              <option value="stock">股票 (AAPL)</option>
-              <option value="forex">外汇 (USD/CNY)</option>
-              <option value="futures">期货</option>
-            </select>
-          </div>
-          <div className="control-group">
-            <label>时间周期:</label>
-            <select 
-              value={timeframe} 
-              onChange={(e) => setTimeframe(e.target.value)}
-              className="control-select"
-            >
-              <option value="1m">1分钟</option>
-              <option value="5m">5分钟</option>
-              <option value="15m">15分钟</option>
-              <option value="30m">30分钟</option>
-              <option value="1h">1小时</option>
-              <option value="4h">4小时</option>
-              <option value="1d">日线</option>
-              <option value="1w">周线</option>
-              <option value="1M">月线</option>
-              <option value="3M">季线</option>
-              <option value="1y">年线</option>
-            </select>
-          </div>
-          <div className="control-group">
-            <label>技术指标:</label>
-            <select 
-              value={selectedIndicator} 
-              onChange={(e) => setSelectedIndicator(e.target.value)}
-              className="control-select"
-            >
-              <option value="none">无指标</option>
-              <option value="sma">SMA - 简单移动平均</option>
-              <option value="ema">EMA - 指数移动平均</option>
-              <option value="macd">MACD - 趋势指标</option>
-              <option value="rsi">RSI - 相对强弱指数</option>
-              <option value="bollinger">布林带 - 波动率</option>
-              <option value="kdj">KDJ - 随机指标</option>
-              <option value="atr">ATR - 真实波幅</option>
-              <option value="obv">OBV - 能量潮</option>
-            </select>
-          </div>
-          <div className="control-group">
-            <label>操作:</label>
-            <button className="control-btn" onClick={addRandomData}>
-              模拟新数据
-            </button>
-            <button className="control-btn" onClick={resetChart}>
-              重置图表
-            </button>
-            <button className="control-btn" onClick={() => navigate('/auto-trading')}>
-              LEAN回测
-            </button>
+        <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                <span>🌏</span>
+                <span>市场选择</span>
+              </label>
+              <select 
+                value={selectedMarket} 
+                onChange={(e) => setSelectedMarket(e.target.value)}
+                className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none transition-colors"
+              >
+                <option value="crypto">加密货币 (BTC/USDT)</option>
+                <option value="stock">股票 (AAPL)</option>
+                <option value="forex">外汇 (USD/CNY)</option>
+                <option value="futures">期货</option>
+              </select>
+            </div>
+            <div>
+              <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                <span>⏱️</span>
+                <span>时间周期</span>
+              </label>
+              <select 
+                value={timeframe} 
+                onChange={(e) => setTimeframe(e.target.value)}
+                className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none transition-colors"
+              >
+                <option value="1m">1分钟</option>
+                <option value="5m">5分钟</option>
+                <option value="15m">15分钟</option>
+                <option value="30m">30分钟</option>
+                <option value="1h">1小时</option>
+                <option value="4h">4小时</option>
+                <option value="1d">日线</option>
+                <option value="1w">周线</option>
+                <option value="1M">月线</option>
+                <option value="3M">季线</option>
+                <option value="1y">年线</option>
+              </select>
+            </div>
+            <div>
+              <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                <span>📈</span>
+                <span>技术指标</span>
+              </label>
+              <select 
+                value={selectedIndicator} 
+                onChange={(e) => setSelectedIndicator(e.target.value)}
+                className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none transition-colors"
+              >
+                <option value="none">无指标</option>
+                <option value="sma">SMA - 简单移动平均</option>
+                <option value="ema">EMA - 指数移动平均</option>
+                <option value="macd">MACD - 趋势指标</option>
+                <option value="rsi">RSI - 相对强弱指数</option>
+                <option value="bollinger">布林带 - 波动率</option>
+                <option value="kdj">KDJ - 随机指标</option>
+                <option value="atr">ATR - 真实波幅</option>
+                <option value="obv">OBV - 能量潮</option>
+              </select>
+            </div>
+            <div>
+              <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                <span>⚡</span>
+                <span>操作</span>
+              </label>
+              <div className="flex gap-2">
+                <button 
+                  className="flex-1 px-3 py-3 bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black font-bold rounded-lg hover:scale-105 transition-all duration-300 shadow-lg shadow-[#00ccff]/30 text-sm"
+                  onClick={addRandomData}
+                >
+                  📡 新数据
+                </button>
+                <button 
+                  className="flex-1 px-3 py-3 bg-[#1a2332] border border-[#2a3a5a] text-white font-semibold rounded-lg hover:bg-[#2a3a5a] transition-colors text-sm"
+                  onClick={resetChart}
+                >
+                  🔄 重置
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* 图表区域 - 使用Lightweight Charts */}
-        <div className="chart-container">
-          {/* 绘图工具栏 */}
-          <DrawingToolbar
-            currentTool={currentTool}
-            onToolChange={setCurrentTool}
-            onClear={clearAllDrawings}
-          />
-          <div ref={chartContainerRef} style={{ width: '100%', height: '100%' }} />
+        <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-6 shadow-2xl">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent flex items-center gap-2">
+              <span className="text-3xl">📊</span>
+              <span>实时K线图表</span>
+            </h2>
+            <DrawingToolbar
+              currentTool={currentTool}
+              onToolChange={setCurrentTool}
+              onClear={clearAllDrawings}
+            />
+          </div>
+          <div ref={chartContainerRef} style={{ width: '100%', height: '450px' }} />
         </div>
 
         {/* 专业状态栏 */}
-        <div className="professional-status-bar">
-          <div className="status-left">
-            <div className="connection-status">
-              <div className="status-indicator connected"></div>
-              <span>实时数据连接正常</span>
+        <div className="bg-gradient-to-r from-[#141a2a] via-[#1a2332] to-[#141a2a] border border-[#2a3a5a] rounded-xl px-6 py-4 flex items-center justify-between shadow-lg">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-[#00ff88] animate-pulse shadow-lg shadow-[#00ff88]/50"></div>
+              <span className="text-white font-semibold">实时数据连接正常</span>
             </div>
-            <div className="data-sources">
-              <span>数据源: </span>
-              {Array.from(new Set(marketSymbols.map(s => s.source))).join(', ')}
-            </div>
+            <span className="text-gray-400 text-sm">
+              数据源: <span className="text-[#00ccff] font-semibold">{Array.from(new Set(marketSymbols.map(s => s.source))).join(', ')}</span>
+            </span>
           </div>
-          <div className="status-right">
-            <div className="update-time">
-              <span>最后更新: </span>
-              <span className="time-value">{lastUpdate}</span>
-            </div>
-            <div className="market-hours">
-              <span>市场状态: 交易中</span>
-            </div>
+          <div className="flex items-center gap-6">
+            <span className="text-gray-400 text-sm">
+              最后更新: <span className="text-[#00ccff] font-mono font-semibold">{lastUpdate}</span>
+            </span>
+            <span className="text-gray-400 text-sm">
+              市场状态: <span className="text-[#00ff88] font-semibold">交易中</span>
+            </span>
           </div>
         </div>
       </div>
