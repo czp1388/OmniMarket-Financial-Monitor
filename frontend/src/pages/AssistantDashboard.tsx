@@ -128,41 +128,66 @@ const AssistantDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0e17] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#00ccff] mx-auto mb-4"></div>
-          <div className="text-[#00ccff] text-lg">智能投资助手加载中...</div>
-          <div className="text-gray-400 text-sm mt-2">正在为您准备专属投资方案</div>
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0d1219] to-[#0a0e17] flex items-center justify-center">
+        <div className="text-center space-y-6">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-20 w-20 border-4 border-[#2a3a5a] border-t-[#00ccff] mx-auto shadow-lg shadow-[#00ccff]/20"></div>
+            <div className="absolute inset-0 rounded-full h-20 w-20 border-4 border-transparent border-t-[#00ff88] animate-spin mx-auto" style={{ animationDuration: '1.5s', animationDirection: 'reverse' }}></div>
+          </div>
+          <div className="space-y-3">
+            <div className="text-[#00ccff] text-2xl font-semibold animate-pulse">智能投资助手加载中</div>
+            <div className="text-gray-400 text-base animate-fadeIn">正在为您准备专属投资方案...</div>
+          </div>
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-[#00ccff] animate-pulse" style={{ animationDelay: '0s' }}></div>
+            <div className="w-2 h-2 rounded-full bg-[#00ff88] animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+            <div className="w-2 h-2 rounded-full bg-[#00ccff] animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0e17] text-white">
-      {/* 顶部导航栏 */}
-      <header className="bg-[#141a2a] border-b border-[#2a3a5a] px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-[#00ccff]">智能投资助手</h1>
-            <span className="text-sm text-gray-400 bg-[#1a2332] px-3 py-1 rounded-full">
-              助手模式
-            </span>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0d1219] to-[#0a0e17] text-white">
+      {/* 顶部导航栏 - 增强版 */}
+      <header className="bg-gradient-to-r from-[#141a2a] to-[#1a2332] border-b border-[#2a3a5a] shadow-lg backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00ccff] to-[#00ff88] flex items-center justify-center shadow-lg shadow-[#00ccff]/20">
+                  <span className="text-2xl">🤖</span>
+                </div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent">
+                  智能投资助手
+                </h1>
+              </div>
+              <span className="text-sm text-gray-400 bg-[#1a2332] px-3 py-1 rounded-full border border-[#2a3a5a] shadow-sm">
+                助手模式
+              </span>
+            </div>
+            <button
+              onClick={() => navigate('/expert')}
+              className="group flex items-center gap-2 px-4 py-2 bg-[#1a2332] text-[#00ccff] border border-[#2a3a5a] rounded-lg hover:bg-[#1f2838] hover:border-[#00ccff] transition-all duration-300 shadow-sm hover:shadow-md hover:shadow-[#00ccff]/20"
+            >
+              <span>切换到专家模式</span>
+              <span className="transform group-hover:translate-x-1 transition-transform">→</span>
+            </button>
           </div>
-          <button
-            onClick={() => navigate('/expert')}
-            className="text-sm text-[#00ccff] hover:text-white transition-colors"
-          >
-            切换到专家模式 →
-          </button>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* 问候语 */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-light mb-2">{dashboardData?.greeting}</h2>
-          <p className="text-gray-400">让我们看看今天有什么机会</p>
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        {/* 问候语 - 增强版 */}
+        <div className="mb-10 animate-fadeIn">
+          <h2 className="text-4xl font-light mb-3 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+            {dashboardData?.greeting}
+          </h2>
+          <p className="text-gray-400 text-lg flex items-center gap-2">
+            <span className="inline-block w-2 h-2 rounded-full bg-[#00ff88] animate-pulse"></span>
+            让我们看看今天有什么机会
+          </p>
         </div>
 
         {/* 主要内容区域 */}
@@ -200,36 +225,56 @@ const AccountSummaryCard: React.FC<{ summary?: AccountSummary }> = ({ summary })
   const isProfitable = summary.today_profit >= 0;
 
   return (
-    <div className="bg-[#141a2a] border border-[#2a3a5a] rounded-lg p-6">
-      <h3 className="text-lg font-semibold mb-4 text-[#00ccff]">💼 我的账户</h3>
+    <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-xl p-6 shadow-xl hover:shadow-2xl hover:shadow-[#00ccff]/10 transition-all duration-300 hover:border-[#2a3a5a]/80 backdrop-blur-sm">
+      <div className="flex items-center gap-2 mb-5">
+        <span className="text-2xl">💼</span>
+        <h3 className="text-xl font-semibold text-transparent bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text">
+          我的账户
+        </h3>
+      </div>
       
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-        <div>
-          <div className="text-sm text-gray-400 mb-1">总资产</div>
-          <div className="text-2xl font-bold">¥{summary.total_assets.toLocaleString()}</div>
-        </div>
-        <div>
-          <div className="text-sm text-gray-400 mb-1">今日盈亏</div>
-          <div className={`text-2xl font-bold ${isProfitable ? 'text-[#00ff88]' : 'text-[#ff4444]'}`}>
-            {isProfitable ? '+' : ''}{summary.today_profit.toLocaleString()}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-5">
+        <div className="group hover:scale-105 transition-transform duration-200">
+          <div className="text-sm text-gray-400 mb-2 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
+            总资产
+          </div>
+          <div className="text-3xl font-bold tracking-tight">
+            ¥{summary.total_assets.toLocaleString()}
           </div>
         </div>
-        <div>
-          <div className="text-sm text-gray-400 mb-1">累计收益</div>
-          <div className="text-2xl font-bold text-[#00ff88]">
-            +{summary.total_profit.toLocaleString()}
+        <div className="group hover:scale-105 transition-transform duration-200">
+          <div className="text-sm text-gray-400 mb-2 flex items-center gap-1">
+            <span className={`w-1.5 h-1.5 rounded-full ${isProfitable ? 'bg-[#00ff88]' : 'bg-[#ff4444]'}`}></span>
+            今日盈亏
+          </div>
+          <div className={`text-3xl font-bold tracking-tight ${isProfitable ? 'text-[#00ff88]' : 'text-[#ff4444]'}`}>
+            {isProfitable ? '+' : ''}¥{Math.abs(summary.today_profit).toLocaleString()}
           </div>
         </div>
-        <div>
-          <div className="text-sm text-gray-400 mb-1">收益率</div>
-          <div className="text-2xl font-bold text-[#00ff88]">
+        <div className="group hover:scale-105 transition-transform duration-200">
+          <div className="text-sm text-gray-400 mb-2 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00ff88]"></span>
+            累计收益
+          </div>
+          <div className="text-3xl font-bold text-[#00ff88] tracking-tight">
+            +¥{summary.total_profit.toLocaleString()}
+          </div>
+        </div>
+        <div className="group hover:scale-105 transition-transform duration-200">
+          <div className="text-sm text-gray-400 mb-2 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00ff88]"></span>
+            收益率
+          </div>
+          <div className="text-3xl font-bold text-[#00ff88] tracking-tight">
             +{summary.profit_rate.toFixed(2)}%
           </div>
         </div>
       </div>
 
-      <div className="bg-[#1a2332] border border-[#2a3a5a] rounded px-3 py-2 text-sm text-gray-400">
-        💡 {summary.message}
+      <div className="bg-gradient-to-r from-[#1a2332] to-[#141a2a] border border-[#2a3a5a] rounded-lg px-4 py-3 text-sm text-gray-300 flex items-start gap-3 shadow-inner">
+        <span className="text-xl">💡</span>
+        <span className="flex-1">{summary.message}</span>
       </div>
     </div>
   );
@@ -237,9 +282,9 @@ const AccountSummaryCard: React.FC<{ summary?: AccountSummary }> = ({ summary })
 
 const TodayActionsCard: React.FC<{ actions: TodayAction[] }> = ({ actions }) => {
   const priorityColors = {
-    high: 'border-l-[#ff4444]',
-    medium: 'border-l-[#ffaa00]',
-    low: 'border-l-[#00ccff]'
+    high: 'border-l-[#ff4444] bg-[#ff4444]/5',
+    medium: 'border-l-[#ffaa00] bg-[#ffaa00]/5',
+    low: 'border-l-[#00ccff] bg-[#00ccff]/5'
   };
 
   const priorityIcons = {
@@ -249,24 +294,31 @@ const TodayActionsCard: React.FC<{ actions: TodayAction[] }> = ({ actions }) => 
   };
 
   return (
-    <div className="bg-[#141a2a] border border-[#2a3a5a] rounded-lg p-6">
-      <h3 className="text-lg font-semibold mb-4 text-[#00ccff]">✅ 今日待办</h3>
+    <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-xl p-6 shadow-xl hover:shadow-2xl hover:shadow-[#00ccff]/10 transition-all duration-300">
+      <div className="flex items-center gap-2 mb-5">
+        <span className="text-2xl">✅</span>
+        <h3 className="text-xl font-semibold text-transparent bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text">
+          今日待办
+        </h3>
+      </div>
       
       <div className="space-y-3">
         {actions.map((action, index) => (
           <div
             key={index}
-            className={`bg-[#1a2332] border-l-4 ${priorityColors[action.priority]} rounded p-4 hover:bg-[#1f2838] transition-colors cursor-pointer`}
+            className={`bg-gradient-to-r from-[#1a2332] to-[#141a2a] border-l-4 ${priorityColors[action.priority]} rounded-lg p-4 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer group`}
           >
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span>{priorityIcons[action.priority]}</span>
-                  <h4 className="font-semibold">{action.title}</h4>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">{priorityIcons[action.priority]}</span>
+                  <h4 className="font-semibold text-lg group-hover:text-[#00ccff] transition-colors">
+                    {action.title}
+                  </h4>
                 </div>
-                <p className="text-sm text-gray-400">{action.description}</p>
+                <p className="text-sm text-gray-400 leading-relaxed">{action.description}</p>
               </div>
-              <button className="ml-4 px-4 py-2 bg-[#00ccff] text-black rounded hover:bg-[#00aadd] transition-colors whitespace-nowrap">
+              <button className="px-5 py-2.5 bg-gradient-to-r from-[#00ccff] to-[#00aadd] text-black font-medium rounded-lg hover:from-[#00aadd] hover:to-[#00ccff] transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-[#00ccff]/30 whitespace-nowrap transform hover:scale-105">
                 {action.action_text}
               </button>
             </div>
@@ -281,15 +333,23 @@ const ActiveStrategiesCard: React.FC<{ strategies: ActiveStrategy[] }> = ({ stra
   const navigate = useNavigate();
   
   return (
-    <div className="bg-[#141a2a] border border-[#2a3a5a] rounded-lg p-6">
-      <h3 className="text-lg font-semibold mb-4 text-[#00ccff]">🎯 运行中的策略</h3>
+    <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-xl p-6 shadow-xl hover:shadow-2xl hover:shadow-[#00ccff]/10 transition-all duration-300">
+      <div className="flex items-center gap-2 mb-5">
+        <span className="text-2xl">🎯</span>
+        <h3 className="text-xl font-semibold text-transparent bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text">
+          运行中的策略
+        </h3>
+      </div>
       
       {strategies.length === 0 ? (
-        <div className="text-center py-8 text-gray-400">
-          <p className="mb-4">您还没有激活任何策略</p>
+        <div className="text-center py-12 space-y-4">
+          <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-[#00ccff]/20 to-[#00ff88]/20 flex items-center justify-center">
+            <span className="text-4xl">📦</span>
+          </div>
+          <p className="text-gray-400 text-lg">您还没有激活任何策略</p>
           <button 
             onClick={() => navigate('/assistant/strategies/activate/stable_growth_low_risk')}
-            className="px-6 py-2 bg-[#00ccff] text-black rounded hover:bg-[#00aadd] transition-colors"
+            className="px-8 py-3 bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black font-medium rounded-lg hover:from-[#00aadd] hover:to-[#00ff88] transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-[#00ccff]/30 transform hover:scale-105"
           >
             浏览策略包
           </button>
@@ -300,22 +360,24 @@ const ActiveStrategiesCard: React.FC<{ strategies: ActiveStrategy[] }> = ({ stra
             <div
               key={strategy.package_id}
               onClick={() => navigate(`/assistant/strategies/running/${strategy.instance_id || 'demo'}`)}
-              className="bg-[#1a2332] border border-[#2a3a5a] rounded p-4 hover:bg-[#1f2838] transition-colors cursor-pointer"
+              className="bg-gradient-to-r from-[#1a2332] to-[#141a2a] border border-[#2a3a5a] rounded-lg p-5 hover:border-[#00ccff]/50 hover:shadow-lg hover:shadow-[#00ccff]/20 transition-all duration-300 cursor-pointer group"
             >
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-semibold">{strategy.friendly_name}</h4>
-                <span className="px-3 py-1 bg-[#00ff88] text-black text-xs rounded-full">
-                  运行中
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-semibold text-lg group-hover:text-[#00ccff] transition-colors">
+                  {strategy.friendly_name}
+                </h4>
+                <span className="px-3 py-1.5 bg-gradient-to-r from-[#00ff88] to-[#00ccaa] text-black text-xs font-semibold rounded-full shadow-sm">
+                  ● 运行中
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
+                <div className="flex items-center gap-2">
                   <span className="text-gray-400">已运行：</span>
-                  <span className="ml-2">{strategy.days_active} 天</span>
+                  <span className="font-medium">{strategy.days_active} 天</span>
                 </div>
-                <div>
+                <div className="flex items-center gap-2">
                   <span className="text-gray-400">累计收益：</span>
-                  <span className="ml-2 text-[#00ff88]">+¥{strategy.profit.toLocaleString()}</span>
+                  <span className="font-medium text-[#00ff88]">+¥{strategy.profit.toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -328,38 +390,53 @@ const ActiveStrategiesCard: React.FC<{ strategies: ActiveStrategy[] }> = ({ stra
 
 const MarketOpportunitiesStream: React.FC<{ opportunities: MarketOpportunity[] }> = ({ opportunities }) => {
   const riskLevelColors = {
-    '低': 'bg-[#00ff88]',
-    '中': 'bg-[#ffaa00]',
-    '高': 'bg-[#ff4444]'
+    '低': 'from-[#00ff88] to-[#00ccaa]',
+    '中': 'from-[#ffaa00] to-[#ff8800]',
+    '高': 'from-[#ff4444] to-[#ff2222]'
   };
 
   return (
-    <div className="bg-[#141a2a] border border-[#2a3a5a] rounded-lg p-6">
-      <h3 className="text-lg font-semibold mb-4 text-[#00ccff]">🔍 市场机会</h3>
+    <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-xl p-6 shadow-xl hover:shadow-2xl hover:shadow-[#00ccff]/10 transition-all duration-300 sticky top-6">
+      <div className="flex items-center gap-2 mb-5">
+        <span className="text-2xl">🔍</span>
+        <h3 className="text-xl font-semibold text-transparent bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text">
+          市场机会
+        </h3>
+      </div>
       
       <div className="space-y-4">
         {opportunities.map((opp) => (
           <div
             key={opp.opportunity_id}
-            className="bg-[#1a2332] border border-[#2a3a5a] rounded-lg p-4 hover:bg-[#1f2838] transition-colors"
+            className="bg-gradient-to-br from-[#1a2332] to-[#141a2a] border border-[#2a3a5a] rounded-xl p-5 hover:border-[#00ccff]/50 hover:shadow-lg hover:shadow-[#00ccff]/20 transition-all duration-300 group"
           >
-            <div className="flex items-start justify-between mb-2">
-              <h4 className="font-semibold flex-1">{opp.title}</h4>
-              <span className={`px-2 py-1 ${riskLevelColors[opp.risk_level as keyof typeof riskLevelColors]} text-black text-xs rounded`}>
+            <div className="flex items-start justify-between mb-3">
+              <h4 className="font-semibold text-lg flex-1 group-hover:text-[#00ccff] transition-colors">
+                {opp.title}
+              </h4>
+              <span className={`px-3 py-1.5 bg-gradient-to-r ${riskLevelColors[opp.risk_level as keyof typeof riskLevelColors]} text-black text-xs font-semibold rounded-full shadow-sm`}>
                 {opp.risk_level}风险
               </span>
             </div>
             
-            <p className="text-sm text-gray-300 mb-2">{opp.explanation}</p>
+            <p className="text-sm text-gray-300 mb-3 leading-relaxed">{opp.explanation}</p>
             
-            <div className="bg-[#0a0e17] border border-[#2a3a5a] rounded p-3 mb-3">
-              <div className="text-xs text-gray-400 mb-1">💡 建议</div>
-              <div className="text-sm">{opp.suggestion}</div>
+            <div className="bg-gradient-to-r from-[#0a0e17] to-[#0d1219] border border-[#2a3a5a] rounded-lg p-4 mb-4 shadow-inner">
+              <div className="flex items-start gap-2">
+                <span className="text-lg">💡</span>
+                <div className="flex-1">
+                  <div className="text-xs text-gray-400 mb-1 font-medium">建议</div>
+                  <div className="text-sm text-gray-200">{opp.suggestion}</div>
+                </div>
+              </div>
             </div>
             
             <div className="flex items-center justify-between">
-              <span className="text-xs text-gray-400">{opp.potential_return}</span>
-              <button className="px-4 py-2 bg-[#00ccff] text-black text-sm rounded hover:bg-[#00aadd] transition-colors">
+              <span className="text-xs text-gray-400 flex items-center gap-1">
+                <span className="w-1 h-1 rounded-full bg-[#00ff88]"></span>
+                {opp.potential_return}
+              </span>
+              <button className="px-5 py-2 bg-gradient-to-r from-[#00ccff] to-[#00aadd] text-black text-sm font-medium rounded-lg hover:from-[#00aadd] hover:to-[#00ccff] transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-[#00ccff]/30 transform hover:scale-105">
                 {opp.action_button}
               </button>
             </div>
@@ -367,8 +444,9 @@ const MarketOpportunitiesStream: React.FC<{ opportunities: MarketOpportunity[] }
         ))}
       </div>
       
-      <button className="w-full mt-4 py-2 border border-[#2a3a5a] rounded text-sm hover:bg-[#1a2332] transition-colors">
-        查看更多机会 →
+      <button className="w-full mt-5 py-3 border-2 border-[#2a3a5a] rounded-lg text-sm font-medium hover:bg-[#1a2332] hover:border-[#00ccff]/50 transition-all duration-300 flex items-center justify-center gap-2 group">
+        <span>查看更多机会</span>
+        <span className="transform group-hover:translate-x-1 transition-transform">→</span>
       </button>
     </div>
   );
@@ -383,44 +461,58 @@ const QuickActions: React.FC = () => {
       title: '浏览策略包',
       description: '发现适合您的投资方案',
       path: '/assistant/strategies/activate/stable_growth_low_risk',
-      color: 'border-[#00ccff]'
+      gradient: 'from-[#00ccff]/10 to-[#00aadd]/10',
+      border: 'border-[#00ccff]',
+      glow: 'hover:shadow-[#00ccff]/20'
     },
     {
       icon: '🎯',
       title: '设置投资目标',
       description: '告诉我们您的期望',
       path: '/assistant/goals',
-      color: 'border-[#00ff88]'
+      gradient: 'from-[#00ff88]/10 to-[#00ccaa]/10',
+      border: 'border-[#00ff88]',
+      glow: 'hover:shadow-[#00ff88]/20'
     },
     {
       icon: '📊',
       title: '查看历史表现',
       description: '回顾策略效果',
       path: '/assistant/performance',
-      color: 'border-[#ffaa00]'
+      gradient: 'from-[#ffaa00]/10 to-[#ff8800]/10',
+      border: 'border-[#ffaa00]',
+      glow: 'hover:shadow-[#ffaa00]/20'
     },
     {
       icon: '🔔',
       title: '通知设置',
       description: '管理提醒方式',
       path: '/assistant/notifications',
-      color: 'border-[#ff4444]'
+      gradient: 'from-[#ff4444]/10 to-[#ff2222]/10',
+      border: 'border-[#ff4444]',
+      glow: 'hover:shadow-[#ff4444]/20'
     }
   ];
 
   return (
-    <div className="mt-12">
-      <h3 className="text-lg font-semibold mb-4 text-center text-gray-400">快速入口</h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="mt-16 mb-8">
+      <h3 className="text-xl font-semibold mb-6 text-center text-gray-300">快速入口</h3>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
         {actions.map((action, index) => (
           <button
             key={index}
             onClick={() => navigate(action.path)}
-            className={`bg-[#141a2a] border-2 ${action.color} rounded-lg p-4 hover:bg-[#1a2332] transition-colors text-left`}
+            className={`bg-gradient-to-br ${action.gradient} border-2 ${action.border} rounded-xl p-6 hover:bg-[#1a2332] transition-all duration-300 text-left group hover:scale-105 hover:shadow-xl ${action.glow}`}
           >
-            <div className="text-3xl mb-2">{action.icon}</div>
-            <div className="font-semibold mb-1">{action.title}</div>
-            <div className="text-xs text-gray-400">{action.description}</div>
+            <div className="text-4xl mb-3 transform group-hover:scale-110 transition-transform duration-300">
+              {action.icon}
+            </div>
+            <div className="font-semibold text-lg mb-2 group-hover:text-white transition-colors">
+              {action.title}
+            </div>
+            <div className="text-xs text-gray-400 leading-relaxed">
+              {action.description}
+            </div>
           </button>
         ))}
       </div>
