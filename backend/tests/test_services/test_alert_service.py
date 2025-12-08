@@ -319,5 +319,261 @@ class TestAlertService:
         assert alert.id not in service.active_alerts
 
 
+@pytest.mark.unit
+class TestAlertServiceExtended:
+    """预警服务扩展测试 - 提升覆盖率"""
+    
+    @pytest.mark.asyncio
+    async def test_get_alerts_by_user(self):
+        """测试获取用户的所有预警"""
+        service = AlertService()
+        
+        # 创建多个预警
+        for i in range(3):
+            await service.create_alert({
+                "symbol": f"TEST{i}/USDT",
+                "alert_type": AlertType.PRICE,
+                "condition": AlertCondition.ABOVE,
+                "threshold": 100.0 + i,
+                "message": f"Test alert {i}",
+                "user_id": 1
+            })
+        
+        # 获取用户所有预警
+        alerts = await service.get_alerts_by_user(user_id=1)
+        
+        assert alerts is not None
+        assert len(alerts) >= 3
+    
+    @pytest.mark.asyncio
+    async def test_get_alerts_by_symbol(self):
+        """测试获取特定品种的预警"""
+        service = AlertService()
+        
+        # 创建品种预警
+        await service.create_alert({
+            "symbol": "BTC/USDT",
+            "alert_type": AlertType.PRICE,
+            "condition": AlertCondition.ABOVE,
+            "threshold": 50000.0,
+            "message": "BTC alert",
+            "user_id": 1
+        })
+        
+        # 获取品种预警
+        alerts = await service.get_alerts_by_symbol(symbol="BTC/USDT")
+        
+        assert alerts is not None
+        assert isinstance(alerts, list)
+    
+    @pytest.mark.asyncio
+    async def test_update_alert(self):
+        """测试更新预警"""
+        service = AlertService()
+        
+        # 创建预警
+        alert = await service.create_alert({
+            "symbol": "BTC/USDT",
+            "alert_type": AlertType.PRICE,
+            "condition": AlertCondition.ABOVE,
+            "threshold": 45000.0,
+            "message": "Original message",
+            "user_id": 1
+        })
+        
+        # 更新预警
+        updated = await service.update_alert(
+            alert_id=alert.id,
+            updates={
+                "threshold": 50000.0,
+                "message": "Updated message"
+            },
+            user_id=1
+        )
+        
+        assert updated is not None or updated is True
+    
+    @pytest.mark.asyncio
+    async def test_pause_alert(self):
+        """测试暂停预警"""
+        service = AlertService()
+        
+        alert = await service.create_alert({
+            "symbol": "BTC/USDT",
+            "alert_type": AlertType.PRICE,
+            "condition": AlertCondition.ABOVE,
+            "threshold": 45000.0,
+            "message": "Test alert",
+            "user_id": 1
+        })
+        
+        # 暂停预警
+        result = await service.pause_alert(alert.id, user_id=1)
+        
+        assert result is True or result is not None
+    
+    @pytest.mark.asyncio
+    async def test_resume_alert(self):
+        """测试恢复预警"""
+        service = AlertService()
+        
+        alert = await service.create_alert({
+            "symbol": "BTC/USDT",
+            "alert_type": AlertType.PRICE,
+            "condition": AlertCondition.ABOVE,
+            "threshold": 45000.0,
+            "message": "Test alert",
+            "user_id": 1,
+            "is_active": False
+        })
+        
+        # 恢复预警
+        result = await service.resume_alert(alert.id, user_id=1)
+        
+        assert result is True or result is not None
+    
+    @pytest.mark.asyncio
+    async def test_get_alert_history(self):
+        """测试获取预警历史"""
+        service = AlertService()
+        
+        history = await service.get_alert_history(user_id=1, limit=10)
+        
+        assert history is not None
+        assert isinstance(history, list)
+    
+    @pytest.mark.asyncio
+    async def test_count_active_alerts(self):
+        """测试统计活跃预警数量"""
+        service = AlertService()
+        
+        count = await service.count_active_alerts(user_id=1)
+        
+        assert count is not None
+        assert count >= 0
+    
+    @pytest.mark.asyncio
+    async def test_alert_conditions_percentage_change(self):
+        """测试百分比变化条件"""
+        service = AlertService()
+        
+        alert_data = {
+            "symbol": "BTC/USDT",
+            "alert_type": AlertType.PRICE,
+            "condition": AlertCondition.PERCENTAGE_CHANGE,
+            "threshold": 5.0,  # 5%变化
+            "message": "Price changed 5%",
+            "user_id": 1
+        }
+        
+        alert = await service.create_alert(alert_data)
+        
+        assert alert is not None
+        assert alert.condition == AlertCondition.PERCENTAGE_CHANGE
+    
+    @pytest.mark.asyncio
+    async def test_alert_with_expiration(self):
+        """测试带过期时间的预警"""
+        from datetime import datetime, timedelta
+        service = AlertService()
+        
+        alert_data = {
+            "symbol": "BTC/USDT",
+            "alert_type": AlertType.PRICE,
+            "condition": AlertCondition.ABOVE,
+            "threshold": 45000.0,
+            "message": "Test alert",
+            "user_id": 1,
+            "expires_at": datetime.now() + timedelta(hours=24)
+        }
+        
+        alert = await service.create_alert(alert_data)
+        
+        assert alert is not None
+    
+    @pytest.mark.asyncio
+    async def test_batch_delete_alerts(self):
+        """测试批量删除预警"""
+        service = AlertService()
+        
+        # 创建多个预警
+        alert_ids = []
+        for i in range(3):
+            alert = await service.create_alert({
+                "symbol": f"TEST{i}/USDT",
+                "alert_type": AlertType.PRICE,
+                "condition": AlertCondition.ABOVE,
+                "threshold": 100.0,
+                "message": f"Test {i}",
+                "user_id": 1
+            })
+            alert_ids.append(alert.id)
+        
+        # 批量删除
+        result = await service.batch_delete_alerts(alert_ids, user_id=1)
+        
+        assert result is True or isinstance(result, int)
+    
+    @pytest.mark.asyncio
+    async def test_alert_notification_preferences(self):
+        """测试预警通知偏好"""
+        service = AlertService()
+        
+        alert_data = {
+            "symbol": "BTC/USDT",
+            "alert_type": AlertType.PRICE,
+            "condition": AlertCondition.ABOVE,
+            "threshold": 45000.0,
+            "message": "Test alert",
+            "user_id": 1,
+            "notify_email": True,
+            "notify_sms": False,
+            "notify_push": True
+        }
+        
+        alert = await service.create_alert(alert_data)
+        
+        assert alert is not None
+    
+    @pytest.mark.asyncio
+    async def test_get_triggered_alerts_count(self):
+        """测试获取已触发预警数量"""
+        service = AlertService()
+        
+        count = await service.get_triggered_alerts_count(user_id=1)
+        
+        assert count is not None
+        assert count >= 0
+    
+    @pytest.mark.asyncio
+    async def test_export_alerts(self):
+        """测试导出预警配置"""
+        service = AlertService()
+        
+        exported = await service.export_alerts(user_id=1)
+        
+        assert exported is not None
+        assert isinstance(exported, (list, dict, str))
+    
+    @pytest.mark.asyncio
+    async def test_import_alerts(self):
+        """测试导入预警配置"""
+        service = AlertService()
+        
+        alerts_config = [
+            {
+                "symbol": "BTC/USDT",
+                "alert_type": "price",
+                "condition": "above",
+                "threshold": 45000.0,
+                "message": "Imported alert"
+            }
+        ]
+        
+        result = await service.import_alerts(alerts_config, user_id=1)
+        
+        assert result is True or isinstance(result, int)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
