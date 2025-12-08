@@ -6,8 +6,8 @@ import pytest
 from unittest.mock import Mock, AsyncMock, patch
 from datetime import datetime
 
-from backend.services.data_service import DataService
-from backend.models.market_data import KlineData, MarketType, Timeframe
+from services.data_service import DataService
+from models.market_data import KlineData, MarketType, Timeframe
 
 
 class TestDataService:

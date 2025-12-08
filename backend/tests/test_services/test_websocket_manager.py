@@ -5,7 +5,7 @@ WebSocket Manager 单元测试
 import pytest
 import asyncio
 from unittest.mock import Mock, AsyncMock, patch
-from backend.services.websocket_manager import WebSocketManager
+from services.websocket_manager import WebSocketManager
 
 
 @pytest.fixture

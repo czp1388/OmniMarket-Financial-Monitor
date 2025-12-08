@@ -6,7 +6,7 @@ import pytest
 from httpx import AsyncClient
 from fastapi import status
 
-from backend.main import app
+from main import app
 
 
 @pytest.fixture

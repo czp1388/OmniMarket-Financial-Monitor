@@ -9,12 +9,12 @@ from unittest.mock import Mock, AsyncMock
 import sys
 from pathlib import Path
 
-# 添加项目根目录到 Python 路径
-project_root = Path(__file__).parent.parent.parent
-sys.path.insert(0, str(project_root))
+# 添加backend目录到 Python 路径
+backend_root = Path(__file__).parent.parent
+sys.path.insert(0, str(backend_root))
 
-from backend.models.market_data import KlineData, MarketType, Timeframe
-from backend.config import settings
+from models.market_data import KlineData, MarketType, Timeframe
+from config import settings
 
 
 # ============================================
@@ -202,7 +202,7 @@ def sample_kline_data():
 @pytest.fixture
 def sample_alert_config():
     """示例预警配置"""
-    from backend.models.alerts import AlertStatus
+    from models.alerts import AlertStatus
     return {
         "name": "BTC 价格预警",
         "symbol": "BTC/USDT",
@@ -247,7 +247,7 @@ def sample_virtual_order():
 async def async_client():
     """异步 HTTP 客户端"""
     from httpx import AsyncClient
-    from backend.main import app
+    from main import app
     
     async with AsyncClient(app=app, base_url="http://test") as client:
         yield client

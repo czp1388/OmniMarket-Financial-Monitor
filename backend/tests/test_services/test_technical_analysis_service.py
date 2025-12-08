@@ -8,8 +8,8 @@ import numpy as np
 from datetime import datetime, timedelta
 from unittest.mock import Mock, AsyncMock, patch
 
-from backend.services.technical_analysis_service import TechnicalAnalysisService
-from backend.models.market_data import Timeframe
+from services.technical_analysis_service import TechnicalAnalysisService
+from models.market_data import Timeframe
 
 
 @pytest.fixture

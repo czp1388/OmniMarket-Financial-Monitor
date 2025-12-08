@@ -7,7 +7,7 @@ from unittest.mock import Mock, AsyncMock
 from datetime import datetime
 from decimal import Decimal
 
-from backend.services.virtual_trading_engine import VirtualTradingEngine
+from services.virtual_trading_engine import VirtualTradingEngine
 
 
 @pytest.fixture

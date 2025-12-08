@@ -7,7 +7,7 @@ import asyncio
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
 from datetime import datetime, timedelta
 
-from backend.services.auto_trading_service import AutoTradingService
+from services.auto_trading_service import AutoTradingService
 
 
 @pytest.fixture

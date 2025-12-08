@@ -6,9 +6,9 @@ import pytest
 from unittest.mock import Mock, AsyncMock, patch
 from datetime import datetime
 
-from backend.services.alert_service import AlertService, AlertStatus
-from backend.models.alerts import Alert, AlertConditionType, NotificationType
-from backend.models.market_data import MarketType
+from services.alert_service import AlertService, AlertStatus
+from models.alerts import Alert, AlertConditionType, NotificationType
+from models.market_data import MarketType
 
 
 class TestAlertService:
