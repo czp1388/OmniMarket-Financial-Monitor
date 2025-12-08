@@ -188,31 +188,39 @@ const FinancialMonitoringSystem: React.FC = () => {
   };
 
   return (
-    <div className="financial-monitoring-system">
-      <div className="container">
-        <div className="header">
-          <h1>寰宇多市场金融监控系统</h1>
-          <p>实时K线图表演示 - 支持多市场多周期监控</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0e17] via-[#0d1219] to-[#0a0e17] text-white p-6 space-y-6">
+      <div className="text-center">
+        <h1 className="text-5xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent mb-2 flex items-center justify-center gap-3">
+          <span className="text-6xl">💹</span>
+          <span>寰宇多市场金融监控系统</span>
+        </h1>
+        <p className="text-gray-400 text-lg">实时K线图表演示 - 支持多市场多周期监控</p>
+      </div>
 
-        <div className="market-info">
-          {marketData.map((item, index) => (
-            <div key={index} className="info-card">
-              <div>{item.symbol}</div>
-              <div className={`info-value ${item.isPositive ? 'positive' : 'negative'}`}>
-                {formatPrice(item.price, item.type)}
-              </div>
-              <div>{formatChange(item.change)}</div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {marketData.map((item, index) => (
+          <div key={index} className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-xl p-4 shadow-lg hover:scale-[1.02] transition-all duration-300">
+            <div className="text-white font-bold text-lg mb-2">{item.symbol}</div>
+            <div className={`text-2xl font-bold mb-1 ${item.isPositive ? 'text-[#00ff88]' : 'text-[#ff4444]'}`}>
+              {formatPrice(item.price, item.type)}
             </div>
-          ))}
-        </div>
+            <div className={`text-sm font-semibold ${item.isPositive ? 'text-[#00ff88]' : 'text-[#ff4444]'}`}>
+              {item.isPositive ? '↗' : '↘'} {formatChange(item.change)}
+            </div>
+          </div>
+        ))}
+      </div>
 
-        <div className="controls">
-          <div className="control-group">
-            <label>市场选择:</label>
+      <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-5 shadow-2xl">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+              <span>🌏</span><span>市场选择</span>
+            </label>
             <select 
               value={selectedMarket} 
               onChange={(e) => setSelectedMarket(e.target.value)}
+              className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none transition-colors"
             >
               <option value="crypto">加密货币 (BTC/USDT)</option>
               <option value="stock">股票 (AAPL)</option>
@@ -220,11 +228,14 @@ const FinancialMonitoringSystem: React.FC = () => {
               <option value="futures">期货</option>
             </select>
           </div>
-          <div className="control-group">
-            <label>时间周期:</label>
+          <div>
+            <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+              <span>⏱️</span><span>时间周期</span>
+            </label>
             <select 
               value={timeframe} 
               onChange={(e) => setTimeframe(e.target.value)}
+              className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none transition-colors"
             >
               <option value="1m">1分钟</option>
               <option value="5m">5分钟</option>
@@ -234,11 +245,14 @@ const FinancialMonitoringSystem: React.FC = () => {
               <option value="1d">日线</option>
             </select>
           </div>
-          <div className="control-group">
-            <label>技术指标:</label>
+          <div>
+            <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+              <span>📈</span><span>技术指标</span>
+            </label>
             <select 
               value={technicalIndicator} 
               onChange={(e) => setTechnicalIndicator(e.target.value)}
+              className="w-full bg-[#1a2332] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:border-[#00ccff] focus:outline-none transition-colors"
             >
               <option value="none">无指标</option>
               <option value="sma">简单移动平均线</option>
@@ -248,21 +262,33 @@ const FinancialMonitoringSystem: React.FC = () => {
               <option value="bollinger">布林带</option>
             </select>
           </div>
-          <div className="control-group">
-            <label>操作:</label>
-            <button>模拟新数据</button>
-            <button>重置图表</button>
+          <div>
+            <label className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+              <span>⚡</span><span>操作</span>
+            </label>
+            <div className="flex gap-2">
+              <button className="flex-1 px-3 py-3 bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black font-bold rounded-lg hover:scale-105 transition-all duration-300 shadow-lg shadow-[#00ccff]/30 text-sm">
+                🔄 更新
+              </button>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div className="chart-container" ref={chartContainerRef}></div>
+      <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-2xl p-6 shadow-2xl">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-[#00ccff] to-[#00ff88] bg-clip-text text-transparent mb-4 flex items-center gap-2">
+          <span className="text-3xl">📊</span><span>实时K线图表</span>
+        </h2>
+        <div ref={chartContainerRef} style={{ width: '100%', height: '450px' }}></div>
+      </div>
 
-        <div className="status-bar">
-          <div className="status">
-            <div className="status-dot"></div>
-            <span>实时数据连接正常</span>
-          </div>
-          <div className="last-update">最后更新: <span>刚刚</span></div>
+      <div className="bg-gradient-to-r from-[#141a2a] via-[#1a2332] to-[#141a2a] border border-[#2a3a5a] rounded-xl px-6 py-4 flex items-center justify-between shadow-lg">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-[#00ff88] animate-pulse shadow-lg shadow-[#00ff88]/50"></div>
+          <span className="text-white font-semibold">实时数据连接正常</span>
+        </div>
+        <div className="text-gray-400 text-sm">
+          最后更新: <span className="text-[#00ccff] font-mono font-semibold">刚刚</span>
         </div>
       </div>
     </div>
