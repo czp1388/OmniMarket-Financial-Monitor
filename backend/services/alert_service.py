@@ -6,9 +6,10 @@ from enum import Enum
 import json
 
 from models.alerts import Alert, AlertTrigger, AlertConditionType, AlertStatus as ModelAlertStatus, NotificationType
-from models.market_data import KlineData, MarketType
+from models.market_data import KlineData, MarketType, Timeframe
 from services.data_service import data_service
 from services.notification_service import notification_service
+from database import SessionLocal
 
 logger = logging.getLogger(__name__)
 
@@ -350,6 +351,276 @@ class AlertService:
         """注册预警处理程序"""
         self.alert_handlers.append(handler)
         logger.info("注册预警处理程序")
+    
+    async def create_alert(self, alert_data: Dict[str, Any]) -> Optional[Alert]:
+        """
+        创建新预警
+        
+        参数:
+            alert_data: 预警配置数据，包含：
+                - symbol: 交易对
+                - market_type: 市场类型
+                - alert_type: 预警类型（可选，测试兼容性）
+                - condition: 条件类型（可选，测试兼容性）
+                - condition_type: AlertConditionType 枚举
+                - threshold: 阈值
+                - message: 预警消息
+                - user_id: 用户ID
+                - name: 预警名称（可选）
+                - description: 描述（可选）
+                - exchange: 交易所（可选，默认binance）
+                - timeframe: 时间周期（可选，默认1h）
+                - is_active: 是否激活（可选，默认True）
+                - is_recurring: 是否重复（可选，默认False）
+                - notify_email: 是否邮件通知（可选）
+                - notify_sms: 是否短信通知（可选）
+                - notify_push: 是否推送通知（可选）
+                - expires_at: 过期时间（可选）
+        
+        返回:
+            Alert: 创建的预警对象，失败返回None
+        """
+        try:
+            db = SessionLocal()
+            
+            # 兼容测试中的参数格式
+            symbol = alert_data.get('symbol')
+            market_type = alert_data.get('market_type', MarketType.CRYPTO)
+            user_id = alert_data.get('user_id')
+            
+            # 处理条件类型（支持字符串和枚举）
+            condition_type = alert_data.get('condition_type')
+            if isinstance(condition_type, str):
+                # 如果是字符串，尝试转换为枚举
+                try:
+                    condition_type = AlertConditionType[condition_type.upper()]
+                except (KeyError, AttributeError):
+                    # 兼容测试中的简化条件
+                    condition = alert_data.get('condition', '').upper()
+                    if condition == 'ABOVE':
+                        condition_type = AlertConditionType.PRICE_ABOVE
+                    elif condition == 'BELOW':
+                        condition_type = AlertConditionType.PRICE_BELOW
+                    elif condition == 'PERCENTAGE_CHANGE':
+                        condition_type = AlertConditionType.PRICE_PERCENT_CHANGE
+                    else:
+                        condition_type = AlertConditionType.PRICE_ABOVE
+            elif not isinstance(condition_type, AlertConditionType):
+                condition_type = AlertConditionType.PRICE_ABOVE
+            
+            # 构建条件配置
+            condition_config = {
+                'threshold': alert_data.get('threshold', 0.0)
+            }
+            
+            # 处理通知类型
+            notification_types = []
+            if alert_data.get('notify_email', False):
+                notification_types.append('email')
+            if alert_data.get('notify_sms', False):
+                notification_types.append('sms')
+            if alert_data.get('notify_push', True):
+                notification_types.append('in_app')
+            
+            if not notification_types:
+                notification_types = ['in_app']
+            
+            # 创建Alert对象
+            alert = Alert(
+                user_id=user_id,
+                name=alert_data.get('name', f"{symbol} 预警"),
+                description=alert_data.get('description', alert_data.get('message', '')),
+                symbol=symbol,
+                market_type=market_type,
+                exchange=alert_data.get('exchange', 'binance'),
+                timeframe=alert_data.get('timeframe', Timeframe.H1),
+                condition_type=condition_type,
+                condition_config=condition_config,
+                status=ModelAlertStatus.ACTIVE if alert_data.get('is_active', True) else ModelAlertStatus.DISABLED,
+                is_recurring=alert_data.get('is_recurring', False),
+                notification_types=notification_types,
+                notification_config={},
+                valid_until=alert_data.get('expires_at')
+            )
+            
+            # 保存到数据库
+            db.add(alert)
+            db.commit()
+            db.refresh(alert)
+            
+            # 添加到活跃预警列表
+            self.active_alerts[str(alert.id)] = alert
+            
+            logger.info(f"创建预警成功: {alert.name} (ID: {alert.id})")
+            db.close()
+            return alert
+            
+        except Exception as e:
+            logger.error(f"创建预警失败: {e}")
+            if 'db' in locals():
+                db.rollback()
+                db.close()
+            return None
+    
+    async def get_alerts_by_user(self, user_id: int) -> List[Alert]:
+        """获取用户的所有预警"""
+        try:
+            db = SessionLocal()
+            alerts = db.query(Alert).filter(Alert.user_id == user_id).all()
+            db.close()
+            return alerts
+        except Exception as e:
+            logger.error(f"获取用户预警失败: {e}")
+            return []
+    
+    async def get_alerts_by_symbol(self, symbol: str) -> List[Alert]:
+        """获取特定品种的预警"""
+        try:
+            db = SessionLocal()
+            alerts = db.query(Alert).filter(Alert.symbol == symbol).all()
+            db.close()
+            return alerts
+        except Exception as e:
+            logger.error(f"获取品种预警失败: {e}")
+            return []
+    
+    async def update_alert(self, alert_id: int, updates: Dict, user_id: int) -> bool:
+        """更新预警"""
+        try:
+            db = SessionLocal()
+            alert = db.query(Alert).filter(
+                Alert.id == alert_id,
+                Alert.user_id == user_id
+            ).first()
+            
+            if not alert:
+                db.close()
+                return False
+            
+            for key, value in updates.items():
+                if hasattr(alert, key):
+                    setattr(alert, key, value)
+            
+            db.commit()
+            db.close()
+            return True
+        except Exception as e:
+            logger.error(f"更新预警失败: {e}")
+            if 'db' in locals():
+                db.rollback()
+                db.close()
+            return False
+    
+    async def pause_alert(self, alert_id: int, user_id: int) -> bool:
+        """暂停预警"""
+        return await self.update_alert(
+            alert_id, 
+            {'status': ModelAlertStatus.DISABLED}, 
+            user_id
+        )
+    
+    async def resume_alert(self, alert_id: int, user_id: int) -> bool:
+        """恢复预警"""
+        return await self.update_alert(
+            alert_id, 
+            {'status': ModelAlertStatus.ACTIVE}, 
+            user_id
+        )
+    
+    async def get_alert_history(self, user_id: int, limit: int = 10) -> List[AlertTrigger]:
+        """获取预警历史"""
+        try:
+            db = SessionLocal()
+            # 获取用户的所有预警ID
+            user_alert_ids = db.query(Alert.id).filter(Alert.user_id == user_id).all()
+            user_alert_ids = [aid[0] for aid in user_alert_ids]
+            
+            # 获取这些预警的触发记录
+            triggers = db.query(AlertTrigger).filter(
+                AlertTrigger.alert_id.in_(user_alert_ids)
+            ).order_by(AlertTrigger.triggered_at.desc()).limit(limit).all()
+            
+            db.close()
+            return triggers
+        except Exception as e:
+            logger.error(f"获取预警历史失败: {e}")
+            return []
+    
+    async def count_active_alerts(self, user_id: int) -> int:
+        """统计活跃预警数量"""
+        try:
+            db = SessionLocal()
+            count = db.query(Alert).filter(
+                Alert.user_id == user_id,
+                Alert.status == ModelAlertStatus.ACTIVE
+            ).count()
+            db.close()
+            return count
+        except Exception as e:
+            logger.error(f"统计活跃预警失败: {e}")
+            return 0
+    
+    async def batch_delete_alerts(self, alert_ids: List[int], user_id: int) -> bool:
+        """批量删除预警"""
+        try:
+            db = SessionLocal()
+            db.query(Alert).filter(
+                Alert.id.in_(alert_ids),
+                Alert.user_id == user_id
+            ).delete(synchronize_session=False)
+            db.commit()
+            db.close()
+            return True
+        except Exception as e:
+            logger.error(f"批量删除预警失败: {e}")
+            if 'db' in locals():
+                db.rollback()
+                db.close()
+            return False
+    
+    async def get_triggered_alerts_count(self, user_id: int) -> int:
+        """获取已触发预警数量"""
+        try:
+            db = SessionLocal()
+            count = db.query(Alert).filter(
+                Alert.user_id == user_id,
+                Alert.triggered_count > 0
+            ).count()
+            db.close()
+            return count
+        except Exception as e:
+            logger.error(f"获取触发预警数量失败: {e}")
+            return 0
+    
+    async def export_alerts(self, user_id: int) -> List[Dict]:
+        """导出预警配置"""
+        try:
+            alerts = await self.get_alerts_by_user(user_id)
+            exported = []
+            for alert in alerts:
+                exported.append({
+                    'name': alert.name,
+                    'symbol': alert.symbol,
+                    'market_type': alert.market_type.value if hasattr(alert.market_type, 'value') else str(alert.market_type),
+                    'condition_type': alert.condition_type.value if hasattr(alert.condition_type, 'value') else str(alert.condition_type),
+                    'condition_config': alert.condition_config,
+                    'notification_types': alert.notification_types
+                })
+            return exported
+        except Exception as e:
+            logger.error(f"导出预警失败: {e}")
+            return []
+    
+    async def import_alerts(self, alerts_config: List[Dict], user_id: int) -> bool:
+        """导入预警配置"""
+        try:
+            for config in alerts_config:
+                config['user_id'] = user_id
+                await self.create_alert(config)
+            return True
+        except Exception as e:
+            logger.error(f"导入预警失败: {e}")
+            return False
     
     async def send_notification(self, alert: Alert, trigger: AlertTrigger, notification_type: str = "in_app"):
         """发送通知"""

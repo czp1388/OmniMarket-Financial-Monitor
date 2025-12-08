@@ -303,6 +303,69 @@ class CoinGeckoService:
                 return symbol
         return None
     
+    async def get_crypto_quote(self, symbol: str) -> Optional[Dict]:
+        """
+        获取加密货币实时报价
+        
+        参数:
+            symbol: 交易对符号，如 "BTC/USDT"
+        
+        返回:
+            包含报价信息的字典
+        """
+        try:
+            await self._rate_limit()
+            
+            coin_id = self._get_coin_id(symbol)
+            if not coin_id:
+                logger.warning(f"未找到加密货币映射: {symbol}")
+                return None
+            
+            params = {
+                "ids": coin_id,
+                "vs_currencies": "usd",
+                "include_market_cap": "true",
+                "include_24hr_vol": "true",
+                "include_24hr_change": "true",
+                "include_last_updated_at": "true"
+            }
+            
+            session = await self.get_session()
+            async with session.get(f"{self.base_url}/simple/price", params=params) as response:
+                if response.status != 200:
+                    logger.warning(f"CoinGecko API获取报价失败: {response.status}")
+                    return None
+                
+                data = await response.json()
+                
+                if coin_id not in data:
+                    return None
+                
+                coin_data = data[coin_id]
+                price = coin_data.get('usd', 0)
+                change = coin_data.get('usd_24h_change', 0)
+                volume = coin_data.get('usd_24h_vol', 0)
+                
+                quote = {
+                    'symbol': symbol,
+                    'price': price,
+                    'bid': price * 0.9995,  # 估算买入价
+                    'ask': price * 1.0005,  # 估算卖出价
+                    'high': price * (1 + abs(change) / 100),  # 估算高点
+                    'low': price * (1 - abs(change) / 100),   # 估算低点
+                    'volume': volume,
+                    'change': price * change / 100,
+                    'change_percent': change,
+                    'timestamp': datetime.now().isoformat()
+                }
+                
+                logger.info(f"CoinGecko获取报价成功: {symbol} @ {price}")
+                return quote
+                
+        except Exception as e:
+            logger.error(f"CoinGecko获取报价出错: {e}")
+            return None
+    
     async def _get_mock_data(
         self, 
         symbol: str, 

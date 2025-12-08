@@ -246,6 +246,197 @@ class UserService:
         except Exception as e:
             logger.error(f"密码验证出错: {e}")
             return False
+    
+    def verify_password(self, password: str, stored_hash: str) -> bool:
+        """公开的密码验证方法"""
+        return self._verify_password(password, stored_hash)
+    
+    def get_user_by_username(self, username: str) -> Optional[User]:
+        """根据用户名获取用户"""
+        try:
+            user = self.db.query(User).filter(User.username == username).first()
+            return user
+        except Exception as e:
+            logger.error(f"根据用户名获取用户失败: {e}")
+            return None
+    
+    def get_user_by_email(self, email: str) -> Optional[User]:
+        """根据邮箱获取用户"""
+        try:
+            user = self.db.query(User).filter(User.email == email).first()
+            return user
+        except Exception as e:
+            logger.error(f"根据邮箱获取用户失败: {e}")
+            return None
+    
+    def update_user(self, user_id: int, updates: Dict[str, Any]) -> bool:
+        """更新用户信息"""
+        try:
+            user = self.get_user_by_id(user_id)
+            if not user:
+                return False
+            
+            for key, value in updates.items():
+                if hasattr(user, key) and key != 'id' and key != 'password_hash':
+                    setattr(user, key, value)
+            
+            user.updated_at = datetime.now()
+            self.db.commit()
+            logger.info(f"用户信息更新成功: user_id={user_id}")
+            return True
+            
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"更新用户信息失败: {e}")
+            return False
+    
+    def update_password(self, user_id: int, new_password: str) -> bool:
+        """更新密码（不验证旧密码）"""
+        try:
+            user = self.get_user_by_id(user_id)
+            if not user:
+                return False
+            
+            user.password_hash = self._hash_password(new_password)
+            user.updated_at = datetime.now()
+            self.db.commit()
+            logger.info(f"密码更新成功: user_id={user_id}")
+            return True
+            
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"密码更新失败: {e}")
+            return False
+    
+    def deactivate_user(self, user_id: int) -> bool:
+        """停用用户"""
+        try:
+            user = self.get_user_by_id(user_id)
+            if not user:
+                return False
+            
+            user.is_active = False
+            user.updated_at = datetime.now()
+            self.db.commit()
+            logger.info(f"用户已停用: user_id={user_id}")
+            return True
+            
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"停用用户失败: {e}")
+            return False
+    
+    def activate_user(self, user_id: int) -> bool:
+        """激活用户"""
+        try:
+            user = self.db.query(User).filter(User.id == user_id).first()
+            if not user:
+                return False
+            
+            user.is_active = True
+            user.updated_at = datetime.now()
+            self.db.commit()
+            logger.info(f"用户已激活: user_id={user_id}")
+            return True
+            
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"激活用户失败: {e}")
+            return False
+    
+    def delete_user(self, user_id: int) -> bool:
+        """删除用户"""
+        try:
+            user = self.db.query(User).filter(User.id == user_id).first()
+            if not user:
+                return False
+            
+            self.db.delete(user)
+            self.db.commit()
+            logger.info(f"用户已删除: user_id={user_id}")
+            return True
+            
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"删除用户失败: {e}")
+            return False
+    
+    def list_users(self, skip: int = 0, limit: int = 100) -> list[User]:
+        """列出所有用户"""
+        try:
+            users = self.db.query(User).offset(skip).limit(limit).all()
+            return users
+        except Exception as e:
+            logger.error(f"列出用户失败: {e}")
+            return []
+    
+    def count_users(self) -> int:
+        """统计用户数量"""
+        try:
+            count = self.db.query(User).count()
+            return count
+        except Exception as e:
+            logger.error(f"统计用户数量失败: {e}")
+            return 0
+    
+    def update_last_login(self, user_id: int) -> bool:
+        """更新最后登录时间"""
+        try:
+            user = self.get_user_by_id(user_id)
+            if not user:
+                return False
+            
+            user.last_login_at = datetime.now()
+            self.db.commit()
+            return True
+            
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"更新最后登录时间失败: {e}")
+            return False
+    
+    def verify_email(self, user_id: int) -> bool:
+        """验证邮箱"""
+        try:
+            user = self.get_user_by_id(user_id)
+            if not user:
+                return False
+            
+            user.email_verified = True
+            user.email_verified_at = datetime.now()
+            self.db.commit()
+            logger.info(f"邮箱验证成功: user_id={user_id}")
+            return True
+            
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"邮箱验证失败: {e}")
+            return False
+    
+    def change_email(self, user_id: int, new_email: str) -> bool:
+        """修改邮箱"""
+        try:
+            user = self.get_user_by_id(user_id)
+            if not user:
+                return False
+            
+            # 检查新邮箱是否已被使用
+            existing = self.db.query(User).filter(User.email == new_email).first()
+            if existing and existing.id != user_id:
+                logger.warning(f"邮箱已被使用: {new_email}")
+                return False
+            
+            user.email = new_email
+            user.email_verified = False  # 需要重新验证
+            user.updated_at = datetime.now()
+            self.db.commit()
+            logger.info(f"邮箱修改成功: user_id={user_id}")
+            return True
+            
+        except Exception as e:
+            self.db.rollback()
+            logger.error(f"修改邮箱失败: {e}")
+            return False
 
 
 # 全局用户服务实例
