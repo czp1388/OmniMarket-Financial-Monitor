@@ -390,23 +390,36 @@ class AlertService:
             
             # 处理条件类型（支持字符串和枚举）
             condition_type = alert_data.get('condition_type')
+            
             if isinstance(condition_type, str):
                 # 如果是字符串，尝试转换为枚举
                 try:
                     condition_type = AlertConditionType[condition_type.upper()]
                 except (KeyError, AttributeError):
                     # 兼容测试中的简化条件
-                    condition = alert_data.get('condition', '').upper()
-                    if condition == 'ABOVE':
+                    condition = alert_data.get('condition', '')
+                    condition_upper = str(condition).upper()
+                    # 支持多种格式：ABOVE, above, percentage_change, PERCENTAGE_CHANGE
+                    if condition_upper == 'ABOVE':
                         condition_type = AlertConditionType.PRICE_ABOVE
-                    elif condition == 'BELOW':
+                    elif condition_upper == 'BELOW':
                         condition_type = AlertConditionType.PRICE_BELOW
-                    elif condition == 'PERCENTAGE_CHANGE':
+                    elif condition_upper in ('PERCENTAGE_CHANGE', 'PRICE_PERCENT_CHANGE'):
                         condition_type = AlertConditionType.PRICE_PERCENT_CHANGE
                     else:
                         condition_type = AlertConditionType.PRICE_ABOVE
             elif not isinstance(condition_type, AlertConditionType):
-                condition_type = AlertConditionType.PRICE_ABOVE
+                # condition_type 不是字符串也不是枚举，检查 condition 字段
+                condition = alert_data.get('condition', '')
+                condition_upper = str(condition).upper()
+                if condition_upper == 'ABOVE':
+                    condition_type = AlertConditionType.PRICE_ABOVE
+                elif condition_upper == 'BELOW':
+                    condition_type = AlertConditionType.PRICE_BELOW
+                elif condition_upper in ('PERCENTAGE_CHANGE', 'PRICE_PERCENT_CHANGE'):
+                    condition_type = AlertConditionType.PRICE_PERCENT_CHANGE
+                else:
+                    condition_type = AlertConditionType.PRICE_ABOVE
             
             # 构建条件配置
             condition_config = {

@@ -482,7 +482,7 @@ class TestAlertServiceExtended:
         alert = await service.create_alert(alert_data)
         
         assert alert is not None
-        assert alert.condition == AlertCondition.PERCENTAGE_CHANGE
+        assert alert.condition_type == AlertConditionType.PRICE_PERCENT_CHANGE
     
     @pytest.mark.asyncio
     async def test_alert_with_expiration(self):
