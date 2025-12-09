@@ -17,6 +17,7 @@ import AssistantDashboard from './pages/AssistantDashboard';
 import StrategyActivationFlow from './pages/StrategyActivationFlow';
 import StrategyRunningStatus from './pages/StrategyRunningStatus';
 import SimpleProgressReport from './pages/SimpleProgressReport';
+import FinancialReportPage from './pages/FinancialReportPage';
 import TestPage from './pages/TestPage';
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
         {/* 专家模式路由 - 原有的专业界面 */}
         <Route path="/" element={<KlineStyleDashboard />} />
         <Route path="/dashboard" element={<KlineStyleDashboard />} />
+        <Route path="/financial-report" element={<FinancialReportPage />} />
         <Route path="/kline" element={<KlineStyleDashboard />} />
         <Route path="/financial-monitoring" element={<FinancialMonitoringSystem />} />
         <Route path="/professional" element={<ProfessionalTradingDashboard />} />

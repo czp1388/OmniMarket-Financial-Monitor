@@ -331,12 +331,14 @@ const KlineStyleDashboard: React.FC = () => {
         <div className="flex items-center gap-2 overflow-x-auto pb-2">
           {[
             { label: '仪表板', icon: '📋', path: '/' },
+            { label: '智能助手', icon: '🤖', path: '/assistant', highlight: true },
             { label: '图表分析', icon: '📈', path: '/chart' },
+            { label: '财报分析', icon: '📊', path: '/financial-report', highlight: true },
             { label: '虚拟交易', icon: '💹', path: '/virtual-trading' },
             { label: '预警管理', icon: '⚡', path: '/alerts' },
             { label: '组合管理', icon: '💼', path: '/portfolio' },
-            { label: '权证监控', icon: '📊', path: '/warrants' },
-            { label: '全自动交易', icon: '🤖', path: '/auto-trading' },
+            { label: '权证监控', icon: '📉', path: '/warrants' },
+            { label: '全自动交易', icon: '🔄', path: '/auto-trading' },
             { label: '半自动交易', icon: '🎯', path: '/semi-auto-trading' },
             { label: '系统设置', icon: '⚙️', path: '/settings' }
           ].map((nav, idx) => (
@@ -345,12 +347,15 @@ const KlineStyleDashboard: React.FC = () => {
               className={`px-4 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${
                 idx === 0
                   ? 'bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black font-semibold shadow-lg shadow-[#00ccff]/30'
+                  : nav.highlight
+                  ? 'bg-gradient-to-r from-[#ff6b6b] to-[#ffa500] text-white font-semibold shadow-lg shadow-[#ff6b6b]/30 animate-pulse'
                   : 'bg-[#141a2a] text-gray-400 hover:bg-[#1a2332] hover:text-white'
               }`}
               onClick={() => navigate(nav.path)}
             >
               <span className="text-lg">{nav.icon}</span>
               <span>{nav.label}</span>
+              {nav.highlight && <span className="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full">NEW</span>}
             </button>
           ))}
         </div>
