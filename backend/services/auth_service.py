@@ -40,7 +40,7 @@ class AuthService:
                     "id": user.id,
                     "username": user.username,
                     "email": user.email,
-                    "display_name": user.display_name
+                    "display_name": user.full_name or user.username
                 }
             }
             
@@ -117,8 +117,8 @@ class AuthService:
         """刷新访问令牌（异步版本）"""
         return self.refresh_token(refresh_token)
     
-    async def get_current_user(self, token: str) -> Optional[Dict[str, Any]]:
-        """从令牌获取当前用户信息"""
+    async def get_current_user(self, token: str):
+        """从令牌获取当前用户信息（返回User对象）"""
         try:
             payload = self.verify_token(token)
             if not payload:
@@ -128,17 +128,9 @@ class AuthService:
             if not user_id:
                 return None
             
-            # 从数据库获取用户信息
+            # 从数据库获取用户信息，返回User对象
             user = user_service.get_user_by_id(user_id)
-            if not user:
-                return None
-            
-            return {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "full_name": user.full_name
-            }
+            return user
             
         except Exception as e:
             logger.error(f"获取当前用户失败: {e}")
@@ -173,12 +165,12 @@ class AuthService:
             if not user:
                 return False
             
-            if not user_service.verify_password(old_password, user.password):
+            if not user_service.verify_password(old_password, user.password_hash):
                 logger.warning(f"旧密码错误: user_id={user_id}")
                 return False
             
             # 更新密码
-            success = user_service.change_password(user_id, new_password)
+            success = user_service.update_password(user_id, new_password)
             if success:
                 logger.info(f"密码修改成功: user_id={user_id}")
             return success
@@ -210,7 +202,7 @@ class AuthService:
             
             logger.info(f"生成密码重置令牌: {email}")
             # TODO: 发送重置邮件
-            return reset_token
+            return {"reset_token": reset_token}
             
         except Exception as e:
             logger.error(f"请求密码重置失败: {e}")
@@ -229,7 +221,7 @@ class AuthService:
                 return False
             
             # 重置密码
-            success = user_service.change_password(user_id, new_password)
+            success = user_service.update_password(user_id, new_password)
             if success:
                 logger.info(f"密码重置成功: user_id={user_id}")
             return success
@@ -247,9 +239,9 @@ class AuthService:
                 return False
             
             user_id = payload.get("user_id")
-            email = payload.get("email")
+            email = payload.get("email", "")
             
-            if not user_id or not email:
+            if not user_id:
                 return False
             
             # 更新邮箱验证状态

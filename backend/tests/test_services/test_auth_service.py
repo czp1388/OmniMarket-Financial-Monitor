@@ -164,7 +164,7 @@ class TestAuthService:
     async def test_get_current_user_valid_token(self, auth_service, sample_user):
         """测试通过有效令牌获取当前用户"""
         with patch('services.auth_service.user_service') as mock_user_service:
-            mock_user_service.get_user_by_username = Mock(return_value=sample_user)
+            mock_user_service.get_user_by_id = Mock(return_value=sample_user)
             
             # 创建有效令牌
             token = auth_service._create_access_token(
