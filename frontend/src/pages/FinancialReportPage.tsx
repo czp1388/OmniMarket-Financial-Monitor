@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactECharts from 'echarts-for-react';
 import { financialReportAPI, FinancialReport, HistoricalData } from '../api/financialReportAPI';
+import { searchStockSymbols, StockSymbol } from '../data/stockSymbols';
 
 const FinancialReportPage: React.FC = () => {
   const navigate = useNavigate();
@@ -11,6 +12,10 @@ const FinancialReportPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [useRealAPI, setUseRealAPI] = useState<boolean>(true);  // 是否使用真实API
+  const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
+  const [suggestions, setSuggestions] = useState<StockSymbol[]>([]);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState<number>(-1);
+  const suggestionRef = useRef<HTMLDivElement>(null);
 
   // 模拟财报数据
   const mockReports: FinancialReport[] = [
@@ -241,6 +246,80 @@ const FinancialReportPage: React.FC = () => {
     }
   };
 
+  // 处理搜索输入变化
+  const handleSearchInputChange = (value: string) => {
+    setSearchSymbol(value);
+    
+    if (value.trim().length > 0) {
+      const results = searchStockSymbols(value, 8);
+      setSuggestions(results);
+      setShowSuggestions(results.length > 0);
+      setSelectedSuggestionIndex(-1);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  // 选择建议项
+  const handleSelectSuggestion = (stock: StockSymbol) => {
+    setSearchSymbol(stock.symbol);
+    setShowSuggestions(false);
+    setSuggestions([]);
+    setSelectedSuggestionIndex(-1);
+    // 自动触发搜索
+    setTimeout(() => {
+      handleSearch();
+    }, 100);
+  };
+
+  // 处理键盘导航
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showSuggestions) {
+      if (e.key === 'Enter') {
+        handleSearch();
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => 
+          prev < suggestions.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : -1);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedSuggestionIndex >= 0) {
+          handleSelectSuggestion(suggestions[selectedSuggestionIndex]);
+        } else {
+          handleSearch();
+        }
+        break;
+      case 'Escape':
+        setShowSuggestions(false);
+        setSelectedSuggestionIndex(-1);
+        break;
+    }
+  };
+
+  // 点击外部关闭建议列表
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (suggestionRef.current && !suggestionRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#0a0e17] text-white p-6">
       {/* 顶部导航 */}
@@ -264,15 +343,59 @@ const FinancialReportPage: React.FC = () => {
 
       {/* 搜索栏 */}
       <div className="bg-[#141a2a] border border-[#2a3a5a] rounded-xl p-6 mb-6">
-        <div className="flex gap-4 mb-3">
-          <input
-            type="text"
-            placeholder="输入股票代码 (如: AAPL, MSFT, TSLA)"
-            value={searchSymbol}
-            onChange={(e) => setSearchSymbol(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            className="flex-1 bg-[#0a0e17] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#00ccff] transition-all"
-          />
+        <div className="flex gap-4 mb-3 relative" ref={suggestionRef}>
+          <div className="flex-1 relative">
+            <input
+              type="text"
+              placeholder="输入股票代码或公司名称 (如: AAPL, Apple, Microsoft)"
+              value={searchSymbol}
+              onChange={(e) => handleSearchInputChange(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onFocus={() => {
+                if (searchSymbol.trim().length > 0 && suggestions.length > 0) {
+                  setShowSuggestions(true);
+                }
+              }}
+              className="w-full bg-[#0a0e17] border border-[#2a3a5a] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#00ccff] transition-all"
+            />
+            
+            {/* 自动完成建议列表 */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-[#141a2a] border border-[#2a3a5a] rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+                {suggestions.map((stock, index) => (
+                  <div
+                    key={stock.symbol}
+                    onClick={() => handleSelectSuggestion(stock)}
+                    className={`px-4 py-3 cursor-pointer transition-all border-b border-[#2a3a5a]/30 last:border-b-0 ${
+                      index === selectedSuggestionIndex
+                        ? 'bg-[#00ccff]/20 border-l-4 border-l-[#00ccff]'
+                        : 'hover:bg-[#1a2332]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-[#00ccff]">{stock.symbol}</span>
+                          <span className="text-xs px-2 py-0.5 bg-[#2a3a5a] text-gray-400 rounded">
+                            {stock.exchange}
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-400 mt-1">{stock.name}</div>
+                      </div>
+                      {stock.sector && (
+                        <div className="text-xs text-gray-500 ml-4">{stock.sector}</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                <div className="px-4 py-2 text-xs text-gray-500 bg-[#0a0e17] border-t border-[#2a3a5a]">
+                  <kbd className="px-2 py-1 bg-[#2a3a5a] rounded text-[#00ccff]">↑↓</kbd> 导航
+                  <kbd className="ml-2 px-2 py-1 bg-[#2a3a5a] rounded text-[#00ccff]">Enter</kbd> 选择
+                  <kbd className="ml-2 px-2 py-1 bg-[#2a3a5a] rounded text-[#00ccff]">Esc</kbd> 关闭
+                </div>
+              </div>
+            )}
+          </div>
           <button
             onClick={handleSearch}
             className="px-6 py-3 bg-gradient-to-r from-[#00ccff] to-[#00ff88] text-black font-semibold rounded-lg hover:shadow-lg hover:shadow-[#00ccff]/30 transition-all duration-300"
