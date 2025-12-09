@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ReactECharts from 'echarts-for-react';
 
 interface FinancialReport {
   // 基础信息
@@ -38,6 +39,17 @@ interface FinancialReport {
   debtToEquity: number;
   peRatio: number;
   pbRatio: number;
+}
+
+// 历史财务数据接口（用于图表）
+interface HistoricalData {
+  quarter: string;
+  revenue: number;
+  netIncome: number;
+  profitMargin: number;
+  grossMargin: number;
+  roe: number;
+  eps: number;
 }
 
 const FinancialReportPage: React.FC = () => {
@@ -182,6 +194,34 @@ const FinancialReportPage: React.FC = () => {
       pbRatio: 7.17
     }
   ];
+
+  // 模拟历史数据（最近4个季度）
+  const historicalDataMap: Record<string, HistoricalData[]> = {
+    'AAPL': [
+      { quarter: '2024 Q1', revenue: 90753000000, netIncome: 23636000000, profitMargin: 26.04, grossMargin: 45.96, roe: 160.58, eps: 1.52 },
+      { quarter: '2024 Q2', revenue: 85778000000, netIncome: 21744000000, profitMargin: 25.35, grossMargin: 46.25, roe: 153.12, eps: 1.40 },
+      { quarter: '2024 Q3', revenue: 94930000000, netIncome: 22956000000, profitMargin: 24.18, grossMargin: 46.22, roe: 145.89, eps: 1.47 },
+      { quarter: '2024 Q4', revenue: 89498000000, netIncome: 22956000000, profitMargin: 25.65, grossMargin: 46.55, roe: 147.25, eps: 1.47 }
+    ],
+    'MSFT': [
+      { quarter: '2024 Q1', revenue: 61858000000, netIncome: 21939000000, profitMargin: 35.46, grossMargin: 69.76, roe: 36.21, eps: 2.94 },
+      { quarter: '2024 Q2', revenue: 61858000000, netIncome: 22036000000, profitMargin: 35.62, grossMargin: 70.01, roe: 37.58, eps: 2.95 },
+      { quarter: '2024 Q3', revenue: 64726000000, netIncome: 22291000000, profitMargin: 34.43, grossMargin: 69.42, roe: 37.92, eps: 2.99 },
+      { quarter: '2024 Q4', revenue: 62020000000, netIncome: 21871000000, profitMargin: 35.27, grossMargin: 69.20, roe: 38.45, eps: 2.93 }
+    ],
+    'TSLA': [
+      { quarter: '2024 Q1', revenue: 21301000000, netIncome: 1129000000, profitMargin: 5.30, grossMargin: 17.38, roe: 12.45, eps: 0.35 },
+      { quarter: '2024 Q2', revenue: 25500000000, netIncome: 1478000000, profitMargin: 5.80, grossMargin: 18.16, roe: 15.67, eps: 0.46 },
+      { quarter: '2024 Q3', revenue: 25182000000, netIncome: 2167000000, profitMargin: 8.61, grossMargin: 17.94, roe: 18.92, eps: 0.68 },
+      { quarter: '2024 Q4', revenue: 25182000000, netIncome: 2167000000, profitMargin: 8.61, grossMargin: 17.94, roe: 18.92, eps: 0.68 }
+    ],
+    'GOOGL': [
+      { quarter: '2024 Q1', revenue: 80539000000, netIncome: 23662000000, profitMargin: 29.38, grossMargin: 57.47, roe: 28.91, eps: 1.89 },
+      { quarter: '2024 Q2', revenue: 84742000000, netIncome: 23619000000, profitMargin: 27.87, grossMargin: 57.13, roe: 29.12, eps: 1.89 },
+      { quarter: '2024 Q3', revenue: 88268000000, netIncome: 26301000000, profitMargin: 29.80, grossMargin: 56.94, roe: 31.45, eps: 2.12 },
+      { quarter: '2024 Q4', revenue: 86309000000, netIncome: 20641000000, profitMargin: 23.92, grossMargin: 55.81, roe: 29.67, eps: 1.64 }
+    ]
+  };
 
   const formatNumber = (num: number): string => {
     if (num >= 1000000000) {
@@ -504,6 +544,268 @@ const FinancialReportPage: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* 历史趋势图表 */}
+          {historicalDataMap[selectedReport.symbol] && (
+            <div className="space-y-6">
+              {/* 营收与净利润趋势 */}
+              <div className="bg-[#141a2a] border border-[#2a3a5a] rounded-xl p-6">
+                <h3 className="text-xl font-bold mb-4 text-white flex items-center gap-2">
+                  <span>📈</span>
+                  <span>营收与净利润趋势</span>
+                </h3>
+                <ReactECharts
+                  option={{
+                    backgroundColor: 'transparent',
+                    tooltip: {
+                      trigger: 'axis',
+                      backgroundColor: '#1a2332',
+                      borderColor: '#2a3a5a',
+                      textStyle: { color: '#fff' }
+                    },
+                    legend: {
+                      data: ['营业收入', '净利润'],
+                      textStyle: { color: '#808080' },
+                      top: 0
+                    },
+                    grid: {
+                      left: '3%',
+                      right: '4%',
+                      bottom: '3%',
+                      top: '15%',
+                      containLabel: true
+                    },
+                    xAxis: {
+                      type: 'category',
+                      data: historicalDataMap[selectedReport.symbol].map(d => d.quarter),
+                      axisLine: { lineStyle: { color: '#2a3a5a' } },
+                      axisLabel: { color: '#808080' }
+                    },
+                    yAxis: {
+                      type: 'value',
+                      axisLine: { lineStyle: { color: '#2a3a5a' } },
+                      axisLabel: {
+                        color: '#808080',
+                        formatter: (value: number) => {
+                          if (value >= 1e9) return `$${(value / 1e9).toFixed(1)}B`;
+                          if (value >= 1e6) return `$${(value / 1e6).toFixed(1)}M`;
+                          return `$${value}`;
+                        }
+                      },
+                      splitLine: { lineStyle: { color: '#2a3a5a', type: 'dashed' } }
+                    },
+                    series: [
+                      {
+                        name: '营业收入',
+                        type: 'line',
+                        data: historicalDataMap[selectedReport.symbol].map(d => d.revenue),
+                        smooth: true,
+                        lineStyle: { color: '#00ccff', width: 3 },
+                        itemStyle: { color: '#00ccff' },
+                        areaStyle: {
+                          color: {
+                            type: 'linear',
+                            x: 0, y: 0, x2: 0, y2: 1,
+                            colorStops: [
+                              { offset: 0, color: 'rgba(0, 204, 255, 0.3)' },
+                              { offset: 1, color: 'rgba(0, 204, 255, 0.05)' }
+                            ]
+                          }
+                        }
+                      },
+                      {
+                        name: '净利润',
+                        type: 'line',
+                        data: historicalDataMap[selectedReport.symbol].map(d => d.netIncome),
+                        smooth: true,
+                        lineStyle: { color: '#00ff88', width: 3 },
+                        itemStyle: { color: '#00ff88' },
+                        areaStyle: {
+                          color: {
+                            type: 'linear',
+                            x: 0, y: 0, x2: 0, y2: 1,
+                            colorStops: [
+                              { offset: 0, color: 'rgba(0, 255, 136, 0.3)' },
+                              { offset: 1, color: 'rgba(0, 255, 136, 0.05)' }
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  }}
+                  style={{ height: '350px', width: '100%' }}
+                />
+              </div>
+
+              {/* 利润率对比 */}
+              <div className="bg-[#141a2a] border border-[#2a3a5a] rounded-xl p-6">
+                <h3 className="text-xl font-bold mb-4 text-white flex items-center gap-2">
+                  <span>📊</span>
+                  <span>利润率分析</span>
+                </h3>
+                <ReactECharts
+                  option={{
+                    backgroundColor: 'transparent',
+                    tooltip: {
+                      trigger: 'axis',
+                      backgroundColor: '#1a2332',
+                      borderColor: '#2a3a5a',
+                      textStyle: { color: '#fff' },
+                      axisPointer: { type: 'shadow' }
+                    },
+                    legend: {
+                      data: ['毛利率', '净利润率'],
+                      textStyle: { color: '#808080' },
+                      top: 0
+                    },
+                    grid: {
+                      left: '3%',
+                      right: '4%',
+                      bottom: '3%',
+                      top: '15%',
+                      containLabel: true
+                    },
+                    xAxis: {
+                      type: 'category',
+                      data: historicalDataMap[selectedReport.symbol].map(d => d.quarter),
+                      axisLine: { lineStyle: { color: '#2a3a5a' } },
+                      axisLabel: { color: '#808080' }
+                    },
+                    yAxis: {
+                      type: 'value',
+                      axisLine: { lineStyle: { color: '#2a3a5a' } },
+                      axisLabel: {
+                        color: '#808080',
+                        formatter: '{value}%'
+                      },
+                      splitLine: { lineStyle: { color: '#2a3a5a', type: 'dashed' } }
+                    },
+                    series: [
+                      {
+                        name: '毛利率',
+                        type: 'bar',
+                        data: historicalDataMap[selectedReport.symbol].map(d => d.grossMargin),
+                        itemStyle: {
+                          color: {
+                            type: 'linear',
+                            x: 0, y: 0, x2: 0, y2: 1,
+                            colorStops: [
+                              { offset: 0, color: '#00ccff' },
+                              { offset: 1, color: '#0099cc' }
+                            ]
+                          }
+                        },
+                        barWidth: '30%'
+                      },
+                      {
+                        name: '净利润率',
+                        type: 'bar',
+                        data: historicalDataMap[selectedReport.symbol].map(d => d.profitMargin),
+                        itemStyle: {
+                          color: {
+                            type: 'linear',
+                            x: 0, y: 0, x2: 0, y2: 1,
+                            colorStops: [
+                              { offset: 0, color: '#00ff88' },
+                              { offset: 1, color: '#00cc66' }
+                            ]
+                          }
+                        },
+                        barWidth: '30%'
+                      }
+                    ]
+                  }}
+                  style={{ height: '350px', width: '100%' }}
+                />
+              </div>
+
+              {/* ROE 和 EPS 趋势 */}
+              <div className="bg-[#141a2a] border border-[#2a3a5a] rounded-xl p-6">
+                <h3 className="text-xl font-bold mb-4 text-white flex items-center gap-2">
+                  <span>💹</span>
+                  <span>ROE 与 EPS 趋势</span>
+                </h3>
+                <ReactECharts
+                  option={{
+                    backgroundColor: 'transparent',
+                    tooltip: {
+                      trigger: 'axis',
+                      backgroundColor: '#1a2332',
+                      borderColor: '#2a3a5a',
+                      textStyle: { color: '#fff' }
+                    },
+                    legend: {
+                      data: ['ROE (%)', 'EPS ($)'],
+                      textStyle: { color: '#808080' },
+                      top: 0
+                    },
+                    grid: {
+                      left: '3%',
+                      right: '4%',
+                      bottom: '3%',
+                      top: '15%',
+                      containLabel: true
+                    },
+                    xAxis: {
+                      type: 'category',
+                      data: historicalDataMap[selectedReport.symbol].map(d => d.quarter),
+                      axisLine: { lineStyle: { color: '#2a3a5a' } },
+                      axisLabel: { color: '#808080' }
+                    },
+                    yAxis: [
+                      {
+                        type: 'value',
+                        name: 'ROE (%)',
+                        position: 'left',
+                        axisLine: { lineStyle: { color: '#ffa500' } },
+                        axisLabel: {
+                          color: '#ffa500',
+                          formatter: '{value}%'
+                        },
+                        splitLine: { lineStyle: { color: '#2a3a5a', type: 'dashed' } }
+                      },
+                      {
+                        type: 'value',
+                        name: 'EPS ($)',
+                        position: 'right',
+                        axisLine: { lineStyle: { color: '#ff6b6b' } },
+                        axisLabel: {
+                          color: '#ff6b6b',
+                          formatter: '${value}'
+                        },
+                        splitLine: { show: false }
+                      }
+                    ],
+                    series: [
+                      {
+                        name: 'ROE (%)',
+                        type: 'line',
+                        yAxisIndex: 0,
+                        data: historicalDataMap[selectedReport.symbol].map(d => d.roe),
+                        smooth: true,
+                        lineStyle: { color: '#ffa500', width: 3 },
+                        itemStyle: { color: '#ffa500' },
+                        symbol: 'circle',
+                        symbolSize: 8
+                      },
+                      {
+                        name: 'EPS ($)',
+                        type: 'line',
+                        yAxisIndex: 1,
+                        data: historicalDataMap[selectedReport.symbol].map(d => d.eps),
+                        smooth: true,
+                        lineStyle: { color: '#ff6b6b', width: 3 },
+                        itemStyle: { color: '#ff6b6b' },
+                        symbol: 'diamond',
+                        symbolSize: 10
+                      }
+                    ]
+                  }}
+                  style={{ height: '350px', width: '100%' }}
+                />
+              </div>
+            </div>
+          )}
 
           {/* 投资建议 */}
           <div className="bg-gradient-to-r from-[#00ccff]/10 to-[#00ff88]/10 border border-[#00ccff]/30 rounded-xl p-6">
