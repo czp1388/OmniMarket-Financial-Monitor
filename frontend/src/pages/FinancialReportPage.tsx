@@ -2,14 +2,42 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface FinancialReport {
+  // 基础信息
   symbol: string;
+  companyName: string;
   quarter: string;
+  
+  // 利润表
   revenue: number;
   netIncome: number;
+  grossProfit: number;
+  operatingIncome: number;
   eps: number;
+  
+  // 资产负债表
+  totalAssets: number;
+  totalLiabilities: number;
+  totalEquity: number;
+  currentAssets: number;
+  currentLiabilities: number;
+  cash: number;
+  
+  // 现金流量表
+  operatingCashFlow: number;
+  investingCashFlow: number;
+  financingCashFlow: number;
+  freeCashFlow: number;
+  
+  // 财务比率
   revenueGrowth: number;
   profitMargin: number;
+  grossMargin: number;
   roe: number;
+  roa: number;
+  currentRatio: number;
+  debtToEquity: number;
+  peRatio: number;
+  pbRatio: number;
 }
 
 const FinancialReportPage: React.FC = () => {
@@ -23,43 +51,135 @@ const FinancialReportPage: React.FC = () => {
   const mockReports: FinancialReport[] = [
     {
       symbol: 'AAPL',
+      companyName: 'Apple Inc.',
       quarter: '2024 Q4',
+      // 利润表
       revenue: 89498000000,
       netIncome: 22956000000,
+      grossProfit: 41671000000,
+      operatingIncome: 28996000000,
       eps: 1.47,
+      // 资产负债表
+      totalAssets: 352755000000,
+      totalLiabilities: 290437000000,
+      totalEquity: 62318000000,
+      currentAssets: 135405000000,
+      currentLiabilities: 132480000000,
+      cash: 28969000000,
+      // 现金流量表
+      operatingCashFlow: 26891000000,
+      investingCashFlow: -3704000000,
+      financingCashFlow: -27347000000,
+      freeCashFlow: 23187000000,
+      // 财务比率
       revenueGrowth: 6.07,
       profitMargin: 25.65,
-      roe: 147.25
+      grossMargin: 46.55,
+      roe: 147.25,
+      roa: 6.51,
+      currentRatio: 1.02,
+      debtToEquity: 4.66,
+      peRatio: 29.82,
+      pbRatio: 43.89
     },
     {
       symbol: 'MSFT',
+      companyName: 'Microsoft Corp.',
       quarter: '2024 Q4',
+      // 利润表
       revenue: 62020000000,
       netIncome: 21871000000,
+      grossProfit: 42916000000,
+      operatingIncome: 27854000000,
       eps: 2.93,
+      // 资产负债表
+      totalAssets: 512163000000,
+      totalLiabilities: 253307000000,
+      totalEquity: 258856000000,
+      currentAssets: 192893000000,
+      currentLiabilities: 120767000000,
+      cash: 80021000000,
+      // 现金流量表
+      operatingCashFlow: 29863000000,
+      investingCashFlow: -13204000000,
+      financingCashFlow: -18772000000,
+      freeCashFlow: 24321000000,
+      // 财务比率
       revenueGrowth: 16.0,
       profitMargin: 35.27,
-      roe: 38.45
+      grossMargin: 69.20,
+      roe: 38.45,
+      roa: 4.27,
+      currentRatio: 1.60,
+      debtToEquity: 0.98,
+      peRatio: 36.42,
+      pbRatio: 14.01
     },
     {
       symbol: 'TSLA',
+      companyName: 'Tesla Inc.',
       quarter: '2024 Q3',
+      // 利润表
       revenue: 25182000000,
       netIncome: 2167000000,
+      grossProfit: 4516000000,
+      operatingIncome: 1762000000,
       eps: 0.68,
+      // 资产负债表
+      totalAssets: 106618000000,
+      totalLiabilities: 69154000000,
+      totalEquity: 37464000000,
+      currentAssets: 43049000000,
+      currentLiabilities: 31663000000,
+      cash: 26077000000,
+      // 现金流量表
+      operatingCashFlow: 2939000000,
+      investingCashFlow: -2462000000,
+      financingCashFlow: 113000000,
+      freeCashFlow: 477000000,
+      // 财务比率
       revenueGrowth: 7.85,
       profitMargin: 8.61,
-      roe: 18.92
+      grossMargin: 17.94,
+      roe: 18.92,
+      roa: 2.03,
+      currentRatio: 1.36,
+      debtToEquity: 1.85,
+      peRatio: 62.35,
+      pbRatio: 11.78
     },
     {
       symbol: 'GOOGL',
+      companyName: 'Alphabet Inc.',
       quarter: '2024 Q4',
+      // 利润表
       revenue: 86309000000,
       netIncome: 20641000000,
+      grossProfit: 48165000000,
+      operatingIncome: 25465000000,
       eps: 1.64,
+      // 资产负债表
+      totalAssets: 402392000000,
+      totalLiabilities: 124000000000,
+      totalEquity: 278392000000,
+      currentAssets: 155669000000,
+      currentLiabilities: 80900000000,
+      cash: 107726000000,
+      // 现金流量表
+      operatingCashFlow: 28346000000,
+      investingCashFlow: -12098000000,
+      financingCashFlow: -14682000000,
+      freeCashFlow: 23715000000,
+      // 财务比率
       revenueGrowth: 15.09,
       profitMargin: 23.92,
-      roe: 29.67
+      grossMargin: 55.81,
+      roe: 29.67,
+      roa: 5.13,
+      currentRatio: 1.92,
+      debtToEquity: 0.45,
+      peRatio: 24.17,
+      pbRatio: 7.17
     }
   ];
 
@@ -178,7 +298,10 @@ const FinancialReportPage: React.FC = () => {
           {/* 公司信息卡片 */}
           <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-3xl font-bold text-white">{selectedReport.symbol}</h2>
+              <div>
+                <h2 className="text-3xl font-bold text-white">{selectedReport.symbol}</h2>
+                <p className="text-gray-400 text-sm mt-1">{selectedReport.companyName}</p>
+              </div>
               <span className="px-4 py-2 bg-[#00ccff]/20 text-[#00ccff] rounded-lg font-mono text-sm">
                 {selectedReport.quarter}
               </span>
@@ -214,6 +337,131 @@ const FinancialReportPage: React.FC = () => {
               </div>
               <div className="text-sm text-gray-400">
                 ROE: {selectedReport.roe.toFixed(2)}%
+              </div>
+            </div>
+          </div>
+
+          {/* 资产负债表 */}
+          <div className="bg-[#141a2a] border border-[#2a3a5a] rounded-xl p-6">
+            <h3 className="text-xl font-bold mb-4 text-white flex items-center gap-2">
+              <span>💼</span>
+              <span>资产负债表</span>
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* 资产 */}
+              <div className="space-y-3">
+                <div className="text-sm font-semibold text-[#00ccff] mb-3">资产</div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">总资产</span>
+                  <span className="font-mono text-white">{formatNumber(selectedReport.totalAssets)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">流动资产</span>
+                  <span className="font-mono text-white">{formatNumber(selectedReport.currentAssets)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">现金及现金等价物</span>
+                  <span className="font-mono text-[#00ff88]">{formatNumber(selectedReport.cash)}</span>
+                </div>
+              </div>
+
+              {/* 负债与权益 */}
+              <div className="space-y-3">
+                <div className="text-sm font-semibold text-[#ff6b6b] mb-3">负债与权益</div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">总负债</span>
+                  <span className="font-mono text-white">{formatNumber(selectedReport.totalLiabilities)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">股东权益</span>
+                  <span className="font-mono text-white">{formatNumber(selectedReport.totalEquity)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400 text-sm">资产负债率</span>
+                  <span className={`font-mono ${selectedReport.debtToEquity > 2 ? 'text-[#ff6b6b]' : 'text-[#00ff88]'}`}>
+                    {(selectedReport.totalLiabilities / selectedReport.totalAssets * 100).toFixed(2)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 现金流量表 */}
+          <div className="bg-[#141a2a] border border-[#2a3a5a] rounded-xl p-6">
+            <h3 className="text-xl font-bold mb-4 text-white flex items-center gap-2">
+              <span>💰</span>
+              <span>现金流量表</span>
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex justify-between items-center p-3 bg-[#0a0e17] rounded-lg">
+                <span className="text-gray-400 text-sm">经营活动现金流</span>
+                <span className={`font-mono font-bold ${selectedReport.operatingCashFlow > 0 ? 'text-[#00ff88]' : 'text-[#ff6b6b]'}`}>
+                  {formatNumber(selectedReport.operatingCashFlow)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-[#0a0e17] rounded-lg">
+                <span className="text-gray-400 text-sm">投资活动现金流</span>
+                <span className={`font-mono font-bold ${selectedReport.investingCashFlow > 0 ? 'text-[#00ff88]' : 'text-[#ff6b6b]'}`}>
+                  {formatNumber(selectedReport.investingCashFlow)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-[#0a0e17] rounded-lg">
+                <span className="text-gray-400 text-sm">筹资活动现金流</span>
+                <span className={`font-mono font-bold ${selectedReport.financingCashFlow > 0 ? 'text-[#00ff88]' : 'text-[#ff6b6b]'}`}>
+                  {formatNumber(selectedReport.financingCashFlow)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-[#0a0e17] rounded-lg border-2 border-[#00ccff]">
+                <span className="text-[#00ccff] text-sm font-semibold">自由现金流</span>
+                <span className={`font-mono font-bold ${selectedReport.freeCashFlow > 0 ? 'text-[#00ff88]' : 'text-[#ff6b6b]'}`}>
+                  {formatNumber(selectedReport.freeCashFlow)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 关键财务比率 */}
+          <div className="bg-[#141a2a] border border-[#2a3a5a] rounded-xl p-6">
+            <h3 className="text-xl font-bold mb-4 text-white flex items-center gap-2">
+              <span>📊</span>
+              <span>关键财务比率</span>
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-[#0a0e17] rounded-lg">
+                <div className="text-gray-400 text-xs mb-2">毛利率</div>
+                <div className="text-2xl font-bold text-[#00ff88]">{selectedReport.grossMargin.toFixed(1)}%</div>
+              </div>
+              <div className="text-center p-4 bg-[#0a0e17] rounded-lg">
+                <div className="text-gray-400 text-xs mb-2">ROA</div>
+                <div className="text-2xl font-bold text-[#00ccff]">{selectedReport.roa.toFixed(1)}%</div>
+              </div>
+              <div className="text-center p-4 bg-[#0a0e17] rounded-lg">
+                <div className="text-gray-400 text-xs mb-2">流动比率</div>
+                <div className={`text-2xl font-bold ${selectedReport.currentRatio >= 1 ? 'text-[#00ff88]' : 'text-[#ff6b6b]'}`}>
+                  {selectedReport.currentRatio.toFixed(2)}
+                </div>
+              </div>
+              <div className="text-center p-4 bg-[#0a0e17] rounded-lg">
+                <div className="text-gray-400 text-xs mb-2">资产负债比</div>
+                <div className={`text-2xl font-bold ${selectedReport.debtToEquity < 2 ? 'text-[#00ff88]' : 'text-[#ffa500]'}`}>
+                  {selectedReport.debtToEquity.toFixed(2)}
+                </div>
+              </div>
+              <div className="text-center p-4 bg-[#0a0e17] rounded-lg">
+                <div className="text-gray-400 text-xs mb-2">P/E 市盈率</div>
+                <div className="text-2xl font-bold text-white">{selectedReport.peRatio.toFixed(2)}</div>
+              </div>
+              <div className="text-center p-4 bg-[#0a0e17] rounded-lg">
+                <div className="text-gray-400 text-xs mb-2">P/B 市净率</div>
+                <div className="text-2xl font-bold text-white">{selectedReport.pbRatio.toFixed(2)}</div>
+              </div>
+              <div className="text-center p-4 bg-[#0a0e17] rounded-lg">
+                <div className="text-gray-400 text-xs mb-2">净利润率</div>
+                <div className="text-2xl font-bold text-[#00ff88]">{selectedReport.profitMargin.toFixed(1)}%</div>
+              </div>
+              <div className="text-center p-4 bg-[#0a0e17] rounded-lg">
+                <div className="text-gray-400 text-xs mb-2">ROE</div>
+                <div className="text-2xl font-bold text-[#00ccff]">{selectedReport.roe.toFixed(1)}%</div>
               </div>
             </div>
           </div>
