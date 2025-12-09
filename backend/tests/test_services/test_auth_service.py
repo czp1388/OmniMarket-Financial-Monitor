@@ -25,7 +25,7 @@ def sample_user():
         username="testuser",
         email="test@example.com",
         full_name="Test User",
-        hashed_password="$2b$12$test_hashed_password",
+        password_hash="$2b$12$test_hashed_password",
         created_at=datetime.now(),
         updated_at=datetime.now(),
         is_active=True
