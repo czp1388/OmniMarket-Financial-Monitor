@@ -16,6 +16,8 @@ const FinancialReportPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchSymbol, setSearchSymbol] = useState<string>('');
   const [selectedReport, setSelectedReport] = useState<FinancialReport | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
 
   // 模拟财报数据
   const mockReports: FinancialReport[] = [
@@ -71,8 +73,21 @@ const FinancialReportPage: React.FC = () => {
   };
 
   const handleSearch = () => {
-    const report = mockReports.find(r => r.symbol.toLowerCase() === searchSymbol.toLowerCase());
-    setSelectedReport(report || null);
+    setError('');
+    setIsLoading(true);
+    
+    // 模拟API延迟
+    setTimeout(() => {
+      const report = mockReports.find(r => r.symbol.toLowerCase() === searchSymbol.toLowerCase());
+      if (report) {
+        setSelectedReport(report);
+        setError('');
+      } else {
+        setSelectedReport(null);
+        setError(`未找到股票代码 "${searchSymbol}" 的财报数据`);
+      }
+      setIsLoading(false);
+    }, 800);
   };
 
   return (
@@ -125,9 +140,14 @@ const FinancialReportPage: React.FC = () => {
               key={report.symbol}
               onClick={() => {
                 setSearchSymbol(report.symbol);
-                setSelectedReport(report);
+                setError('');
+                setIsLoading(true);
+                setTimeout(() => {
+                  setSelectedReport(report);
+                  setIsLoading(false);
+                }, 800);
               }}
-              className="px-4 py-2 bg-[#141a2a] hover:bg-[#1a2332] border border-[#2a3a5a] rounded-lg transition-all duration-300"
+              className="px-4 py-2 bg-[#141a2a] hover:bg-[#1a2332] border border-[#2a3a5a] rounded-lg transition-all duration-300 hover:border-[#00ccff]"
             >
               {report.symbol}
             </button>
@@ -135,8 +155,25 @@ const FinancialReportPage: React.FC = () => {
         </div>
       </div>
 
+      {/* 错误提示 */}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500 rounded-xl p-4 mb-6">
+          <div className="flex items-center gap-2 text-red-500">
+            <span className="text-xl">⚠️</span>
+            <span className="font-mono text-sm">{error}</span>
+          </div>
+        </div>
+      )}
+
+      {/* 加载动画 */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-[#00ccff]"></div>
+        </div>
+      )}
+
       {/* 财报详情 */}
-      {selectedReport ? (
+      {!isLoading && selectedReport ? (
         <div className="space-y-6">
           {/* 公司信息卡片 */}
           <div className="bg-gradient-to-br from-[#141a2a] to-[#1a2332] border border-[#2a3a5a] rounded-xl p-6">
@@ -234,11 +271,14 @@ const FinancialReportPage: React.FC = () => {
             </p>
           </div>
         </div>
-      ) : (
+      ) : null}
+
+      {/* 空状态 */}
+      {!isLoading && !selectedReport && !error && (
         <div className="bg-[#141a2a] border border-[#2a3a5a] rounded-xl p-12 text-center">
           <div className="text-6xl mb-4">📊</div>
           <div className="text-gray-400 text-lg">
-            {searchSymbol ? '未找到该股票的财报数据' : '请输入股票代码查询财报'}
+            请输入股票代码或点击快速选择按钮查询财报
           </div>
         </div>
       )}
