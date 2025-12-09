@@ -1,63 +1,16 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactECharts from 'echarts-for-react';
-
-interface FinancialReport {
-  // 基础信息
-  symbol: string;
-  companyName: string;
-  quarter: string;
-  
-  // 利润表
-  revenue: number;
-  netIncome: number;
-  grossProfit: number;
-  operatingIncome: number;
-  eps: number;
-  
-  // 资产负债表
-  totalAssets: number;
-  totalLiabilities: number;
-  totalEquity: number;
-  currentAssets: number;
-  currentLiabilities: number;
-  cash: number;
-  
-  // 现金流量表
-  operatingCashFlow: number;
-  investingCashFlow: number;
-  financingCashFlow: number;
-  freeCashFlow: number;
-  
-  // 财务比率
-  revenueGrowth: number;
-  profitMargin: number;
-  grossMargin: number;
-  roe: number;
-  roa: number;
-  currentRatio: number;
-  debtToEquity: number;
-  peRatio: number;
-  pbRatio: number;
-}
-
-// 历史财务数据接口（用于图表）
-interface HistoricalData {
-  quarter: string;
-  revenue: number;
-  netIncome: number;
-  profitMargin: number;
-  grossMargin: number;
-  roe: number;
-  eps: number;
-}
+import { financialReportAPI, FinancialReport, HistoricalData } from '../api/financialReportAPI';
 
 const FinancialReportPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchSymbol, setSearchSymbol] = useState<string>('');
   const [selectedReport, setSelectedReport] = useState<FinancialReport | null>(null);
+  const [historicalData, setHistoricalData] = useState<HistoricalData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  const [useRealAPI, setUseRealAPI] = useState<boolean>(true);  // 是否使用真实API
 
   // 模拟财报数据
   const mockReports: FinancialReport[] = [
@@ -232,22 +185,60 @@ const FinancialReportPage: React.FC = () => {
     return `$${num.toFixed(2)}`;
   };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     setError('');
     setIsLoading(true);
-    
-    // 模拟API延迟
-    setTimeout(() => {
-      const report = mockReports.find(r => r.symbol.toLowerCase() === searchSymbol.toLowerCase());
-      if (report) {
+
+    try {
+      if (useRealAPI) {
+        // 使用真实 API
+        const report = await financialReportAPI.getFinancialReport(searchSymbol);
+        const historical = await financialReportAPI.getHistoricalData(searchSymbol, 4);
+        
         setSelectedReport(report);
+        setHistoricalData(historical);
         setError('');
       } else {
-        setSelectedReport(null);
-        setError(`未找到股票代码 "${searchSymbol}" 的财报数据`);
+        // 使用模拟数据（降级方案）
+        setTimeout(() => {
+          const report = mockReports.find(
+            r => r.symbol.toLowerCase() === searchSymbol.toLowerCase()
+          );
+
+          if (report) {
+            setSelectedReport(report);
+            setHistoricalData(mockHistoricalData[report.symbol] || []);
+            setError('');
+          } else {
+            setSelectedReport(null);
+            setError(`未找到股票代码 "${searchSymbol}" 的财报数据。请尝试 AAPL, MSFT, GOOGL 或 AMZN。`);
+          }
+          setIsLoading(false);
+        }, 800);
+        return; // 提前返回，避免执行 finally
       }
+    } catch (err: any) {
+      console.error('获取财报数据失败:', err);
+      setSelectedReport(null);
+      setHistoricalData([]);
+      
+      // 尝试降级到模拟数据
+      const mockReport = mockReports.find(
+        r => r.symbol.toUpperCase() === searchSymbol.toUpperCase()
+      );
+      
+      if (mockReport) {
+        setSelectedReport(mockReport);
+        setHistoricalData(mockHistoricalData[mockReport.symbol] || []);
+        setError(`⚠️ API 请求失败，已切换到模拟数据。错误: ${err.message}`);
+      } else {
+        setError(
+          err.message || `获取 "${searchSymbol}" 的财报数据失败。请检查股票代码是否正确，或稍后重试。`
+        );
+      }
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   return (
@@ -273,7 +264,7 @@ const FinancialReportPage: React.FC = () => {
 
       {/* 搜索栏 */}
       <div className="bg-[#141a2a] border border-[#2a3a5a] rounded-xl p-6 mb-6">
-        <div className="flex gap-4">
+        <div className="flex gap-4 mb-3">
           <input
             type="text"
             placeholder="输入股票代码 (如: AAPL, MSFT, TSLA)"
@@ -288,6 +279,24 @@ const FinancialReportPage: React.FC = () => {
           >
             查询财报
           </button>
+        </div>
+        
+        {/* API 切换控制 */}
+        <div className="flex items-center gap-3 text-sm">
+          <span className="text-gray-400">数据源:</span>
+          <button
+            onClick={() => setUseRealAPI(!useRealAPI)}
+            className={`px-3 py-1 rounded-lg transition-all ${
+              useRealAPI 
+                ? 'bg-[#00ccff]/20 text-[#00ccff] border border-[#00ccff]' 
+                : 'bg-[#2a3a5a] text-gray-400 border border-[#2a3a5a]'
+            }`}
+          >
+            {useRealAPI ? '🌐 真实API' : '📝 模拟数据'}
+          </button>
+          <span className="text-gray-500 text-xs">
+            {useRealAPI ? '(Alpha Vantage)' : '(离线演示)'}
+          </span>
         </div>
       </div>
 
