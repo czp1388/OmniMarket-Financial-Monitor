@@ -496,9 +496,23 @@ class DataService:
             logger.error(f"获取符号列表失败: {e}")
             return []
     
-    async def get_supported_exchanges(self):
-        """获取支持的交易所列表"""
-        return list(self.exchanges.keys())
+    def get_supported_exchanges(self) -> List[str]:
+        """
+        获取支持的交易所列表（同步方法）
+        
+        Returns:
+            交易所名称列表
+        """
+        # 返回已配置的交易所加上常见交易所
+        supported = list(self.exchanges.keys())
+        
+        # 添加其他支持的交易所
+        additional_exchanges = ['binance', 'okx', 'bybit', 'huobi', 'kraken', 'coinbase']
+        for ex in additional_exchanges:
+            if ex not in supported:
+                supported.append(ex)
+        
+        return supported
     
     async def get_quote(
         self,
@@ -671,6 +685,264 @@ class DataService:
         """停止数据服务"""
         logger.info("数据服务已停止")
         # 这里可以添加数据服务停止时的清理逻辑
+    
+    async def get_market_symbols(
+        self,
+        market_type: MarketType,
+        exchange: str = "binance",
+        limit: int = 100
+    ) -> List[Dict]:
+        """
+        获取市场品种列表
+        
+        Args:
+            market_type: 市场类型
+            exchange: 交易所名称
+            limit: 返回数量限制
+        
+        Returns:
+            品种列表，包含 symbol, name, price 等信息
+        """
+        try:
+            if market_type == MarketType.CRYPTO:
+                # 加密货币市场
+                if exchange in self.exchanges:
+                    try:
+                        markets = self.exchanges[exchange].load_markets()
+                        symbols_list = []
+                        
+                        for symbol, market in list(markets.items())[:limit]:
+                            if '/USDT' in symbol or '/USD' in symbol:
+                                symbols_list.append({
+                                    'symbol': symbol,
+                                    'name': market.get('base', symbol.split('/')[0]),
+                                    'exchange': exchange,
+                                    'type': 'crypto'
+                                })
+                        
+                        if symbols_list:
+                            return symbols_list
+                    except Exception as e:
+                        logger.warning(f"从交易所加载市场失败: {e}")
+                
+                # 降级到默认列表
+                return [
+                    {'symbol': 'BTC/USDT', 'name': 'Bitcoin', 'exchange': exchange, 'type': 'crypto'},
+                    {'symbol': 'ETH/USDT', 'name': 'Ethereum', 'exchange': exchange, 'type': 'crypto'},
+                    {'symbol': 'BNB/USDT', 'name': 'Binance Coin', 'exchange': exchange, 'type': 'crypto'},
+                    {'symbol': 'SOL/USDT', 'name': 'Solana', 'exchange': exchange, 'type': 'crypto'},
+                    {'symbol': 'XRP/USDT', 'name': 'Ripple', 'exchange': exchange, 'type': 'crypto'},
+                ][:limit]
+            
+            elif market_type == MarketType.STOCK:
+                # 股票市场
+                return [
+                    {'symbol': 'AAPL', 'name': 'Apple Inc.', 'exchange': 'NASDAQ', 'type': 'stock'},
+                    {'symbol': 'MSFT', 'name': 'Microsoft Corp.', 'exchange': 'NASDAQ', 'type': 'stock'},
+                    {'symbol': 'GOOGL', 'name': 'Alphabet Inc.', 'exchange': 'NASDAQ', 'type': 'stock'},
+                    {'symbol': 'AMZN', 'name': 'Amazon.com Inc.', 'exchange': 'NASDAQ', 'type': 'stock'},
+                    {'symbol': 'TSLA', 'name': 'Tesla Inc.', 'exchange': 'NASDAQ', 'type': 'stock'},
+                    {'symbol': '600519.SS', 'name': '贵州茅台', 'exchange': 'SSE', 'type': 'stock'},
+                    {'symbol': '000001.SZ', 'name': '平安银行', 'exchange': 'SZSE', 'type': 'stock'},
+                ][:limit]
+            
+            else:
+                return []
+                
+        except Exception as e:
+            logger.error(f"获取市场品种列表失败: {e}")
+            return []
+    
+    async def get_historical_data(
+        self,
+        symbol: str,
+        market_type: MarketType,
+        start_date: datetime,
+        end_date: datetime,
+        timeframe: Timeframe = Timeframe.D1
+    ) -> List[KlineData]:
+        """
+        获取历史数据
+        
+        Args:
+            symbol: 品种代码
+            market_type: 市场类型
+            start_date: 开始日期
+            end_date: 结束日期
+            timeframe: 时间周期
+        
+        Returns:
+            历史K线数据列表
+        """
+        try:
+            # 复用 get_klines 方法
+            exchange = "binance" if market_type == MarketType.CRYPTO else "nasdaq"
+            
+            # 计算需要的数据量
+            days_diff = (end_date - start_date).days
+            limit = max(days_diff, 100)
+            
+            klines = await self.get_klines(
+                symbol=symbol,
+                market_type=market_type,
+                exchange=exchange,
+                timeframe=timeframe,
+                limit=limit
+            )
+            
+            # 过滤日期范围
+            filtered_klines = [
+                k for k in klines
+                if start_date <= k.timestamp <= end_date
+            ]
+            
+            return filtered_klines
+            
+        except Exception as e:
+            logger.error(f"获取历史数据失败: {e}")
+            return []
+    
+    async def search_symbols(
+        self,
+        keyword: str,
+        market_type: Optional[MarketType] = None,
+        limit: int = 20
+    ) -> List[Dict]:
+        """
+        搜索品种
+        
+        Args:
+            keyword: 搜索关键词
+            market_type: 市场类型（可选）
+            limit: 返回数量限制
+        
+        Returns:
+            匹配的品种列表
+        """
+        try:
+            keyword_upper = keyword.upper()
+            results = []
+            
+            # 搜索范围
+            markets_to_search = [market_type] if market_type else [
+                MarketType.CRYPTO,
+                MarketType.STOCK
+            ]
+            
+            for mtype in markets_to_search:
+                symbols = await self.get_market_symbols(mtype, limit=100)
+                
+                # 过滤匹配的品种
+                for sym_info in symbols:
+                    if (keyword_upper in sym_info['symbol'].upper() or 
+                        keyword_upper in sym_info.get('name', '').upper()):
+                        results.append(sym_info)
+                        
+                        if len(results) >= limit:
+                            return results
+            
+            return results[:limit]
+            
+        except Exception as e:
+            logger.error(f"搜索品种失败: {e}")
+            return []
+    
+    async def validate_symbol(
+        self,
+        symbol: str,
+        market_type: MarketType,
+        exchange: str = "binance"
+    ) -> bool:
+        """
+        验证品种代码是否有效
+        
+        Args:
+            symbol: 品种代码
+            market_type: 市场类型
+            exchange: 交易所
+        
+        Returns:
+            True 如果有效，否则 False
+        """
+        try:
+            if market_type == MarketType.CRYPTO:
+                if exchange in self.exchanges:
+                    markets = self.exchanges[exchange].load_markets()
+                    return symbol in markets
+                else:
+                    # 基本验证格式
+                    return '/' in symbol and len(symbol.split('/')) == 2
+            
+            elif market_type == MarketType.STOCK:
+                # 股票代码基本格式验证
+                if len(symbol) >= 1:
+                    return True
+                return False
+            
+            return False
+            
+        except Exception as e:
+            logger.error(f"验证品种失败: {e}")
+            return False
+    
+    async def get_market_info(
+        self,
+        symbol: str,
+        market_type: MarketType,
+        exchange: str = "binance"
+    ) -> Optional[Dict]:
+        """
+        获取市场信息
+        
+        Args:
+            symbol: 品种代码
+            market_type: 市场类型
+            exchange: 交易所
+        
+        Returns:
+            市场信息字典
+        """
+        try:
+            if market_type == MarketType.CRYPTO:
+                if exchange in self.exchanges:
+                    markets = self.exchanges[exchange].load_markets()
+                    if symbol in markets:
+                        market = markets[symbol]
+                        return {
+                            'symbol': symbol,
+                            'base': market.get('base'),
+                            'quote': market.get('quote'),
+                            'active': market.get('active', True),
+                            'exchange': exchange,
+                            'type': 'crypto',
+                            'precision': market.get('precision', {}),
+                            'limits': market.get('limits', {}),
+                        }
+            
+            # 返回基本信息
+            return {
+                'symbol': symbol,
+                'market_type': market_type.value,
+                'exchange': exchange,
+                'active': True
+            }
+            
+        except Exception as e:
+            logger.error(f"获取市场信息失败: {e}")
+            return None
+    
+    def get_supported_timeframes(self) -> List[str]:
+        """
+        获取支持的时间周期列表
+        
+        Returns:
+            时间周期列表
+        """
+        return [
+            '1m', '5m', '15m', '30m',
+            '1h', '4h', '12h',
+            '1d', '1w', '1M'
+        ]
 
 
 # 全局数据服务实例
