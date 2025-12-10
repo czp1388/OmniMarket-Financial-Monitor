@@ -27,6 +27,8 @@ aiohttp==3.9.1
 backtesting==0.3.3
 vectorbt==0.25.6
 backtrader==1.9.78.123
+# 系统监控 (新增)
+psutil==5.9.6
 # LEAN引擎相关依赖
 quantconnect-stubs==0.1.0
 quantconnect==0.1.0

@@ -1,18 +1,52 @@
 import logging
-from sqlalchemy import create_engine, MetaData
+from sqlalchemy import create_engine, MetaData, event
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
 import redis
 import asyncio
+import time
 
 from config import settings
 
 logger = logging.getLogger(__name__)
 
-# SQLAlchemy配置
-engine = create_engine(settings.DATABASE_URL)
+# 优化的SQLAlchemy配置
+from sqlalchemy.pool import QueuePool
+
+engine = create_engine(
+    settings.DATABASE_URL,
+    poolclass=QueuePool,
+    pool_size=10,              # 常驻连接数
+    max_overflow=20,           # 最大溢出连接
+    pool_timeout=30,           # 获取连接超时（秒）
+    pool_recycle=3600,         # 连接回收时间（1小时）
+    pool_pre_ping=True,        # 使用前测试连接
+    echo=False,                # 生产环境不打印SQL
+    connect_args={
+        "connect_timeout": 10
+    }
+)
+
+# 监听连接池事件（性能监控）
+@event.listens_for(engine, "connect")
+def receive_connect(dbapi_conn, connection_record):
+    connection_record.info['connect_time'] = time.time()
+    logger.debug(f"新建数据库连接: {id(dbapi_conn)}")
+
+@event.listens_for(engine, "checkout")
+def receive_checkout(dbapi_conn, connection_record, connection_proxy):
+    connection_record.info['checkout_time'] = time.time()
+
+@event.listens_for(engine, "checkin")
+def receive_checkin(dbapi_conn, connection_record):
+    checkout_time = connection_record.info.get('checkout_time')
+    if checkout_time:
+        duration = time.time() - checkout_time
+        if duration > 1.0:
+            logger.warning(f"长时间占用连接: {duration:.2f}秒")
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

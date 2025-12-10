@@ -65,17 +65,25 @@ const AssistantDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadDashboardData();
-    loadOpportunities();
+    const loadData = async () => {
+      // 并行加载数据
+      await Promise.all([
+        loadDashboardData(),
+        loadOpportunities()
+      ]);
+    };
+    loadData();
   }, []);
 
   const loadDashboardData = async () => {
     try {
-      // 调用真实 API
-      const response = await axios.get(`http://localhost:8000/api/v1/assistant/dashboard/summary`);
+      // 调用真实 API（2秒超时）
+      const response = await axios.get(`http://localhost:8000/api/v1/assistant/dashboard/summary`, {
+        timeout: 2000
+      });
       setDashboardData(response.data);
     } catch (error) {
-      console.error('加载仪表盘数据失败，使用默认数据:', error);
+      console.warn('加载仪表盘数据失败，使用默认数据:', error);
       // 降级到默认数据
       const fallbackData: DashboardData = {
         greeting: '早上好',
@@ -95,21 +103,23 @@ const AssistantDashboard: React.FC = () => {
             action_text: '查看详情'
           }
         ],
-        active_strategies: []
+        active_strategies: [],
+        market_opportunities_count: 0,
+        notifications: []
       };
       setDashboardData(fallbackData);
-    } finally {
-      setLoading(false);
     }
   };
 
   const loadOpportunities = async () => {
     try {
-      // 调用真实 API
-      const response = await axios.get(`http://localhost:8000/api/v1/assistant/opportunities?limit=3`);
+      // 调用真实 API（2秒超时）
+      const response = await axios.get(`http://localhost:8000/api/v1/assistant/opportunities?limit=3`, {
+        timeout: 2000
+      });
       setOpportunities(response.data);
     } catch (error) {
-      console.error('加载市场机会失败，使用默认数据:', error);
+      console.warn('加载市场机会失败，使用默认数据:', error);
       // 降级到默认数据
       const fallbackOpportunities: MarketOpportunity[] = [
         {
@@ -123,6 +133,9 @@ const AssistantDashboard: React.FC = () => {
         }
       ];
       setOpportunities(fallbackOpportunities);
+    } finally {
+      // 两个API都加载完成后才取消loading
+      setLoading(false);
     }
   };
 

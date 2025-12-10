@@ -33,32 +33,68 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     # 启动时初始化
     logger.info("初始化数据库连接...")
-    await init_db()
+    try:
+        await init_db()
+    except Exception as e:
+        logger.warning(f"数据库初始化警告: {e}，服务将继续运行")
+    
+    # 启动性能监控服务
+    logger.info("启动性能监控服务...")
+    try:
+        from backend.services.performance_monitor import performance_monitor
+        await performance_monitor.start()
+    except Exception as e:
+        logger.warning(f"性能监控服务启动警告: {e}")
     
     # 启动数据服务（使用全局实例）
     logger.info("启动数据服务...")
     from backend.services.data_service import data_service
-    asyncio.create_task(data_service.start())
+    try:
+        asyncio.create_task(data_service.start())
+    except Exception as e:
+        logger.warning(f"数据服务启动警告: {e}")
     
     # 启动预警服务
     logger.info("启动预警监控服务...")
-    await alert_service.start_monitoring()
+    try:
+        await alert_service.start_monitoring()
+    except Exception as e:
+        logger.warning(f"预警服务启动警告: {e}")
     
     # 启动WebSocket服务器
     logger.info("启动WebSocket服务器...")
-    websocket_server = await websocket_manager.start_websocket_server()
+    try:
+        websocket_server = await websocket_manager.start_websocket_server()
+    except Exception as e:
+        logger.warning(f"WebSocket服务器启动警告: {e}")
     
     # 启动牛熊证监控服务
     logger.info("启动牛熊证监控服务...")
-    await warrants_monitoring_service.initialize_monitoring()
+    try:
+        await warrants_monitoring_service.initialize_monitoring()
+    except Exception as e:
+        logger.warning(f"牛熊证监控服务启动警告: {e}")
     
     # 启动数据质量监控服务
     logger.info("启动数据质量监控服务...")
-    asyncio.create_task(data_quality_monitor.start_monitoring())
+    try:
+        asyncio.create_task(data_quality_monitor.start_monitoring())
+    except Exception as e:
+        logger.warning(f"数据质量监控服务启动警告: {e}")
+    
+    logger.info("所有服务已启动，应用准备就绪")
     
     yield  # 应用运行期间
     
     # 关闭时清理
+    logger.info("开始关闭服务...")
+    
+    logger.info("关闭性能监控服务...")
+    try:
+        await performance_monitor.stop()
+    except Exception as e:
+        logger.warning(f"关闭性能监控服务时出错: {e}")
+    
     logger.info("关闭数据服务...")
     try:
         await data_service.stop()
@@ -70,6 +106,8 @@ async def lifespan(app: FastAPI):
         await websocket_manager.stop()
     except Exception as e:
         logger.warning(f"关闭WebSocket管理器时出错: {e}")
+    
+    logger.info("所有服务已关闭")
 
 # 创建FastAPI应用
 app = FastAPI(

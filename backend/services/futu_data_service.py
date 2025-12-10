@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 from datetime import datetime
 from typing import List, Dict, Optional
 import pandas as pd
@@ -13,6 +14,8 @@ class FutuDataService:
     def __init__(self):
         self.connected = False
         self.futu_conn = None
+        self._last_warning_time = 0
+        self._warning_interval = 300  # 5分钟内只警告一次
         
     async def connect(self, host: str = "127.0.0.1", port: int = 11111):
         """连接富途OpenD - 需要用户已安装富途证券并开启OpenD服务"""
@@ -37,7 +40,7 @@ class FutuDataService:
     ) -> List[KlineData]:
         """获取港股K线数据"""
         if not self.connected:
-            logger.warning("富途数据服务未连接")
+            self._log_warning_throttled("富途数据服务未连接，使用模拟数据")
             return await self._get_mock_hk_data(symbol, timeframe, limit)
         
         try:
@@ -144,7 +147,7 @@ class FutuDataService:
     async def get_stock_quote(self, symbol: str) -> Dict:
         """获取股票实时报价 - 使用真实富途API"""
         if not self.connected:
-            logger.warning("富途数据服务未连接，使用模拟数据")
+            self._log_warning_throttled("富途数据服务未连接，使用模拟数据")
             return await self._get_mock_quote(symbol)
         
         try:
@@ -214,6 +217,13 @@ class FutuDataService:
                 'profit_loss_rate': 2.7
             }
         ]
+    
+    def _log_warning_throttled(self, message: str):
+        """频率限制的警告日志（5分钟内只输出一次）"""
+        current_time = time.time()
+        if current_time - self._last_warning_time >= self._warning_interval:
+            logger.warning(message)
+            self._last_warning_time = current_time
     
     async def disconnect(self):
         """断开连接"""

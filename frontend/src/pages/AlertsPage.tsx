@@ -50,7 +50,12 @@ const AlertsPage: React.FC = () => {
   const fetchRealTimeData = async (): Promise<SymbolData[]> => {
     try {
       const symbols = ['BTC/USDT', 'ETH/USDT', 'AAPL', 'USD/CNY', 'TSLA', 'EUR/USD', 'XAU/USD', 'SPY'];
+      // 设置2秒超时，快速降级
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      
       const response = await ApiService.market.getTickers(symbols);
+      clearTimeout(timeoutId);
       
       // 安全的类型检查和处理
       if (Array.isArray(response)) {

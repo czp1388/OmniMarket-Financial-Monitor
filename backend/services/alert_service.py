@@ -1,14 +1,16 @@
 import asyncio
 import logging
-from datetime import datetime
-from typing import List, Dict, Optional, Callable, Any
+from datetime import datetime, timedelta
+from typing import List, Dict, Optional, Callable, Any, Tuple
 from enum import Enum
 import json
+from collections import defaultdict, deque
 
 from models.alerts import Alert, AlertTrigger, AlertConditionType, AlertStatus as ModelAlertStatus, NotificationType
 from models.market_data import KlineData, MarketType, Timeframe
 from services.data_service import data_service
 from services.notification_service import notification_service
+from services.technical_analysis_service import technical_analysis_service
 from database import SessionLocal
 
 logger = logging.getLogger(__name__)
@@ -18,6 +20,13 @@ class AlertStatus(Enum):
     TRIGGERED = "triggered"
     DISABLED = "disabled"
 
+class AlertPriority(Enum):
+    """预警优先级"""
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+
 class AlertService:
     def __init__(self):
         self.active_alerts: Dict[str, Alert] = {}
@@ -25,6 +34,24 @@ class AlertService:
         self.alert_handlers: List[Callable] = []
         self.is_running = False
         self.monitoring_task: Optional[asyncio.Task] = None
+        
+        # 预警历史缓存（最近1000条）
+        self.trigger_history: deque = deque(maxlen=1000)
+        
+        # 预警统计
+        self.alert_stats = {
+            'total_triggers': 0,
+            'triggers_by_type': defaultdict(int),
+            'triggers_by_symbol': defaultdict(int),
+            'false_triggers': 0,  # 误报次数
+            'average_trigger_time': 0.0,  # 平均触发时间
+        }
+        
+        # 预警冷却期管理（防止重复触发）
+        self.cooldown_periods: Dict[str, datetime] = {}  # alert_id -> last_trigger_time
+        
+        # 技术分析服务（延迟初始化）
+        self._technical_service = None
     
     async def start_monitoring(self):
         """开始监控预警条件"""
@@ -70,7 +97,17 @@ class AlertService:
                 logger.error(f"检查预警 {alert_id} 时出错: {e}")
     
     async def _check_alert(self, alert: Alert):
-        """检查单个预警条件"""
+        """检查单个预警条件（增强版）"""
+        # 检查是否在冷却期内
+        if not self._can_trigger(alert):
+            return
+        
+        # 检查预警是否过期
+        if alert.valid_until and datetime.now() > alert.valid_until:
+            alert.status = ModelAlertStatus.EXPIRED.value
+            logger.info(f"预警已过期: {alert.name} (ID: {alert.id})")
+            return
+        
         # 获取当前价格
         current_price = await data_service.get_current_price(
             alert.symbol, alert.market_type
@@ -79,37 +116,123 @@ class AlertService:
         if current_price == 0:
             return
         
-        # 检查条件（使用condition_config）
-        if await self._evaluate_condition_config(alert.condition_config, alert.condition_type, current_price, alert.symbol, alert.market_type, alert.timeframe):
-            await self._trigger_alert(alert, current_price)
+        # 评估条件
+        is_triggered, trigger_value, trigger_details = await self._evaluate_condition_enhanced(
+            alert, current_price
+        )
+        
+        if is_triggered:
+            await self._trigger_alert_enhanced(alert, trigger_value, trigger_details)
     
-    async def _evaluate_condition_config(self, condition_config: Dict[str, Any], condition_type: AlertConditionType, current_price: float, symbol: str, market_type: MarketType, timeframe: str) -> bool:
-        """评估条件配置"""
+    def _can_trigger(self, alert: Alert) -> bool:
+        """检查预警是否可以触发（冷却期检查）"""
+        alert_id = str(alert.id)
+        
+        # 如果是重复预警，检查冷却期
+        if alert.is_recurring:
+            last_trigger = self.cooldown_periods.get(alert_id)
+            if last_trigger:
+                # 默认冷却期：5分钟
+                cooldown_seconds = alert.condition_config.get('cooldown_seconds', 300)
+                if (datetime.now() - last_trigger).total_seconds() < cooldown_seconds:
+                    return False
+        
+        return True
+    
+    async def _evaluate_condition_enhanced(
+        self, alert: Alert, current_price: float
+    ) -> Tuple[bool, float, Dict[str, Any]]:
+        """
+        增强的条件评估
+        
+        返回:
+            (is_triggered, trigger_value, trigger_details)
+        """
+        condition_type = alert.condition_type
+        config = alert.condition_config
+        
         try:
+            # 价格条件
             if condition_type == AlertConditionType.PRICE_ABOVE:
-                threshold = condition_config.get('threshold')
-                return current_price > threshold
+                threshold = config.get('threshold')
+                return current_price > threshold, current_price, {'threshold': threshold}
+            
             elif condition_type == AlertConditionType.PRICE_BELOW:
-                threshold = condition_config.get('threshold')
-                return current_price < threshold
+                threshold = config.get('threshold')
+                return current_price < threshold, current_price, {'threshold': threshold}
+            
             elif condition_type == AlertConditionType.PRICE_PERCENT_CHANGE:
-                # 需要历史数据来计算百分比变化
-                return await self._evaluate_percentage_change(condition_config, current_price, symbol, market_type, timeframe)
+                return await self._evaluate_percentage_change(config, current_price, alert.symbol, alert.market_type, alert.timeframe)
+            
+            # 新增：价格穿越均线
+            elif condition_type == AlertConditionType.PRICE_CROSS_MA:
+                return await self._evaluate_price_cross_ma(config, alert)
+            
+            # 新增：突破阻力位
+            elif condition_type == AlertConditionType.PRICE_BREAK_RESISTANCE:
+                return await self._evaluate_price_break_level(config, current_price, alert, is_resistance=True)
+            
+            # 新增：跌破支撑位
+            elif condition_type == AlertConditionType.PRICE_BREAK_SUPPORT:
+                return await self._evaluate_price_break_level(config, current_price, alert, is_resistance=False)
+            
+            # 成交量条件
             elif condition_type == AlertConditionType.VOLUME_ABOVE:
-                # 需要成交量数据
-                return await self._evaluate_volume_above(condition_config, symbol, market_type, timeframe)
+                return await self._evaluate_volume_above(config, alert.symbol, alert.market_type, alert.timeframe)
+            
             elif condition_type == AlertConditionType.VOLUME_PERCENT_CHANGE:
-                # 需要成交量百分比变化
-                return await self._evaluate_volume_percent_change(condition_config, symbol, market_type, timeframe)
+                return await self._evaluate_volume_percent_change(config, alert.symbol, alert.market_type, alert.timeframe)
+            
+            # 新增：成交量激增
+            elif condition_type == AlertConditionType.VOLUME_SPIKE:
+                return await self._evaluate_volume_spike(config, alert)
+            
+            # 新增：RSI超买/超卖
+            elif condition_type == AlertConditionType.RSI_OVERBOUGHT:
+                return await self._evaluate_rsi_condition(alert, overbought=True)
+            
+            elif condition_type == AlertConditionType.RSI_OVERSOLD:
+                return await self._evaluate_rsi_condition(alert, overbought=False)
+            
+            # 新增：MACD金叉/死叉
+            elif condition_type == AlertConditionType.MACD_CROSS:
+                return await self._evaluate_macd_cross(alert)
+            
+            # 新增：布林带突破
+            elif condition_type == AlertConditionType.BOLLINGER_BREAKOUT:
+                return await self._evaluate_bollinger_breakout(alert)
+            
+            # 新增：金叉/死叉
+            elif condition_type == AlertConditionType.GOLDEN_CROSS:
+                return await self._evaluate_ma_cross(alert, golden=True)
+            
+            elif condition_type == AlertConditionType.DEATH_CROSS:
+                return await self._evaluate_ma_cross(alert, golden=False)
+            
+            # 新增：止损/止盈
+            elif condition_type == AlertConditionType.STOP_LOSS:
+                return await self._evaluate_stop_loss(config, current_price, alert)
+            
+            elif condition_type == AlertConditionType.TAKE_PROFIT:
+                return await self._evaluate_take_profit(config, current_price, alert)
+            
+            # 新增：组合条件
+            elif condition_type == AlertConditionType.COMPOSITE_AND:
+                return await self._evaluate_composite_condition(config, alert, use_and=True)
+            
+            elif condition_type == AlertConditionType.COMPOSITE_OR:
+                return await self._evaluate_composite_condition(config, alert, use_and=False)
+            
             else:
                 logger.warning(f"未知的条件类型: {condition_type}")
-                return False
+                return False, 0.0, {}
+                
         except Exception as e:
-            logger.error(f"评估条件配置时出错: {e}")
-            return False
+            logger.error(f"评估条件时出错: {e}")
+            return False, 0.0, {}
     
-    async def _evaluate_percentage_change(self, condition_config: Dict[str, Any], current_price: float, symbol: str, market_type: MarketType, timeframe: str) -> bool:
-        """评估百分比变化条件"""
+    async def _evaluate_percentage_change(self, condition_config: Dict[str, Any], current_price: float, symbol: str, market_type: MarketType, timeframe: str) -> Tuple[bool, float, Dict]:
+        """评估百分比变化条件（返回元组）"""
         try:
             threshold = condition_config.get('threshold')
             use_percentage = condition_config.get('use_percentage', False)
@@ -123,29 +246,31 @@ class AlertService:
             )
             
             if len(klines) < 2:
-                return False
+                return False, 0.0, {}
             
             previous_close = klines[1].close
             current_close = klines[0].close
             
             if previous_close == 0:
-                return False
+                return False, 0.0, {}
             
             percentage_change = ((current_close - previous_close) / previous_close) * 100
             
-            if use_percentage:
-                return percentage_change > threshold
-            else:
-                # 这里可能需要根据条件配置判断是大于还是小于
-                # 简化处理，假设是大于阈值
-                return percentage_change > threshold
+            is_triggered = percentage_change > threshold if use_percentage else percentage_change > threshold
+            
+            return is_triggered, percentage_change, {
+                'previous_close': previous_close,
+                'current_close': current_close,
+                'percentage_change': percentage_change,
+                'threshold': threshold
+            }
                 
         except Exception as e:
             logger.error(f"计算百分比变化时出错: {e}")
-            return False
+            return False, 0.0, {}
     
-    async def _evaluate_volume_above(self, condition_config: Dict[str, Any], symbol: str, market_type: MarketType, timeframe: str) -> bool:
-        """评估成交量 above 条件"""
+    async def _evaluate_volume_above(self, condition_config: Dict[str, Any], symbol: str, market_type: MarketType, timeframe: str) -> Tuple[bool, float, Dict]:
+        """评估成交量 above 条件（返回元组）"""
         try:
             threshold = condition_config.get('threshold')
             
@@ -158,17 +283,22 @@ class AlertService:
             )
             
             if not klines:
-                return False
+                return False, 0.0, {}
             
             current_volume = klines[0].volume
-            return current_volume > threshold
+            is_triggered = current_volume > threshold
+            
+            return is_triggered, current_volume, {
+                'current_volume': current_volume,
+                'threshold': threshold
+            }
                 
         except Exception as e:
             logger.error(f"评估成交量条件时出错: {e}")
-            return False
+            return False, 0.0, {}
     
-    async def _evaluate_volume_percent_change(self, condition_config: Dict[str, Any], symbol: str, market_type: MarketType, timeframe: str) -> bool:
-        """评估成交量百分比变化条件"""
+    async def _evaluate_volume_percent_change(self, condition_config: Dict[str, Any], symbol: str, market_type: MarketType, timeframe: str) -> Tuple[bool, float, Dict]:
+        """评估成交量百分比变化条件（返回元组）"""
         try:
             threshold = condition_config.get('threshold')
             
@@ -181,48 +311,496 @@ class AlertService:
             )
             
             if len(klines) < 2:
-                return False
+                return False, 0.0, {}
             
             previous_volume = klines[1].volume
             current_volume = klines[0].volume
             
             if previous_volume == 0:
-                return False
+                return False, 0.0, {}
             
             volume_percent_change = ((current_volume - previous_volume) / previous_volume) * 100
-            return volume_percent_change > threshold
+            is_triggered = volume_percent_change > threshold
+            
+            return is_triggered, volume_percent_change, {
+                'previous_volume': previous_volume,
+                'current_volume': current_volume,
+                'volume_percent_change': volume_percent_change,
+                'threshold': threshold
+            }
                 
         except Exception as e:
             logger.error(f"评估成交量百分比变化时出错: {e}")
-            return False
+            return False, 0.0, {}
+    
+    async def _evaluate_price_cross_ma(self, config: Dict, alert: Alert) -> Tuple[bool, float, Dict]:
+        """评估价格穿越均线"""
+        try:
+            ma_period = config.get('ma_period', 20)
+            cross_direction = config.get('direction', 'above')  # above或below
+            
+            # 获取K线数据
+            klines = await data_service.get_kline_data(
+                symbol=alert.symbol,
+                timeframe=alert.timeframe,
+                market_type=alert.market_type,
+                limit=ma_period + 2
+            )
+            
+            if len(klines) < ma_period + 2:
+                return False, 0.0, {}
+            
+            # 计算均线
+            closes = [k.close for k in klines]
+            ma_current = sum(closes[:ma_period]) / ma_period
+            ma_previous = sum(closes[1:ma_period+1]) / ma_period
+            
+            current_price = closes[0]
+            previous_price = closes[1]
+            
+            # 检查穿越
+            if cross_direction == 'above':
+                # 向上穿越：之前在MA下方，现在在MA上方
+                is_triggered = previous_price <= ma_previous and current_price > ma_current
+            else:
+                # 向下穿越：之前在MA上方，现在在MA下方
+                is_triggered = previous_price >= ma_previous and current_price < ma_current
+            
+            return is_triggered, current_price, {
+                'ma_period': ma_period,
+                'ma_value': ma_current,
+                'current_price': current_price,
+                'direction': cross_direction
+            }
+            
+        except Exception as e:
+            logger.error(f"评估价格穿越均线时出错: {e}")
+            return False, 0.0, {}
+    
+    async def _evaluate_price_break_level(self, config: Dict, current_price: float, alert: Alert, is_resistance: bool) -> Tuple[bool, float, Dict]:
+        """评估价格突破支撑/阻力位"""
+        try:
+            level = config.get('level')  # 支撑/阻力位价格
+            
+            # 获取前一个价格
+            klines = await data_service.get_kline_data(
+                symbol=alert.symbol,
+                timeframe=alert.timeframe,
+                market_type=alert.market_type,
+                limit=2
+            )
+            
+            if len(klines) < 2:
+                return False, 0.0, {}
+            
+            previous_price = klines[1].close
+            
+            if is_resistance:
+                # 突破阻力位：之前在阻力位下方，现在突破
+                is_triggered = previous_price <= level and current_price > level
+                level_type = "resistance"
+            else:
+                # 跌破支撑位：之前在支撑位上方，现在跌破
+                is_triggered = previous_price >= level and current_price < level
+                level_type = "support"
+            
+            return is_triggered, current_price, {
+                'level': level,
+                'level_type': level_type,
+                'current_price': current_price,
+                'previous_price': previous_price
+            }
+            
+        except Exception as e:
+            logger.error(f"评估价格突破时出错: {e}")
+            return False, 0.0, {}
+    
+    async def _evaluate_volume_spike(self, config: Dict, alert: Alert) -> Tuple[bool, float, Dict]:
+        """评估成交量激增（相比平均量）"""
+        try:
+            spike_multiplier = config.get('multiplier', 2.0)  # 倍数阈值
+            lookback_periods = config.get('lookback', 20)  # 回看周期
+            
+            # 获取历史成交量数据
+            klines = await data_service.get_kline_data(
+                symbol=alert.symbol,
+                timeframe=alert.timeframe,
+                market_type=alert.market_type,
+                limit=lookback_periods + 1
+            )
+            
+            if len(klines) < lookback_periods + 1:
+                return False, 0.0, {}
+            
+            current_volume = klines[0].volume
+            average_volume = sum(k.volume for k in klines[1:]) / lookback_periods
+            
+            if average_volume == 0:
+                return False, 0.0, {}
+            
+            volume_ratio = current_volume / average_volume
+            is_triggered = volume_ratio >= spike_multiplier
+            
+            return is_triggered, volume_ratio, {
+                'current_volume': current_volume,
+                'average_volume': average_volume,
+                'volume_ratio': volume_ratio,
+                'multiplier': spike_multiplier
+            }
+            
+        except Exception as e:
+            logger.error(f"评估成交量激增时出错: {e}")
+            return False, 0.0, {}
+    
+    async def _evaluate_rsi_condition(self, alert: Alert, overbought: bool) -> Tuple[bool, float, Dict]:
+        """评估RSI超买/超卖"""
+        try:
+            period = alert.condition_config.get('rsi_period', 14)
+            threshold = alert.condition_config.get('threshold', 70 if overbought else 30)
+            
+            # 获取K线数据
+            klines = await data_service.get_kline_data(
+                symbol=alert.symbol,
+                timeframe=alert.timeframe,
+                market_type=alert.market_type,
+                limit=period + 10
+            )
+            
+            if len(klines) < period + 1:
+                return False, 0.0, {}
+            
+            # 计算RSI（简化版）
+            closes = [k.close for k in reversed(klines)]
+            gains = []
+            losses = []
+            
+            for i in range(1, len(closes)):
+                change = closes[i] - closes[i-1]
+                gains.append(max(change, 0))
+                losses.append(max(-change, 0))
+            
+            avg_gain = sum(gains[-period:]) / period
+            avg_loss = sum(losses[-period:]) / period
+            
+            if avg_loss == 0:
+                rsi = 100
+            else:
+                rs = avg_gain / avg_loss
+                rsi = 100 - (100 / (1 + rs))
+            
+            if overbought:
+                is_triggered = rsi >= threshold
+            else:
+                is_triggered = rsi <= threshold
+            
+            return is_triggered, rsi, {
+                'rsi': rsi,
+                'threshold': threshold,
+                'condition': 'overbought' if overbought else 'oversold'
+            }
+            
+        except Exception as e:
+            logger.error(f"评估RSI条件时出错: {e}")
+            return False, 0.0, {}
+    
+    async def _evaluate_macd_cross(self, alert: Alert) -> Tuple[bool, float, Dict]:
+        """评估MACD金叉/死叉"""
+        try:
+            cross_type = alert.condition_config.get('cross_type', 'golden')  # golden或death
+            
+            # 获取K线数据（需要足够的数据计算MACD）
+            klines = await data_service.get_kline_data(
+                symbol=alert.symbol,
+                timeframe=alert.timeframe,
+                market_type=alert.market_type,
+                limit=50
+            )
+            
+            if len(klines) < 30:
+                return False, 0.0, {}
+            
+            # 简化的MACD计算（12, 26, 9）
+            closes = [k.close for k in reversed(klines)]
+            
+            # 计算EMA
+            def ema(data, period):
+                multiplier = 2 / (period + 1)
+                ema_values = [sum(data[:period]) / period]
+                for price in data[period:]:
+                    ema_values.append((price - ema_values[-1]) * multiplier + ema_values[-1])
+                return ema_values
+            
+            ema12 = ema(closes, 12)
+            ema26 = ema(closes, 26)
+            
+            # MACD线
+            macd_line = [ema12[i] - ema26[i] for i in range(len(ema26))]
+            
+            # 信号线（MACD的9日EMA）
+            signal_line = ema(macd_line, 9)
+            
+            # 检查交叉
+            if len(signal_line) < 2:
+                return False, 0.0, {}
+            
+            macd_current = macd_line[-1]
+            signal_current = signal_line[-1]
+            macd_previous = macd_line[-2]
+            signal_previous = signal_line[-2]
+            
+            if cross_type == 'golden':
+                # 金叉：MACD从下方穿越信号线
+                is_triggered = macd_previous <= signal_previous and macd_current > signal_current
+            else:
+                # 死叉：MACD从上方穿越信号线
+                is_triggered = macd_previous >= signal_previous and macd_current < signal_current
+            
+            return is_triggered, macd_current, {
+                'macd': macd_current,
+                'signal': signal_current,
+                'cross_type': cross_type
+            }
+            
+        except Exception as e:
+            logger.error(f"评估MACD交叉时出错: {e}")
+            return False, 0.0, {}
+    
+    async def _evaluate_bollinger_breakout(self, alert: Alert) -> Tuple[bool, float, Dict]:
+        """评估布林带突破"""
+        try:
+            period = alert.condition_config.get('period', 20)
+            std_dev = alert.condition_config.get('std_dev', 2)
+            breakout_direction = alert.condition_config.get('direction', 'upper')  # upper或lower
+            
+            # 获取K线数据
+            klines = await data_service.get_kline_data(
+                symbol=alert.symbol,
+                timeframe=alert.timeframe,
+                market_type=alert.market_type,
+                limit=period + 2
+            )
+            
+            if len(klines) < period + 1:
+                return False, 0.0, {}
+            
+            closes = [k.close for k in klines[:period]]
+            current_price = klines[0].close
+            
+            # 计算布林带
+            middle_band = sum(closes) / period
+            variance = sum((x - middle_band) ** 2 for x in closes) / period
+            std = variance ** 0.5
+            
+            upper_band = middle_band + (std_dev * std)
+            lower_band = middle_band - (std_dev * std)
+            
+            # 检查突破
+            if breakout_direction == 'upper':
+                is_triggered = current_price > upper_band
+            else:
+                is_triggered = current_price < lower_band
+            
+            return is_triggered, current_price, {
+                'current_price': current_price,
+                'upper_band': upper_band,
+                'middle_band': middle_band,
+                'lower_band': lower_band,
+                'direction': breakout_direction
+            }
+            
+        except Exception as e:
+            logger.error(f"评估布林带突破时出错: {e}")
+            return False, 0.0, {}
+    
+    async def _evaluate_ma_cross(self, alert: Alert, golden: bool) -> Tuple[bool, float, Dict]:
+        """评估均线金叉/死叉"""
+        try:
+            fast_period = alert.condition_config.get('fast_period', 5)
+            slow_period = alert.condition_config.get('slow_period', 20)
+            
+            # 获取K线数据
+            klines = await data_service.get_kline_data(
+                symbol=alert.symbol,
+                timeframe=alert.timeframe,
+                market_type=alert.market_type,
+                limit=slow_period + 2
+            )
+            
+            if len(klines) < slow_period + 2:
+                return False, 0.0, {}
+            
+            closes = [k.close for k in klines]
+            
+            # 计算快慢均线（当前和前一周期）
+            fast_ma_current = sum(closes[:fast_period]) / fast_period
+            fast_ma_previous = sum(closes[1:fast_period+1]) / fast_period
+            slow_ma_current = sum(closes[:slow_period]) / slow_period
+            slow_ma_previous = sum(closes[1:slow_period+1]) / slow_period
+            
+            if golden:
+                # 金叉：快线从下方穿越慢线
+                is_triggered = fast_ma_previous <= slow_ma_previous and fast_ma_current > slow_ma_current
+                cross_type = "golden_cross"
+            else:
+                # 死叉：快线从上方穿越慢线
+                is_triggered = fast_ma_previous >= slow_ma_previous and fast_ma_current < slow_ma_current
+                cross_type = "death_cross"
+            
+            return is_triggered, fast_ma_current, {
+                'fast_ma': fast_ma_current,
+                'slow_ma': slow_ma_current,
+                'cross_type': cross_type,
+                'fast_period': fast_period,
+                'slow_period': slow_period
+            }
+            
+        except Exception as e:
+            logger.error(f"评估均线交叉时出错: {e}")
+            return False, 0.0, {}
+    
+    async def _evaluate_stop_loss(self, config: Dict, current_price: float, alert: Alert) -> Tuple[bool, float, Dict]:
+        """评估止损"""
+        try:
+            stop_price = config.get('stop_price')
+            position_type = config.get('position_type', 'long')  # long或short
+            
+            if position_type == 'long':
+                # 多头止损：价格跌破止损价
+                is_triggered = current_price <= stop_price
+            else:
+                # 空头止损：价格涨破止损价
+                is_triggered = current_price >= stop_price
+            
+            return is_triggered, current_price, {
+                'stop_price': stop_price,
+                'current_price': current_price,
+                'position_type': position_type
+            }
+            
+        except Exception as e:
+            logger.error(f"评估止损时出错: {e}")
+            return False, 0.0, {}
+    
+    async def _evaluate_take_profit(self, config: Dict, current_price: float, alert: Alert) -> Tuple[bool, float, Dict]:
+        """评估止盈"""
+        try:
+            target_price = config.get('target_price')
+            position_type = config.get('position_type', 'long')
+            
+            if position_type == 'long':
+                # 多头止盈：价格涨至目标价
+                is_triggered = current_price >= target_price
+            else:
+                # 空头止盈：价格跌至目标价
+                is_triggered = current_price <= target_price
+            
+            return is_triggered, current_price, {
+                'target_price': target_price,
+                'current_price': current_price,
+                'position_type': position_type
+            }
+            
+        except Exception as e:
+            logger.error(f"评估止盈时出错: {e}")
+            return False, 0.0, {}
+    
+    async def _evaluate_composite_condition(self, config: Dict, alert: Alert, use_and: bool) -> Tuple[bool, float, Dict]:
+        """评估组合条件（AND/OR）"""
+        try:
+            sub_conditions = config.get('conditions', [])
+            
+            if not sub_conditions:
+                return False, 0.0, {}
+            
+            results = []
+            details = []
+            
+            for sub_cond in sub_conditions:
+                # 递归评估子条件
+                condition_type = AlertConditionType[sub_cond['type'].upper()]
+                is_met, value, detail = await self._evaluate_condition_enhanced(
+                    Alert(
+                        id=alert.id,
+                        symbol=alert.symbol,
+                        market_type=alert.market_type,
+                        timeframe=alert.timeframe,
+                        condition_type=condition_type,
+                        condition_config=sub_cond.get('config', {})
+                    ),
+                    await data_service.get_current_price(alert.symbol, alert.market_type)
+                )
+                results.append(is_met)
+                details.append({
+                    'type': sub_cond['type'],
+                    'is_met': is_met,
+                    'value': value,
+                    'details': detail
+                })
+            
+            # AND/OR逻辑
+            if use_and:
+                is_triggered = all(results)
+            else:
+                is_triggered = any(results)
+            
+            return is_triggered, 1.0 if is_triggered else 0.0, {
+                'logic': 'AND' if use_and else 'OR',
+                'sub_conditions': details,
+                'total_conditions': len(sub_conditions),
+                'met_conditions': sum(results)
+            }
+            
+        except Exception as e:
+            logger.error(f"评估组合条件时出错: {e}")
+            return False, 0.0, {}
     
     
-    async def _trigger_alert(self, alert: Alert, current_value: float):
-        """触发预警"""
+    async def _trigger_alert_enhanced(self, alert: Alert, trigger_value: float, trigger_details: Dict[str, Any]):
+        """触发预警（增强版）"""
+        trigger_time = datetime.now()
+        
         trigger = AlertTrigger(
             alert_id=alert.id,
-            triggered_at=datetime.now(),
+            triggered_at=trigger_time,
             trigger_data={
-                'current_value': current_value,
+                'trigger_value': trigger_value,
                 'alert_name': alert.name,
                 'symbol': alert.symbol,
                 'market_type': alert.market_type.value,
                 'condition_type': alert.condition_type.value,
-                'condition_config': alert.condition_config
+                'condition_config': alert.condition_config,
+                'trigger_details': trigger_details
             }
         )
         
         # 保存触发记录
         self.alert_triggers.append(trigger)
+        self.trigger_history.append({
+            'alert_id': alert.id,
+            'alert_name': alert.name,
+            'symbol': alert.symbol,
+            'triggered_at': trigger_time,
+            'trigger_value': trigger_value,
+            'details': trigger_details
+        })
+        
+        # 更新统计
+        self.alert_stats['total_triggers'] += 1
+        self.alert_stats['triggers_by_type'][alert.condition_type.value] += 1
+        self.alert_stats['triggers_by_symbol'][alert.symbol] += 1
         
         # 更新预警状态
         alert.status = ModelAlertStatus.TRIGGERED.value
-        alert.last_triggered_at = datetime.now()
+        alert.last_triggered_at = trigger_time
         alert.triggered_count = (alert.triggered_count or 0) + 1
+        
+        # 设置冷却期
+        self.cooldown_periods[str(alert.id)] = trigger_time
         
         # 如果不是重复预警，则禁用
         if not alert.is_recurring:
             alert.status = ModelAlertStatus.DISABLED.value
+            logger.info(f"预警 {alert.name} 触发后已禁用（非重复预警）")
         
         # 调用所有注册的处理程序
         for handler in self.alert_handlers:
@@ -232,9 +810,93 @@ class AlertService:
                 logger.error(f"预警处理程序出错: {e}")
         
         # 发送多渠道通知
-        await self._send_alert_notifications(alert, trigger, current_value)
+        await self._send_alert_notifications(alert, trigger, trigger_value)
         
-        logger.info(f"预警触发: {alert.name} - 当前值: {current_value}")
+        logger.info(f"预警触发: {alert.name} - 触发值: {trigger_value}, 详情: {trigger_details}")
+    
+    def get_alert_statistics(self) -> Dict[str, Any]:
+        """获取预警统计信息"""
+        active_count = sum(1 for a in self.active_alerts.values() if a.status == ModelAlertStatus.ACTIVE.value)
+        triggered_count = sum(1 for a in self.active_alerts.values() if a.status == ModelAlertStatus.TRIGGERED.value)
+        disabled_count = sum(1 for a in self.active_alerts.values() if a.status == ModelAlertStatus.DISABLED.value)
+        
+        # 统计最常触发的预警类型
+        top_trigger_types = sorted(
+            self.alert_stats['triggers_by_type'].items(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:5]
+        
+        # 统计最常触发的交易对
+        top_trigger_symbols = sorted(
+            self.alert_stats['triggers_by_symbol'].items(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:5]
+        
+        return {
+            'total_alerts': len(self.active_alerts),
+            'active_alerts': active_count,
+            'triggered_alerts': triggered_count,
+            'disabled_alerts': disabled_count,
+            'total_triggers': self.alert_stats['total_triggers'],
+            'top_trigger_types': [{'type': t[0], 'count': t[1]} for t in top_trigger_types],
+            'top_trigger_symbols': [{'symbol': s[0], 'count': s[1]} for s in top_trigger_symbols],
+            'trigger_history_size': len(self.trigger_history),
+            'false_triggers': self.alert_stats['false_triggers'],
+            'is_monitoring': self.is_running
+        }
+    
+    def get_recent_triggers(self, limit: int = 20) -> List[Dict]:
+        """获取最近的触发记录"""
+        return list(self.trigger_history)[-limit:]
+    
+    def clear_alert_history(self, before_date: Optional[datetime] = None):
+        """清理预警历史"""
+        if before_date is None:
+            before_date = datetime.now() - timedelta(days=30)  # 默认清理30天前的记录
+        
+        self.alert_triggers = [
+            t for t in self.alert_triggers
+            if t.triggered_at > before_date
+        ]
+        
+        logger.info(f"清理了 {before_date} 之前的预警历史")
+    
+    async def mark_false_trigger(self, trigger_id: int):
+        """标记误报"""
+        self.alert_stats['false_triggers'] += 1
+        logger.info(f"标记误报: trigger_id={trigger_id}")
+    
+    async def get_alert_performance(self, alert_id: int) -> Dict[str, Any]:
+        """获取单个预警的性能指标"""
+        triggers = [t for t in self.alert_triggers if t.alert_id == alert_id]
+        
+        if not triggers:
+            return {
+                'alert_id': alert_id,
+                'total_triggers': 0,
+                'average_interval': 0,
+                'last_trigger': None
+            }
+        
+        # 计算平均触发间隔
+        if len(triggers) > 1:
+            intervals = []
+            for i in range(1, len(triggers)):
+                interval = (triggers[i].triggered_at - triggers[i-1].triggered_at).total_seconds()
+                intervals.append(interval)
+            average_interval = sum(intervals) / len(intervals)
+        else:
+            average_interval = 0
+        
+        return {
+            'alert_id': alert_id,
+            'total_triggers': len(triggers),
+            'average_interval_seconds': average_interval,
+            'last_trigger': triggers[-1].triggered_at.isoformat() if triggers else None,
+            'first_trigger': triggers[0].triggered_at.isoformat() if triggers else None
+        }
     
     async def _send_alert_notifications(self, alert: Alert, trigger: AlertTrigger, current_value: float):
         """

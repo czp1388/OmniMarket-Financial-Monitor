@@ -9,13 +9,39 @@ from datetime import datetime
 from .market_data import MarketType, Timeframe
 
 class AlertConditionType(enum.Enum):
+    # 价格预警
     PRICE_ABOVE = "price_above"
     PRICE_BELOW = "price_below"
     PRICE_PERCENT_CHANGE = "price_percent_change"
+    PRICE_CROSS_MA = "price_cross_ma"  # 价格穿越均线
+    PRICE_BREAK_RESISTANCE = "price_break_resistance"  # 突破阻力位
+    PRICE_BREAK_SUPPORT = "price_break_support"  # 跌破支撑位
+    
+    # 成交量预警
     VOLUME_ABOVE = "volume_above"
     VOLUME_PERCENT_CHANGE = "volume_percent_change"
+    VOLUME_SPIKE = "volume_spike"  # 成交量激增
+    
+    # 技术指标预警
     TECHNICAL_INDICATOR = "technical_indicator"
+    RSI_OVERBOUGHT = "rsi_overbought"  # RSI超买
+    RSI_OVERSOLD = "rsi_oversold"  # RSI超卖
+    MACD_CROSS = "macd_cross"  # MACD金叉/死叉
+    BOLLINGER_BREAKOUT = "bollinger_breakout"  # 布林带突破
+    
+    # 形态识别预警
     PATTERN_RECOGNITION = "pattern_recognition"
+    GOLDEN_CROSS = "golden_cross"  # 金叉
+    DEATH_CROSS = "death_cross"  # 死叉
+    
+    # 风险管理预警
+    STOP_LOSS = "stop_loss"  # 止损
+    TAKE_PROFIT = "take_profit"  # 止盈
+    TRAILING_STOP = "trailing_stop"  # 移动止损
+    
+    # 组合条件预警
+    COMPOSITE_AND = "composite_and"  # 多条件与
+    COMPOSITE_OR = "composite_or"  # 多条件或
 
 class AlertStatus(enum.Enum):
     ACTIVE = "active"

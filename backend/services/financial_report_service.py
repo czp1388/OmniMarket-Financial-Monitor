@@ -4,20 +4,49 @@
 - Alpha Vantage (免费API，需要API key)
 - Financial Modeling Prep (备用)
 - Mock Data (降级方案)
+
+优化特性：
+- 自动降级策略
+- 智能缓存系统
+- 并发请求优化
+- 重试机制
+- 错误追踪
 """
 
 import os
 import asyncio
 import aiohttp
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime, timedelta
 import logging
+from functools import wraps
+import time
 
 logger = logging.getLogger(__name__)
 
 
+def with_retry(max_retries: int = 3, delay: float = 1.0):
+    """重试装饰器"""
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            last_exception = None
+            for attempt in range(max_retries):
+                try:
+                    return await func(*args, **kwargs)
+                except Exception as e:
+                    last_exception = e
+                    if attempt < max_retries - 1:
+                        logger.warning(f"第 {attempt + 1} 次尝试失败: {e}，{delay}秒后重试")
+                        await asyncio.sleep(delay * (attempt + 1))
+            logger.error(f"所有重试失败: {last_exception}")
+            raise last_exception
+        return wrapper
+    return decorator
+
+
 class FinancialReportService:
-    """财报数据服务"""
+    """财报数据服务 - 增强版"""
     
     def __init__(self):
         self.alpha_vantage_key = os.getenv('ALPHA_VANTAGE_API_KEY', '')
@@ -27,15 +56,29 @@ class FinancialReportService:
         self.av_base_url = "https://www.alphavantage.co/query"
         self.fmp_base_url = "https://financialmodelingprep.com/api/v3"
         
-        # 缓存
+        # 缓存系统
         self.cache: Dict[str, Dict[str, Any]] = {}
         self.cache_ttl = 3600  # 1小时缓存
         
-        logger.info(f"FinancialReportService 初始化 (Alpha Vantage: {'已配置' if self.alpha_vantage_key else '未配置'})")
+        # 性能监控
+        self.request_count = 0
+        self.error_count = 0
+        self.cache_hits = 0
+        self.cache_misses = 0
+        self.total_response_time = 0
+        
+        # 数据源状态
+        self.data_sources_status = {
+            'alpha_vantage': {'available': bool(self.alpha_vantage_key), 'errors': 0, 'last_error': None},
+            'fmp': {'available': bool(self.fmp_key), 'errors': 0, 'last_error': None},
+            'mock': {'available': True, 'errors': 0, 'last_error': None}
+        }
+        
+        logger.info(f"FinancialReportService 初始化 (Alpha Vantage: {'已配置' if self.alpha_vantage_key else '未配置'}, FMP: {'已配置' if self.fmp_key else '未配置'})")
     
     async def get_financial_report(self, symbol: str) -> Optional[Dict[str, Any]]:
         """
-        获取公司财报数据
+        获取公司财报数据 - 增强版
         
         参数:
             symbol: 股票代码 (如 AAPL, MSFT)
@@ -43,29 +86,50 @@ class FinancialReportService:
         返回:
             财报数据字典，包含所有财务指标
         """
+        start_time = time.time()
+        self.request_count += 1
+        symbol = symbol.upper()
+        
         # 检查缓存
         cache_key = f"report_{symbol}"
-        if cache_key in self.cache:
-            cached_data = self.cache[cache_key]
-            if datetime.now().timestamp() - cached_data['timestamp'] < self.cache_ttl:
-                logger.debug(f"从缓存返回 {symbol} 财报数据")
-                return cached_data['data']
+        cached_data = self._get_from_cache(cache_key)
+        if cached_data:
+            self.cache_hits += 1
+            logger.debug(f"缓存命中: {symbol} (命中率: {self.get_cache_hit_rate():.1f}%)")
+            return cached_data
         
-        # 尝试从 Alpha Vantage 获取
-        if self.alpha_vantage_key:
+        self.cache_misses += 1
+        
+        # 多数据源降级策略
+        data_sources = [
+            ('alpha_vantage', self._fetch_from_alpha_vantage),
+            ('fmp', self._fetch_from_fmp),
+            ('mock', lambda s: asyncio.create_task(asyncio.coroutine(lambda: self._get_mock_data(s))()))
+        ]
+        
+        for source_name, fetch_func in data_sources:
+            if not self.data_sources_status[source_name]['available']:
+                continue
+                
             try:
-                data = await self._fetch_from_alpha_vantage(symbol)
+                logger.debug(f"尝试从 {source_name} 获取 {symbol} 数据")
+                data = await fetch_func(symbol)
                 if data:
                     self._cache_data(cache_key, data)
+                    self._record_success(source_name)
+                    response_time = time.time() - start_time
+                    self.total_response_time += response_time
+                    logger.info(f"成功从 {source_name} 获取 {symbol} 数据 (耗时: {response_time:.2f}s)")
                     return data
             except Exception as e:
-                logger.warning(f"Alpha Vantage 获取失败: {e}")
+                self._record_error(source_name, e)
+                logger.warning(f"{source_name} 获取失败: {e}")
+                continue
         
-        # 降级到模拟数据
-        logger.info(f"使用模拟数据: {symbol}")
-        mock_data = self._get_mock_data(symbol)
-        self._cache_data(cache_key, mock_data)
-        return mock_data
+        # 所有数据源都失败
+        self.error_count += 1
+        logger.error(f"所有数据源获取 {symbol} 失败，返回None")
+        return None
     
     async def get_historical_data(self, symbol: str, periods: int = 4) -> Optional[List[Dict[str, Any]]]:
         """
@@ -99,41 +163,111 @@ class FinancialReportService:
         self._cache_data(cache_key, mock_data)
         return mock_data
     
+    @with_retry(max_retries=3, delay=1.0)
     async def _fetch_from_alpha_vantage(self, symbol: str) -> Optional[Dict[str, Any]]:
-        """从 Alpha Vantage 获取财报数据"""
-        async with aiohttp.ClientSession() as session:
-            # 获取收入报表
-            income_url = f"{self.av_base_url}?function=INCOME_STATEMENT&symbol={symbol}&apikey={self.alpha_vantage_key}"
-            # 获取资产负债表
-            balance_url = f"{self.av_base_url}?function=BALANCE_SHEET&symbol={symbol}&apikey={self.alpha_vantage_key}"
-            # 获取现金流量表
-            cash_flow_url = f"{self.av_base_url}?function=CASH_FLOW&symbol={symbol}&apikey={self.alpha_vantage_key}"
+        """从 Alpha Vantage 获取财报数据 - 增强版"""
+        if not self.alpha_vantage_key:
+            raise ValueError("Alpha Vantage API key 未配置")
             
-            try:
-                # 并行请求
-                income_task = session.get(income_url, timeout=aiohttp.ClientTimeout(total=10))
-                balance_task = session.get(balance_url, timeout=aiohttp.ClientTimeout(total=10))
-                cash_task = session.get(cash_flow_url, timeout=aiohttp.ClientTimeout(total=10))
-                
-                income_resp, balance_resp, cash_resp = await asyncio.gather(
-                    income_task, balance_task, cash_task
-                )
-                
-                income_data = await income_resp.json()
-                balance_data = await balance_resp.json()
-                cash_data = await cash_resp.json()
-                
-                # 解析最新季度数据
-                return self._parse_alpha_vantage_data(symbol, income_data, balance_data, cash_data)
-                
-            except Exception as e:
-                logger.error(f"Alpha Vantage API 请求失败: {e}")
-                return None
+        timeout = aiohttp.ClientTimeout(total=15)
+        
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            # 构建URL
+            urls = {
+                'income': f"{self.av_base_url}?function=INCOME_STATEMENT&symbol={symbol}&apikey={self.alpha_vantage_key}",
+                'balance': f"{self.av_base_url}?function=BALANCE_SHEET&symbol={symbol}&apikey={self.alpha_vantage_key}",
+                'cash_flow': f"{self.av_base_url}?function=CASH_FLOW&symbol={symbol}&apikey={self.alpha_vantage_key}"
+            }
+            
+            # 并发请求所有报表
+            tasks = [session.get(url) for url in urls.values()]
+            responses = await asyncio.gather(*tasks, return_exceptions=True)
+            
+            # 检查响应
+            for i, resp in enumerate(responses):
+                if isinstance(resp, Exception):
+                    raise resp
+                if resp.status != 200:
+                    raise ValueError(f"API返回错误状态码: {resp.status}")
+            
+            # 解析JSON
+            income_data, balance_data, cash_data = await asyncio.gather(
+                responses[0].json(),
+                responses[1].json(),
+                responses[2].json()
+            )
+            
+            # 检查API限制
+            if 'Note' in income_data or 'Error Message' in income_data:
+                raise ValueError(f"Alpha Vantage API错误: {income_data.get('Note') or income_data.get('Error Message')}")
+            
+            # 解析数据
+            return self._parse_alpha_vantage_data(symbol, income_data, balance_data, cash_data)
     
     async def _fetch_historical_from_av(self, symbol: str, periods: int) -> Optional[List[Dict[str, Any]]]:
         """从 Alpha Vantage 获取历史数据"""
         # 实现类似逻辑，返回多个季度的数据
         pass
+    
+    async def _fetch_from_fmp(self, symbol: str) -> Optional[Dict[str, Any]]:
+        """从 Financial Modeling Prep 获取数据 (备用数据源)"""
+        if not self.fmp_key:
+            raise ValueError("FMP API key 未配置")
+        
+        # FMP API实现（留待将来扩展）
+        logger.debug(f"FMP数据源暂未实现: {symbol}")
+        return None
+    
+    def _get_from_cache(self, key: str) -> Optional[Any]:
+        """从缓存获取数据"""
+        if key in self.cache:
+            cached_data = self.cache[key]
+            age = datetime.now().timestamp() - cached_data['timestamp']
+            if age < self.cache_ttl:
+                return cached_data['data']
+            else:
+                # 清理过期缓存
+                del self.cache[key]
+        return None
+    
+    def _record_success(self, source_name: str):
+        """记录数据源成功"""
+        if source_name in self.data_sources_status:
+            self.data_sources_status[source_name]['errors'] = 0
+            self.data_sources_status[source_name]['last_error'] = None
+    
+    def _record_error(self, source_name: str, error: Exception):
+        """记录数据源错误"""
+        if source_name in self.data_sources_status:
+            self.data_sources_status[source_name]['errors'] += 1
+            self.data_sources_status[source_name]['last_error'] = str(error)
+            
+            # 如果错误过多，暂时标记为不可用
+            if self.data_sources_status[source_name]['errors'] > 5:
+                self.data_sources_status[source_name]['available'] = False
+                logger.warning(f"数据源 {source_name} 因错误过多被标记为不可用")
+    
+    def get_cache_hit_rate(self) -> float:
+        """获取缓存命中率"""
+        total = self.cache_hits + self.cache_misses
+        return (self.cache_hits / total * 100) if total > 0 else 0
+    
+    def get_avg_response_time(self) -> float:
+        """获取平均响应时间"""
+        return (self.total_response_time / self.request_count) if self.request_count > 0 else 0
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """获取服务统计信息"""
+        return {
+            "total_requests": self.request_count,
+            "errors": self.error_count,
+            "error_rate": (self.error_count / self.request_count * 100) if self.request_count > 0 else 0,
+            "cache_hits": self.cache_hits,
+            "cache_misses": self.cache_misses,
+            "cache_hit_rate": self.get_cache_hit_rate(),
+            "avg_response_time": self.get_avg_response_time(),
+            "data_sources": self.data_sources_status
+        }
     
     def _parse_alpha_vantage_data(
         self, 
